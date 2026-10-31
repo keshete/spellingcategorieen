@@ -33,3 +33,72 @@ main { padding: 0 1.5rem 2rem; }
 .tegel:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
 .nr { font-size: 2.4rem; font-weight: bold; }
 .naam { font-size: 1.1rem; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
+
+/* ---------- links als tegels ---------- */
+a { color: inherit; text-decoration: none; }
+.mascot { text-decoration: none; }
+.tegel { position: relative; padding: .6rem; text-align: center; }
+.tegel .figuur { font-size: 2.6rem; line-height: 1; }
+.tegel .sterren { font-size: 1.2rem; color: #fff7c2; letter-spacing: 2px; }
+
+.grote-knop {
+  display: inline-block; border: none; cursor: pointer;
+  background: #ffca28; color: #333; font: inherit; font-size: 1.3rem; font-weight: bold;
+  padding: .9rem 1.4rem; border-radius: 1rem; margin: .3rem;
+  box-shadow: 0 5px 0 #c49000;
+}
+.grote-knop:active { transform: translateY(4px); box-shadow: 0 1px 0 #c49000; }
+.grote-knop.sorteer { display: block; text-align: center; margin: 0 0 1rem; background: #4fc3f7; box-shadow: 0 5px 0 #0288d1; }
+
+/* ---------- kaart ---------- */
+.kaart {
+  background: #fff; border: 5px solid #ffca28; border-radius: 1.5rem;
+  padding: 1.2rem; max-width: 760px; margin: 0 auto; text-align: center;
+}
+.kop { display: flex; align-items: center; gap: 1rem; color: #fff; border-radius: 1rem; padding: .8rem 1.2rem; text-align: left; }
+.kop h2 { margin: 0; font-size: 2rem; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.kop .nr { font-size: 1.6rem; }
+.figuur.groot { font-size: 4rem; }
+.figuur.reus { font-size: 7rem; display: inline-block; }
+.regel { font-size: 1.3rem; margin: 1rem 0; }
+.knoppen { margin-top: 1rem; }
+.terug { display: inline-block; margin-top: 1rem; font-size: 1.1rem; color: #777; }
+
+/* ---------- uitleg ---------- */
+.podium { display: flex; align-items: center; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.ballon { flex: 1; min-width: 240px; background: #fff8e7; border: 3px solid #333; border-radius: 1.2rem; padding: 1rem; font-size: 1.3rem; text-align: left; }
+.dans { animation: dans 1.6s ease-in-out infinite; }
+@keyframes dans { 0%,100% { transform: rotate(-6deg) translateY(0); } 50% { transform: rotate(6deg) translateY(-12px); } }
+.voorbeelden { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
+.voorbeelden li { font-size: 2rem; background: #f3f3f3; padding: .3rem .9rem; border-radius: .8rem; }
+.pop { animation: pop .4s ease-out; }
+@keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
+
+/* ---------- spelletjes ---------- */
+.voortgang { font-size: 1.1rem; color: #666; margin-bottom: .6rem; }
+.woord-groot { font-size: 3.2rem; font-weight: bold; margin: 1rem 0; letter-spacing: 2px; }
+.gat { display: inline-block; min-width: 2.2ch; border-bottom: 5px dashed #999; color: #bbb; }
+.gat.ingevuld { color: #2e7d32; border-color: #2e7d32; }
+.keuzes { display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center; }
+.keuze {
+  font: inherit; font-size: 2rem; min-width: 5rem; padding: .6rem 1.2rem; cursor: pointer;
+  border: 4px solid #ddd; border-radius: 1rem; background: #fff;
+}
+.keuze.cat { font-size: 1.2rem; color: #fff; border-color: transparent; display: flex; flex-direction: column; align-items: center; min-width: 9rem; }
+.keuze.cat .figuur { font-size: 2.2rem; }
+.keuze.goed { border-color: #2e7d32 !important; background: #c8e6c9; color: #1b5e20; }
+.keuze.fout { border-color: #c62828 !important; background: #ffcdd2; color: #b71c1c; animation: schud .4s; }
+@keyframes schud { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+.luister { font-size: 2rem; border: none; background: #e1f5fe; border-radius: 50%; width: 4rem; height: 4rem; cursor: pointer; }
+.luister.groot { font-size: 3.5rem; width: 7rem; height: 7rem; }
+.dictee { margin: 1rem 0; }
+.dictee input { font: inherit; font-size: 2.4rem; width: 12ch; text-align: center; padding: .4rem; border: 4px solid #ccc; border-radius: 1rem; }
+.dictee input.goed { border-color: #2e7d32; background: #c8e6c9; }
+.dictee input.fout { border-color: #c62828; background: #ffcdd2; }
+.uitkomst { font-size: 2rem; min-height: 2.5rem; }
+.eind p { font-size: 1.5rem; }
+.groot-sterren { font-size: 4rem; color: #ffb300; letter-spacing: 6px; }
+
+.confetti { position: fixed; top: -2rem; font-size: 2rem; animation: val 2.2s linear forwards; pointer-events: none; }
+@keyframes val { to { transform: translateY(110vh) rotate(360deg); } }
