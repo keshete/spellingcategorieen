@@ -121,7 +121,7 @@ function feest() {
 
 // ---------- schermen ----------
 function thuis() {
-  zegEekhoorn("Hoi! Ik ben Ellie Eekhoorn. Kies een categorie en we gaan oefenen!");
+  zegEekhoorn("Hoi! Ik ben Eva Eekhoorn. Kies een categorie en we gaan oefenen!");
   const s = sterren();
   scherm.innerHTML = `
     <a class="grote-knop sorteer" href="#sorteer">🎮 Sorteerspel: welke categorie is het?</a>
