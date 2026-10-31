@@ -31,17 +31,46 @@ function toonStemWaarschuwing() {
 }
 if ("speechSynthesis" in window) { kiesStem(); speechSynthesis.onvoiceschanged = kiesStem; }
 
-function zeg(tekst) {
+// iPhone/iPad: een lage snelheid laat de stem de woorden aan elkaar plakken.
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+// Knip een tekst in korte stukjes (zinnen en stukjes tussen komma's),
+// zodat de stem na elk stukje echt even stopt.
+function stukjes(tekst) {
+  return (String(tekst).match(/[^.!?,:;]+[.!?,:;]*/g) || [])
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+let spreekBeurt = 0; // telt op bij elke nieuwe zeg(), zodat een oude zin stopt
+function spreekStukje(t) {
   return new Promise((klaar) => {
-    if (!("speechSynthesis" in window)) return setTimeout(klaar, 600);
-    if (!nlStem) kiesStem();
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(tekst);
-    u.lang = nlStem ? nlStem.lang : "nl-NL"; u.rate = 0.85;
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = nlStem ? nlStem.lang : "nl-NL";
+    u.rate = isIOS ? 1 : 0.9;
     if (nlStem) u.voice = nlStem;
-    u.onend = klaar; u.onerror = klaar;
+    let gedaan = false;
+    const af = () => { if (!gedaan) { gedaan = true; klaar(); } };
+    u.onend = af; u.onerror = af;
+    // vangnet: sommige browsers vergeten onend
+    setTimeout(af, 1500 + t.length * 150);
     speechSynthesis.speak(u);
   });
+}
+
+async function zeg(tekst) {
+  if (!("speechSynthesis" in window)) return wacht(600);
+  if (!nlStem) kiesStem();
+  const beurt = ++spreekBeurt;
+  speechSynthesis.cancel();
+  await wacht(80); // iOS: direct na cancel() spreken gaat soms mis
+  for (const t of stukjes(tekst)) {
+    if (beurt !== spreekBeurt) return;
+    await spreekStukje(t);
+    if (beurt !== spreekBeurt) return;
+    await wacht(250);
+  }
 }
 
 // ---------- sterren ----------
@@ -279,7 +308,7 @@ function sorteer() {
 
 // ---------- router ----------
 function route() {
-  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  if ("speechSynthesis" in window) { spreekBeurt++; speechSynthesis.cancel(); }
   const [naam, nr] = location.hash.slice(1).split("/");
   const cat = vindCat(nr);
   window.scrollTo(0, 0);
