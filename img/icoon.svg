@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14b8c4"/><stop offset=".55" stop-color="#3b5bf0"/><stop offset="1" stop-color="#7a2ff0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="14" stroke-linecap="round">
+    <path d="M70,110 a28,28 0 1,1 28,28 a16,16 0 1,1 -14,-18"/>
+    <path d="M430,420 a28,28 0 1,1 28,28 a16,16 0 1,1 -14,-18"/>
+  </g>
+  <g transform="translate(256,300) scale(7)">
+    <path d="M-18,-2 L-20,-24 L-8,-14 Q0,-17 8,-14 L20,-24 L18,-2 Q18,16 0,17 Q-18,16 -18,-2 Z" fill="#1b1f5e" transform="translate(-1.2,1.4)" opacity=".5"/>
+    <path d="M-18,-2 L-20,-24 L-8,-14 Q0,-17 8,-14 L20,-24 L18,-2 Q18,16 0,17 Q-18,16 -18,-2 Z" fill="#1b1f5e"/>
+    <circle cx="-7" cy="-2" r="2.8" fill="#ffd23f"/><circle cx="7" cy="-2" r="2.8" fill="#ffd23f"/>
+    <path d="M-3,5 L3,5 L0,8 Z" fill="#ff7a59"/>
+  </g>
+  <path d="M405,70 Q405,110 445,110 Q405,110 405,150 Q405,110 365,110 Q405,110 405,70 Z" fill="#ffd23f"/>
+</svg>

@@ -1,0 +1,15 @@
+{
+  "name": "Libby app – Spellingcategorieën",
+  "short_name": "Libby app",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff8e7",
+  "theme_color": "#3b5bf0",
+  "lang": "nl",
+  "icons": [
+    { "src": "img/icoon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icoon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "img/icoon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
