@@ -1,9 +1,9 @@
 // ---------- hulpjes ----------
 const scherm = document.getElementById("scherm");
-const uki = document.getElementById("uki");
+const erik = document.getElementById("erik");
 const RONDE = 5; // vragen per spelletje
 
-const zegUki = (t) => { uki.textContent = t; };
+const zegErik = (t) => { erik.textContent = t; };
 const schud = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const woord = (x) => (typeof x === "string" ? x : x.w);
 const vindCat = (nr) => CATEGORIEEN.find((c) => c.nr === Number(nr));
@@ -69,7 +69,7 @@ function feest() {
 
 // ---------- schermen ----------
 function thuis() {
-  zegUki("Hoi! Ik ben Uil Uki. Kies een categorie en we gaan oefenen!");
+  zegErik("Hoi! Ik ben Erik Eekhoorn. Kies een categorie en we gaan oefenen!");
   const s = sterren();
   scherm.innerHTML = `
     <a class="grote-knop sorteer" href="#sorteer">🎮 Sorteerspel: welke categorie is het?</a>
@@ -87,7 +87,7 @@ function thuis() {
 }
 
 function categorie(cat) {
-  zegUki(`Dit is ${cat.figuurNaam}. Wat wil je doen?`);
+  zegErik(`Dit is ${cat.figuurNaam}. Wat wil je doen?`);
   const heeftGat = cat.woorden.some((x) => maakGat(cat, x));
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
@@ -106,7 +106,7 @@ function categorie(cat) {
 }
 
 async function uitleg(cat) {
-  zegUki("Kijk en luister goed!");
+  zegErik("Kijk en luister goed!");
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="podium">
@@ -151,8 +151,8 @@ function speelRonde({ titel, cat, maakVraag, terug }) {
         <a class="terug" href="${terug}">← Stoppen</a>
       </div>`;
     maakVraag(scherm.querySelector("#vraag"), async (isGoed, uitlegFout) => {
-      if (isGoed) { goed++; zegUki(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!"); }
-      else { zegUki(uitlegFout); }
+      if (isGoed) { goed++; zegErik(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!"); }
+      else { zegErik(uitlegFout); }
       i++;
       await wacht(isGoed ? 900 : 2200);
       if (location.hash === hier) volgende(); // niet doorgaan als het kind al weg is
@@ -163,7 +163,7 @@ function speelRonde({ titel, cat, maakVraag, terug }) {
     const n = goed === RONDE ? 3 : goed >= 3 ? 2 : goed >= 1 ? 1 : 0;
     if (cat) geefSterren(cat.nr, n);
     if (n >= 2) feest();
-    zegUki(n === 3 ? "Alles goed! Wat ben jij een spellingkampioen!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend! Nog een keer?");
+    zegErik(n === 3 ? "Alles goed! Wat ben jij een spellingkampioen!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend! Nog een keer?");
     scherm.innerHTML = `
       <div class="kaart eind">
         <div class="groot-sterren">${sterTekst(n)}</div>
@@ -186,7 +186,7 @@ function gaatjes(cat) {
     maakVraag: (doos, antwoord) => {
       const x = lijst[Math.floor(Math.random() * lijst.length)];
       const g = maakGat(cat, x);
-      zegUki("Welk stukje past in het gaatje?");
+      zegErik("Welk stukje past in het gaatje?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
@@ -211,7 +211,7 @@ function dictee(cat) {
     maakVraag: (doos, antwoord) => {
       const x = schud(cat.woorden)[0];
       const w = woord(x);
-      zegUki("Luister goed en schrijf het woord op.");
+      zegErik("Luister goed en schrijf het woord op.");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
         <form class="dictee">
@@ -242,7 +242,7 @@ function sorteer() {
       const cat = schud(CATEGORIEEN)[0];
       const x = schud(cat.woorden)[0];
       const keuzes = schud([cat, ...schud(CATEGORIEEN.filter((c) => c !== cat)).slice(0, 2)]);
-      zegUki("Bij welke categorie hoort dit woord?");
+      zegErik("Bij welke categorie hoort dit woord?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
         <div class="woord-groot">${woord(x)}</div>
