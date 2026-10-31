@@ -14,16 +14,30 @@ const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 let nlStem = null;
 function kiesStem() {
   const stemmen = speechSynthesis.getVoices();
-  nlStem = stemmen.find((v) => v.lang === "nl-NL") || stemmen.find((v) => v.lang.startsWith("nl")) || null;
+  const nl = stemmen.filter((v) => v.lang.replace("_", "-").toLowerCase().startsWith("nl"));
+  nlStem =
+    nl.find((v) => /nl-nl/i.test(v.lang.replace("_", "-")) && /google/i.test(v.name)) ||
+    nl.find((v) => /nl-nl/i.test(v.lang.replace("_", "-"))) ||
+    nl[0] || null;
+  if (stemmen.length && !nlStem) toonStemWaarschuwing();
+}
+function toonStemWaarschuwing() {
+  if (document.getElementById("geen-stem")) return;
+  const w = el(`<div id="geen-stem" class="waarschuwing">
+    Dit apparaat heeft geen Nederlandse voorleesstem, dus het voorlezen klinkt niet goed.
+    Op een iPad: Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands.
+    Of gebruik Google Chrome.</div>`);
+  document.body.prepend(w);
 }
 if ("speechSynthesis" in window) { kiesStem(); speechSynthesis.onvoiceschanged = kiesStem; }
 
 function zeg(tekst) {
   return new Promise((klaar) => {
     if (!("speechSynthesis" in window)) return setTimeout(klaar, 600);
+    if (!nlStem) kiesStem();
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(tekst);
-    u.lang = "nl-NL"; u.rate = 0.85;
+    u.lang = nlStem ? nlStem.lang : "nl-NL"; u.rate = 0.85;
     if (nlStem) u.voice = nlStem;
     u.onend = klaar; u.onerror = klaar;
     speechSynthesis.speak(u);

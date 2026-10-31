@@ -102,3 +102,4 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 
 .confetti { position: fixed; top: -2rem; font-size: 2rem; animation: val 2.2s linear forwards; pointer-events: none; }
 @keyframes val { to { transform: translateY(110vh) rotate(360deg); } }
+.waarschuwing { background: #fff3cd; border-bottom: 3px solid #ffb300; padding: .7rem 1.2rem; font-size: 1rem; }
