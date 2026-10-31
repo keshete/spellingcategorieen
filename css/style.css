@@ -1,0 +1,35 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+  background: #fff8e7;
+  color: #333;
+}
+header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 1.5rem;
+}
+.mascot { font-size: 4.5rem; }
+h1 { margin: 0; font-size: 2rem; }
+.speech {
+  margin: .5rem 0 0; padding: .6rem 1rem;
+  background: #fff; border-radius: 1rem; border: 3px solid #333;
+  font-size: 1.15rem;
+}
+main { padding: 0 1.5rem 2rem; }
+.grid {
+  list-style: none; padding: 0; margin: 0;
+  display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+.tegel {
+  width: 100%; min-height: 120px;
+  border: none; border-radius: 1.2rem;
+  color: #fff; font: inherit; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: 0 5px 0 rgba(0,0,0,.2);
+  transition: transform .1s;
+}
+.tegel:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.nr { font-size: 2.4rem; font-weight: bold; }
+.naam { font-size: 1.1rem; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
