@@ -5,3 +5,4 @@
 - Plain HTML/CSS/JavaScript with no build step and no dependencies, so it runs directly on GitHub Pages and can be edited from a phone.
 - Design for touch: big buttons, large text, no hover-only interactions.
 - Mascot: Erik Eekhoorn (🐿️) talks to the child in short, encouraging sentences.
+- When changing CSS/JS, bump the `?v=` number on the links in index.html so browsers don't mix old and new files.
