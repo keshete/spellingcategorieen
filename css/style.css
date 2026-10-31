@@ -8,7 +8,9 @@ body {
 header {
   display: flex; align-items: center; gap: 1rem;
   padding: 1rem 1.5rem;
+  flex-wrap: wrap;
 }
+.logo img { display: block; height: 120px; width: auto; }
 .mascot { font-size: 4.5rem; }
 h1 { margin: 0; font-size: 2rem; }
 .speech {
