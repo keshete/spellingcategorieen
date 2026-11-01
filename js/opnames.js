@@ -100,7 +100,32 @@ function alleWoorden() {
   return lijst;
 }
 
+// Alleen voor een grote mens: anders hoort het kind de woorden al bij het inspreken.
+let groteMensOk = false;
+function groteMensVraag() {
+  const a = 6 + Math.floor(Math.random() * 4), b = 6 + Math.floor(Math.random() * 4);
+  zegEekhoorn("Dit is voor een juf, meester of ouder.");
+  scherm.innerHTML = `
+    <div class="kaart">
+      <a class="terug" href="#stem">⬅ Terug</a>
+      <h2>👩‍🏫 Voor een grote mens</h2>
+      <p>De woorden inspreken doet een juf, meester of ouder. Zo weet het kind de woorden nog niet
+        voordat het dictee begint.</p>
+      <form class="dictee" id="grotemens">
+        <label style="font-size:1.4rem">Hoeveel is ${a} × ${b}?
+          <input inputmode="numeric" autocomplete="off" aria-label="Antwoord"></label>
+        <button class="grote-knop">Verder ✔</button>
+      </form>
+    </div>`;
+  scherm.querySelector("#grotemens").onsubmit = (e) => {
+    e.preventDefault();
+    if (Number(scherm.querySelector("#grotemens input").value) === a * b) { groteMensOk = true; opnameScherm(); }
+    else zegEekhoorn("Dat klopt niet. Vraag het aan een grote mens!");
+  };
+}
+
 async function opnameScherm() {
+  if (!groteMensOk) return groteMensVraag();
   await opnamesGeladen;
   zegEekhoorn("Tik op 🎙️ en zeg het woord. Tik nog een keer om te stoppen.");
   const kanOpnemen = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
