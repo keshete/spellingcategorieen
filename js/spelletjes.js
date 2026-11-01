@@ -314,27 +314,68 @@ function geluid(soort) {
 // Alles blijft op dit apparaat (localStorage), de foto gaat nergens naartoe.
 const WINKEL = [
   { id: "eekhoorn", soort: "dier", emoji: "🐿️", naam: "Eekhoorn", prijs: 0 },
-  { id: "kat", soort: "dier", emoji: "🐱", naam: "Kat", prijs: 10 },
-  { id: "hond", soort: "dier", emoji: "🐶", naam: "Hond", prijs: 10 },
-  { id: "konijn", soort: "dier", emoji: "🐰", naam: "Konijn", prijs: 10 },
-  { id: "vos", soort: "dier", emoji: "🦊", naam: "Vos", prijs: 15 },
-  { id: "panda", soort: "dier", emoji: "🐼", naam: "Panda", prijs: 15 },
-  { id: "olifant", soort: "dier", emoji: "🐘", naam: "Olifant", prijs: 20 },
-  { id: "giraf", soort: "dier", emoji: "🦒", naam: "Giraf", prijs: 20 },
-  { id: "leeuw", soort: "dier", emoji: "🦁", naam: "Leeuw", prijs: 20 },
-  { id: "eenhoorn", soort: "dier", emoji: "🦄", naam: "Eenhoorn", prijs: 30 },
-  { id: "draak", soort: "dier", emoji: "🐉", naam: "Draak", prijs: 40 },
-  { id: "foto", soort: "foto", emoji: "📷", naam: "Mijn eigen foto", prijs: 25 },
+  { id: "kat", soort: "dier", emoji: "🐱", naam: "Kat", prijs: 8 },
+  { id: "hond", soort: "dier", emoji: "🐶", naam: "Hond", prijs: 8 },
+  { id: "konijn", soort: "dier", emoji: "🐰", naam: "Konijn", prijs: 8 },
+  { id: "hamster", soort: "dier", emoji: "🐹", naam: "Hamster", prijs: 8 },
+  { id: "muis", soort: "dier", emoji: "🐭", naam: "Muis", prijs: 8 },
+  { id: "vogel", soort: "dier", emoji: "🐦", naam: "Vogel", prijs: 8 },
+  { id: "kuiken", soort: "dier", emoji: "🐥", naam: "Kuiken", prijs: 8 },
+  { id: "vis", soort: "dier", emoji: "🐠", naam: "Vis", prijs: 8 },
+  { id: "schildpad", soort: "dier", emoji: "🐢", naam: "Schildpad", prijs: 9 },
+  { id: "kikker", soort: "dier", emoji: "🐸", naam: "Kikker", prijs: 9 },
+  { id: "vos", soort: "dier", emoji: "🦊", naam: "Vos", prijs: 10 },
+  { id: "beer", soort: "dier", emoji: "🐻", naam: "Beer", prijs: 10 },
+  { id: "panda", soort: "dier", emoji: "🐼", naam: "Panda", prijs: 10 },
+  { id: "koala", soort: "dier", emoji: "🐨", naam: "Koala", prijs: 10 },
+  { id: "aap", soort: "dier", emoji: "🐵", naam: "Aap", prijs: 10 },
+  { id: "varken", soort: "dier", emoji: "🐷", naam: "Varken", prijs: 10 },
+  { id: "koe", soort: "dier", emoji: "🐮", naam: "Koe", prijs: 10 },
+  { id: "paard", soort: "dier", emoji: "🐴", naam: "Paard", prijs: 10 },
+  { id: "uil", soort: "dier", emoji: "🦉", naam: "Uil", prijs: 10 },
+  { id: "pinguin", soort: "dier", emoji: "🐧", naam: "Pinguïn", prijs: 10 },
+  { id: "egel", soort: "dier", emoji: "🦔", naam: "Egel", prijs: 10 },
+  { id: "olifant", soort: "dier", emoji: "🐘", naam: "Olifant", prijs: 11 },
+  { id: "giraf", soort: "dier", emoji: "🦒", naam: "Giraf", prijs: 11 },
+  { id: "leeuw", soort: "dier", emoji: "🦁", naam: "Leeuw", prijs: 11 },
+  { id: "tijger", soort: "dier", emoji: "🐯", naam: "Tijger", prijs: 11 },
+  { id: "zebra", soort: "dier", emoji: "🦓", naam: "Zebra", prijs: 11 },
+  { id: "dolfijn", soort: "dier", emoji: "🐬", naam: "Dolfijn", prijs: 11 },
+  { id: "octopus", soort: "dier", emoji: "🐙", naam: "Octopus", prijs: 11 },
+  { id: "vlinder", soort: "dier", emoji: "🦋", naam: "Vlinder", prijs: 11 },
+  { id: "flamingo", soort: "dier", emoji: "🦩", naam: "Flamingo", prijs: 12 },
+  { id: "papegaai", soort: "dier", emoji: "🦜", naam: "Papegaai", prijs: 12 },
+  { id: "eenhoorn", soort: "dier", emoji: "🦄", naam: "Eenhoorn", prijs: 20 },
+  { id: "draak", soort: "dier", emoji: "🐉", naam: "Draak", prijs: 20 },
+  { id: "dino", soort: "dier", emoji: "🦖", naam: "Dino", prijs: 20 },
+  { id: "foto", soort: "foto", emoji: "📷", naam: "Mijn foto", prijs: 0 },
   { id: "geen", soort: "spul", emoji: "✖️", naam: "Niks", prijs: 0 },
-  { id: "strik", soort: "spul", emoji: "🎀", naam: "Strik", prijs: 5 },
-  { id: "ballon", soort: "spul", emoji: "🎈", naam: "Ballon", prijs: 6 },
-  { id: "pet", soort: "spul", emoji: "🧢", naam: "Pet", prijs: 8 },
-  { id: "bril", soort: "spul", emoji: "🕶️", naam: "Zonnebril", prijs: 10 },
-  { id: "hoed", soort: "spul", emoji: "🎩", naam: "Hoge hoed", prijs: 15 },
-  { id: "kroon", soort: "spul", emoji: "👑", naam: "Kroon", prijs: 25 },
+  { id: "strik", soort: "spul", emoji: "🎀", naam: "Strik", prijs: 8 },
+  { id: "ballon", soort: "spul", emoji: "🎈", naam: "Ballon", prijs: 8 },
+  { id: "bloem", soort: "spul", emoji: "🌸", naam: "Bloem", prijs: 8 },
+  { id: "hartje", soort: "spul", emoji: "💖", naam: "Hartje", prijs: 8 },
+  { id: "ster", soort: "spul", emoji: "⭐", naam: "Ster", prijs: 8 },
+  { id: "pet", soort: "spul", emoji: "🧢", naam: "Pet", prijs: 9 },
+  { id: "muts", soort: "spul", emoji: "👒", naam: "Zonnehoed", prijs: 9 },
+  { id: "bril", soort: "spul", emoji: "🕶️", naam: "Zonnebril", prijs: 9 },
+  { id: "koptelefoon", soort: "spul", emoji: "🎧", naam: "Koptelefoon", prijs: 10 },
+  { id: "hoed", soort: "spul", emoji: "🎩", naam: "Hoge hoed", prijs: 10 },
+  { id: "kroon", soort: "spul", emoji: "👑", naam: "Kroon", prijs: 20 },
+  { id: "toverstaf", soort: "spul", emoji: "🪄", naam: "Toverstaf", prijs: 10 },
+  { id: "regenboog", soort: "spul", emoji: "🌈", naam: "Regenboog", prijs: 10 },
+  { id: "ijsje", soort: "spul", emoji: "🍦", naam: "IJsje", prijs: 8 },
+  { id: "donut", soort: "spul", emoji: "🍩", naam: "Donut", prijs: 8 },
+  { id: "voetbal", soort: "spul", emoji: "⚽", naam: "Voetbal", prijs: 9 },
+  { id: "gitaar", soort: "spul", emoji: "🎸", naam: "Gitaar", prijs: 10 },
+  { id: "raket", soort: "spul", emoji: "🚀", naam: "Raket", prijs: 20 },
+  { id: "kasteel", soort: "spul", emoji: "🏰", naam: "Kasteel", prijs: 20 },
+  { id: "trofee", soort: "spul", emoji: "🏆", naam: "Beker", prijs: 20 },
+  { id: "walvis", soort: "dier", emoji: "🐳", naam: "Walvis", prijs: 20 },
+  { id: "pauw", soort: "dier", emoji: "🦚", naam: "Pauw", prijs: 20 },
+  { id: "diamant", soort: "spul", emoji: "💎", naam: "Diamant", prijs: 20 },
 ];
 const aantalEikels = () => Number(localStorage.getItem("eikels") || 0);
-const gekocht = () => JSON.parse(localStorage.getItem("gekocht") || '["eekhoorn","geen"]');
+const gekocht = () => [...new Set(["eekhoorn", "geen", "foto", ...JSON.parse(localStorage.getItem("gekocht") || "[]")])];
 const mijnFiguur = () => ({ dier: "eekhoorn", spul: "geen", ...JSON.parse(localStorage.getItem("figuur") || "{}") });
 const winkelItem = (id) => WINKEL.find((w) => w.id === id);
 
@@ -420,16 +461,25 @@ function prijzen() {
         <div class="groot-figuur">${figuurHtml("groot")}</div>
         <div class="groot-eikels">🌰 ${n}</div>
       </div>
-      <p class="regel">Kies na een spelletje 🌰 eikels als beloning en koop hier leuke dingen!</p>
+      <p class="regel">Jij kiest! Koop wat je wilt, wanneer je wilt. Als je iets koopt, gaan die eikels eraf.</p>
+      <h3 class="spel-kop">📷 Maak een foto van je eigen dier</h3>
+      <p class="winkel-uitleg">Van je kat, poes, vogel of elk dier dat je wilt! Dan ben jij dat dier. De foto blijft alleen op dit apparaat.</p>
+      <div class="winkel-rij">
+        <label class="winkel-vak foto-kiezen"><span class="winkel-emoji">📸</span>Foto maken
+          <input type="file" accept="image/*" capture="environment" hidden></label>
+        <label class="winkel-vak foto-kiezen"><span class="winkel-emoji">🖼️</span>Foto kiezen
+          <input type="file" accept="image/*" hidden></label>
+        ${localStorage.getItem("figuurFoto") ? `<button class="winkel-vak ${f.dier === "foto" ? "aan" : "bezit"}" data-id="foto">
+          <span class="winkel-emoji"><img class="winkel-foto" src="${localStorage.getItem("figuurFoto")}" alt=""></span>Mijn foto
+          <span class="winkel-prijs">${f.dier === "foto" ? "✅ Aan" : "Kiezen"}</span></button>` : ""}
+      </div>
       <h3 class="spel-kop">🐾 Kies je dier</h3>
-      <div class="winkel-rij">${WINKEL.filter((w) => w.soort === "dier").map(vak).join("")}</div>
-      <h3 class="spel-kop">📷 Jouw eigen foto als figuur</h3>
-      <p class="winkel-uitleg">Bijvoorbeeld een foto van je eigen kat! De foto blijft alleen op dit apparaat.</p>
-      <div class="winkel-rij">${vak(winkelItem("foto"))}
-        ${fotoGekocht ? `<label class="winkel-vak foto-kiezen"><span class="winkel-emoji">🖼️</span>Foto maken of kiezen
-          <input type="file" accept="image/*" hidden></label>` : ""}</div>
+      <div class="winkel-rij">${WINKEL.filter((w) => w.soort === "dier" && w.prijs < 20).map(vak).join("")}</div>
       <h3 class="spel-kop">🎀 Spulletjes</h3>
-      <div class="winkel-rij">${WINKEL.filter((w) => w.soort === "spul").map(vak).join("")}</div>
+      <div class="winkel-rij">${WINKEL.filter((w) => w.soort === "spul" && w.prijs < 20).map(vak).join("")}</div>
+      <h3 class="spel-kop">🌟 Grote prijzen (🌰 20)</h3>
+      <p class="winkel-uitleg">Spaar je eikels voor iets heel bijzonders!</p>
+      <div class="winkel-rij groot">${WINKEL.filter((w) => w.prijs >= 20).map(vak).join("")}</div>
       <a class="grote-knop" href="#">Verder spelen</a>
     </div>`;
   scherm.querySelectorAll(".winkel-vak[data-id]").forEach((b) => (b.onclick = () => {
@@ -452,11 +502,8 @@ function prijzen() {
     localStorage.setItem("figuur", JSON.stringify(fig));
     toonEikels();
     prijzen();
-    if (w.soort === "foto" && !localStorage.getItem("figuurFoto"))
-      zegEekhoorn("Tik op 'Foto maken of kiezen' en kies een foto!");
   }));
-  const kies = scherm.querySelector('.foto-kiezen input');
-  if (kies) kies.onchange = async () => {
+  scherm.querySelectorAll('.foto-kiezen input').forEach((kies) => (kies.onchange = async () => {
     if (!kies.files[0]) return;
     try {
       localStorage.setItem("figuurFoto", await maakFotoKlein(kies.files[0]));
@@ -466,7 +513,7 @@ function prijzen() {
     } catch (e) {
       zegEekhoorn("Oei, die foto lukt niet. Probeer een andere!");
     }
-  };
+  }));
 }
 
 // ---------- 🗺️ de weg door een categorie ----------
@@ -732,12 +779,31 @@ function bordVragen() {
   });
 }
 const DOBBEL = ["", "⚀", "⚁", "⚂"];
+// Categorieën die je al mag doen: open (slotjes), of binnen je groep, of anders groep 4.
+function bordCategorieen() {
+  const mag = typeof isOpen === "function" ? isOpen
+    : typeof binnenMijnGroep === "function" ? binnenMijnGroep
+    : (c) => (c.groep || 4) <= 4;
+  return CATEGORIEEN.filter((c) => mag(c) && c.woorden.some((x) => foutWoord(c, x)));
+}
+// Een beurt: meestal een woord dat Eva zegt (mooi of mooj?), soms een zinnetje met plaatje.
+function bordVraag(stapel) {
+  const cats = bordCategorieen();
+  if (stapel.length && (Math.random() < 0.3 || !cats.length)) {
+    const v = stapel.pop();
+    return { goed: v.goed, fout: v.fout, plaatje: v.plaatje, hoor: v.zin.replace("…", v.goed), uitz: v.uitz };
+  }
+  const cat = schud(cats)[0];
+  const x = schud(cat.woorden.filter((x) => foutWoord(cat, x)))[0];
+  const w = woord(x);
+  return { goed: w, fout: foutWoord(cat, x), plaatje: BETEKENIS[w] ? BETEKENIS[w].plaatje : "", hoor: metZin(w), cat };
+}
 
 function bordspel() {
   const hier = location.hash;
   let plek = 0, levens = LEVENS, goed = 0, fout = 0, bezig = false;
   let stapel = schud(bordVragen());
-  zegEekhoorn("Loop naar mijn boom! Kies steeds het goede weggetje.");
+  zegEekhoorn("Loop naar mijn boom! Luister en spring op de goede steen.");
   zeg("Loop naar mijn boom!");
   scherm.innerHTML = `
     <div class="kaart bordkaart">
@@ -772,20 +838,30 @@ function bordspel() {
     if (location.hash !== hier) return;
     if (plek >= BORD - 1) return klaar();
     if (!stapel.length) stapel = schud(bordVragen());
-    const v = stapel.pop();
+    const v = bordVraag(stapel);
     const opties = schud([v.goed, v.fout]);
     const doos = scherm.querySelector("#beurt");
+    // Je staat op een steen; voor je splitst de weg in twee stenen. Spring op de goede!
     doos.innerHTML = `
-      <button class="betekenis" aria-label="Plaatje, tik om het zinnetje te horen">${v.plaatje}</button>
-      <div class="weggetjes">${opties.map((o, i) => `
-        <button class="weggetje ${i ? "rechts" : "links"}" data-o="${o}"><span class="bordje">${o}</span></button>`).join("")}</div>`;
-    const hoor = v.zin.replace("…", v.goed);
-    zeg(hoor);
-    doos.querySelector(".betekenis").onclick = () => zeg(hoor);
+      <div class="splitsing">
+        <svg class="splitsing-pad" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <polyline points="50,88 50,62 22,24" /><polyline points="50,62 78,24" /></svg>
+        ${opties.map((o, i) => `
+          <button class="steen-keuze ${i ? "rechts" : "links"}" data-o="${o}">${o}</button>`).join("")}
+        <button class="luister splitsing-luister" title="Luister">🔊</button>
+        ${v.plaatje ? `<button class="betekenis splitsing-plaatje" aria-label="Plaatje">${v.plaatje}</button>` : ""}
+        <div class="steen-hier">${figuurHtml("springer")}</div>
+      </div>`;
+    zeg(v.hoor);
+    doos.querySelectorAll(".splitsing-luister, .splitsing-plaatje").forEach((b) => (b.onclick = () => zeg(v.hoor)));
     bezig = false;
-    doos.querySelectorAll(".weggetje").forEach((b) => (b.onclick = async () => {
+    doos.querySelectorAll(".steen-keuze").forEach((b) => (b.onclick = async () => {
       if (bezig) return; bezig = true;
-      doos.querySelectorAll(".weggetje").forEach((x) => (x.disabled = true));
+      doos.querySelectorAll(".steen-keuze").forEach((x) => (x.disabled = true));
+      // je figuur springt naar de steen
+      const fig = doos.querySelector(".springer"), a = fig.getBoundingClientRect(), d = b.getBoundingClientRect();
+      fig.style.transform = `translate(${d.left + d.width / 2 - (a.left + a.width / 2)}px, ${d.top - a.top - a.height * 0.6}px)`;
+      await wacht(450);
       if (b.dataset.o === v.goed) {
         goed++; b.classList.add("goed"); geluid("goed"); eikelVlieg();
         scherm.querySelector(".pot").textContent = `🌰 ${goed}`;
@@ -796,9 +872,10 @@ function bordspel() {
         await loop(worp);
       } else {
         fout++; levens--; b.classList.add("fout"); geluid("fout");
+        setTimeout(() => { fig.style.transform = ""; }, 500); // terug naar je eigen steen
         const l = scherm.querySelector(".levens");
         l.textContent = hartjes(levens); l.classList.remove("au"); void l.offsetWidth; l.classList.add("au");
-        zegEekhoorn(`Oei, dat weggetje is dicht! 🚧 Het is: ${v.goed}.`);
+        zegEekhoorn(`Oei, die steen wiebelt! Het is: ${v.goed}.`);
         doos.querySelector(`[data-o="${v.goed}"]`).classList.add("goed");
         await wacht(2200);
         if (levens === 0) return location.hash === hier && levensOp({ cat: null, opnieuw: bordspel, terug: "#" });
