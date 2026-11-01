@@ -5,15 +5,15 @@
 const SPELLETJES = [
   { id: "ballonnen", emoji: "🎈", naam: "Ballonnen knallen", gat: true },
   { id: "eikels", emoji: "🌰", naam: "Eikels vangen", gat: true },
-  { id: "bouwen", emoji: "🧱", naam: "Woord bouwen" },
+  { id: "kiezen", emoji: "⚖️", naam: "Welke is goed?", gat: true },
   { id: "gaatjes", emoji: "🧩", naam: "Gaatjes", gat: true },
   { id: "dictee", emoji: "🎧", naam: "Dictee" },
 ];
 
 // Sleutel van een categorie voor links en sterren (id als die er is, anders het nummer).
-const sleutel = (cat) => cat.id || cat.nr;
+const catSleutel = (cat) => cat.id || cat.nr;
 
-// Hulpzinnetje bij dictee en woord bouwen: waar moet je aan denken?
+// Hulpzinnetje bij dictee en "Welke is goed?": waar moet je aan denken?
 const TIPS = {
   1: "Hak het woord in stukjes en schrijf wat je hoort.",
   "1s": "Daar mag geen u tussen!",
@@ -29,7 +29,7 @@ const TIPS = {
   11: "Denk aan je, tje of pje aan het eind!",
   12: "Denk aan ig of lijk aan het eind!",
 };
-const tip = (cat) => TIPS[sleutel(cat)] || cat.regel;
+const tip = (cat) => TIPS[catSleutel(cat)] || cat.regel;
 const tipHtml = (cat) => `<div class="tip-dictee">💡 ${tip(cat)}</div>`;
 
 const BALLON_KLEUREN = ["#ef5350", "#42a5f5", "#66bb6a", "#ffa726", "#ab47bc", "#ec407a", "#26c6da"];
@@ -39,7 +39,7 @@ function toonEinde(cat, n, tekst, opnieuw) {
   // gaat er een nieuwe categorie open? (alleen als de slotjes er zijn)
   const telOpen = typeof aantalOpen === "function" ? aantalOpen : () => 0;
   const openVoor = telOpen();
-  geefSterren(sleutel(cat), n);
+  geefSterren(catSleutel(cat), n);
   const nieuw = telOpen() > openVoor ? CATEGORIEEN[telOpen() - 1] : null;
   if (n >= 2) feest();
   zegEekhoorn(n === 3 ? "Wauw! Wat ben jij goed!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend! Nog een keer?");
@@ -48,10 +48,10 @@ function toonEinde(cat, n, tekst, opnieuw) {
     <div class="kaart eind" style="border-color:${cat.kleur}">
       <div class="groot-sterren">${sterTekst(n)}</div>
       <p>${tekst}</p>
-      ${nieuw ? `<a class="nieuw-open" href="#cat/${sleutel(nieuw)}" style="background:${nieuw.kleur}">🔓 ${nieuw.figuur} ${nieuw.naam} is open!</a>` : ""}
+      ${nieuw ? `<a class="nieuw-open" href="#cat/${catSleutel(nieuw)}" style="background:${nieuw.kleur}">🔓 ${nieuw.figuur} ${nieuw.naam} is open!</a>` : ""}
       <div class="knoppen">
         <button class="grote-knop" id="nog">🔁 Nog een keer</button>
-        <a class="grote-knop" href="#cat/${sleutel(cat)}">Klaar</a>
+        <a class="grote-knop" href="#cat/${catSleutel(cat)}">Klaar</a>
       </div>
     </div>`;
   scherm.querySelector("#nog").onclick = opnieuw;
@@ -71,7 +71,7 @@ function ballonnen(cat) {
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="voortgang">🎈 Ballonnen knallen · <span id="score">⭐ 0</span></div>
       <div class="lucht" id="lucht"></div>
-      <a class="terug" href="#cat/${sleutel(cat)}">← Stoppen</a>
+      <a class="terug" href="#cat/${catSleutel(cat)}">← Stoppen</a>
     </div>`;
   const lucht = scherm.querySelector("#lucht");
   const score = scherm.querySelector("#score");
@@ -129,7 +129,7 @@ function ballonnen(cat) {
 function eikels(cat) {
   const lijst = schud(cat.woorden.filter((x) => maakGat(cat, x)));
   speelRonde({
-    titel: "🌰 Eikels vangen", cat, terug: `#cat/${sleutel(cat)}`,
+    titel: "🌰 Eikels vangen", cat, terug: `#cat/${catSleutel(cat)}`,
     maakVraag: (doos, antwoord) => {
       const x = lijst[Math.floor(Math.random() * lijst.length)];
       const g = maakGat(cat, x);
@@ -169,56 +169,48 @@ function eikels(cat) {
   });
 }
 
-// ---------- 🧱 Woord bouwen ----------
-// Eva zegt een woord. Bouw het met blokjes; het lastige stukje is één blokje.
-function bouwen(cat) {
+// ---------- ⚖️ Welke is goed? ----------
+// Eva zegt een woord. Er staan twee woorden: één goed, één met een fout (krab of krap?).
+// Bij sommige categorieën komen ook uitzonderingen langs (hij ligt, niet hij licht).
+const UITZONDERINGEN = {
+  3: [
+    { w: "ligt", zin: "hij ligt", fout: "licht" },
+    { w: "legt", zin: "hij legt", fout: "lecht" },
+    { w: "zegt", zin: "hij zegt", fout: "zecht" },
+  ],
+};
+function kiezen(cat) {
+  const lijst = cat.woorden.filter((x) => foutWoord(cat, x));
+  const uitz = UITZONDERINGEN[catSleutel(cat)] || [];
   speelRonde({
-    titel: "🧱 Woord bouwen", cat, terug: `#cat/${sleutel(cat)}`,
+    titel: "⚖️ Welke is goed?", cat, terug: `#cat/${catSleutel(cat)}`,
     maakVraag: (doos, antwoord) => {
-      const x = schud(cat.woorden)[0];
-      const w = woord(x);
-      const g = maakGat(cat, x);
-      const delen = g ? [...g.voor, g.deel, ...g.na] : [...w];
-      const extra = [];
-      if (g && g.fout.length) extra.push(schud(g.fout)[0]);
-      extra.push(schud([..."abdeklmnoprstv"].filter((l) => !w.includes(l)))[0]);
-      const blokjes = schud([...delen, ...extra]);
-      zegEekhoorn("Luister goed en bouw het woord met de blokjes.");
+      // ongeveer 1 op de 3 vragen een uitzondering, als die er zijn
+      const u = uitz.length && Math.random() < 0.35 ? schud(uitz)[0] : null;
+      const x = u ? null : schud(lijst)[0];
+      const goedW = u ? u.w : woord(x);
+      const foutW = u ? u.fout : foutWoord(cat, x);
+      const hoor = u ? u.zin : goedW;
+      zegEekhoorn("Luister goed. Welk woord is goed geschreven?");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
-        ${tipHtml(cat)}
-        <div class="bouwplaats">${delen.map(() => `<button class="vakje"></button>`).join("")}</div>
-        <div class="blokjes">${blokjes.map((b, i) => `<button class="blokje" data-i="${i}">${b}</button>`).join("")}</div>
+        ${u ? `<div class="zinnetje">${u.zin.replace(u.w, "…")}</div>` : ""}
+        <div class="twee-keuzes">${schud([goedW, foutW]).map((o) => `
+          <button class="woordkaart">${o}</button>`).join("")}</div>
         <div class="uitkomst"></div>`;
-      doos.querySelector(".luister").onclick = () => zeg(w);
-      zeg(w);
-      const vakjes = [...doos.querySelectorAll(".vakje")];
-      let klaar = false;
-      const controleer = () => {
-        if (vakjes.some((v) => !v.dataset.i)) return;
-        klaar = true;
-        const gebouwd = vakjes.map((v) => v.textContent).join("");
-        const isGoed = gebouwd === w;
-        vakjes.forEach((v) => v.classList.add(isGoed ? "goed" : "fout"));
-        if (!isGoed) doos.querySelector(".uitkomst").innerHTML = `Het is: <b>${gekleurd(cat, x)}</b>`;
-        else feest();
-        antwoord(isGoed, `Kijk goed: ${w}. ${cat.regel}`);
-      };
-      doos.querySelectorAll(".blokje").forEach((b) => (b.onclick = () => {
-        if (klaar) return;
-        const leeg = vakjes.find((v) => !v.dataset.i);
-        if (!leeg) return;
-        leeg.textContent = b.textContent;
-        leeg.dataset.i = b.dataset.i;
-        leeg.classList.add("pop");
-        b.classList.add("weg");
-        controleer();
-      }));
-      // tik op een vakje om het blokje terug te leggen
-      vakjes.forEach((v) => (v.onclick = () => {
-        if (klaar || !v.dataset.i) return;
-        doos.querySelector(`.blokje[data-i="${v.dataset.i}"]`).classList.remove("weg");
-        v.textContent = ""; delete v.dataset.i; v.classList.remove("pop");
+      doos.querySelector(".luister").onclick = () => zeg(hoor);
+      zeg(hoor);
+      doos.querySelectorAll(".woordkaart").forEach((k) => (k.onclick = () => {
+        doos.querySelectorAll(".woordkaart").forEach((b) => (b.disabled = true));
+        const isGoed = k.textContent.trim() === goedW;
+        k.classList.add(isGoed ? "goed" : "fout");
+        [...doos.querySelectorAll(".woordkaart")].find((b) => b.textContent.trim() === goedW).classList.add("goed");
+        const uitkomst = doos.querySelector(".uitkomst");
+        if (u) uitkomst.innerHTML = `<span class="uitzondering">⚠️ Uitzondering!</span> ${u.zin} schrijf je met een g.`;
+        else uitkomst.innerHTML = `${gekleurd(cat, x)}`;
+        antwoord(isGoed, u
+          ? `Dit is een uitzondering! ${u.zin}: met een g.`
+          : `Kijk goed: ${goedW}. ${tip(cat)}`);
       }));
     },
   });
@@ -333,10 +325,10 @@ function bewaarSpelSterren(sleutelCat, spel, n) {
 const WEG_X = [18, 50, 82, 50]; // links, midden, rechts, midden, ... zo slingert de weg
 function tekenWeg(cat) {
   const heeftGat = cat.woorden.some((x) => maakGat(cat, x));
-  const mijn = spelSterren()[sleutel(cat)] || {};
+  const mijn = spelSterren()[catSleutel(cat)] || {};
   const stappen = [
     { id: "uitleg", emoji: "🎬", naam: "Uitleg", klaar: !!mijn.uitleg },
-    ...["gaatjes", "ballonnen", "eikels", "bouwen", "dictee"]
+    ...["gaatjes", "ballonnen", "eikels", "kiezen", "dictee"]
       .map((id) => SPELLETJES.find((g) => g.id === id))
       .filter((g) => heeftGat || !g.gat)
       .map((g) => ({ ...g, sterren: mijn[g.id] || 0, klaar: (mijn[g.id] || 0) > 0 })),
@@ -358,7 +350,7 @@ function tekenWeg(cat) {
         const tag = isBeker ? "div" : "a";
         return `
         <${tag} class="steen ${s.klaar ? "klaar" : ""} ${i === hier ? "hier" : ""} ${isBeker && beker ? "gewonnen" : ""}"
-          ${isBeker ? "" : `href="#${s.id}/${sleutel(cat)}"`}
+          ${isBeker ? "" : `href="#${s.id}/${catSleutel(cat)}"`}
           style="left:${x}%;top:${y}px;${s.klaar || (isBeker && beker) ? `background:${cat.kleur}` : ""}">
           <span class="steen-emoji">${s.emoji}</span>
           <span class="steen-naam">${s.naam}</span>

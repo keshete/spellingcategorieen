@@ -120,6 +120,20 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .schuif { max-width: 520px; margin: .5rem auto 0; }
 .schuif input[type=range] { width: 100%; height: 3rem; accent-color: #ff9800; }
 .schuif-labels { display: flex; justify-content: space-between; font-size: 1.05rem; font-weight: bold; }
+
+/* ---------- zelf inspreken ---------- */
+.opnamekaart { text-align: left; }
+.opnamekaart h2, .opnamekaart > p { text-align: center; }
+.terug { display: inline-block; font-weight: bold; font-size: 1.1rem; margin-bottom: .5rem; }
+.opnamelijst { list-style: none; padding: 0; margin: 0 0 1rem; }
+.opnamelijst li { display: flex; align-items: center; gap: .5rem; padding: .4rem .6rem; border-radius: .8rem; }
+.opnamelijst li:nth-child(odd) { background: #fff8e7; }
+.opnamelijst li.heeft .ow::after { content: " ✅"; }
+.ow { flex: 1; font-size: 1.4rem; font-weight: bold; }
+.rond { width: 3.2rem; height: 3.2rem; border-radius: 50%; border: 3px solid #333; background: #fff; font-size: 1.4rem; cursor: pointer; }
+.rond:disabled { opacity: .3; }
+.rond.bezig { background: #ef5350; animation: knipper 1s infinite; }
+@keyframes knipper { 50% { opacity: .5; } }
 /* ---------- spelletjes-menu ---------- */
 .spel-kop { font-size: 1.5rem; margin: 1.4rem 0 .6rem; }
 .spel-lijst { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
@@ -180,22 +194,6 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .eikel.mis .eikel-tekst { background: #ffcdd2; border-color: #c62828; }
 .grond { position: absolute; bottom: 0; left: 0; right: 0; height: 4rem; background: #8d6e63; font-size: 3rem; line-height: 4rem; }
 
-/* ---------- 🧱 woord bouwen ---------- */
-.bouwplaats { display: flex; justify-content: center; gap: .5rem; margin: 1.2rem 0; flex-wrap: wrap; }
-.vakje {
-  min-width: 4rem; height: 4.5rem; padding: 0 .4rem; font: inherit; font-size: 2.4rem; font-weight: bold;
-  border: 4px dashed #bbb; border-radius: .8rem; background: #fafafa; cursor: pointer;
-}
-.vakje[data-i] { border-style: solid; border-color: #ffb300; background: #fff8e1; }
-.vakje.goed { border-color: #2e7d32; background: #c8e6c9; }
-.vakje.fout { border-color: #c62828; background: #ffcdd2; }
-.blokjes { display: flex; justify-content: center; gap: .7rem; flex-wrap: wrap; }
-.blokje {
-  min-width: 4.2rem; height: 4.2rem; padding: 0 .5rem; font: inherit; font-size: 2.2rem; font-weight: bold;
-  border: none; border-radius: .8rem; background: #ffca28; box-shadow: 0 5px 0 #c49000; cursor: pointer;
-}
-.blokje:active { transform: translateY(4px); box-shadow: 0 1px 0 #c49000; }
-.blokje.weg { visibility: hidden; }
 .tip-dictee {
   display: table; margin: .8rem auto 0; padding: .5rem 1rem;
   background: #fff8e1; border: 3px dashed #ffb300; border-radius: 1rem; font-size: 1.3rem; font-weight: bold;
@@ -253,3 +251,16 @@ header { position: relative; }
 }
 .prijsvak span { font-size: 3rem; }
 .prijsvak.dicht { background: #f3f3f3; border-color: #ddd; color: #999; }
+
+/* ---------- ⚖️ welke is goed? ---------- */
+.twee-keuzes { display: flex; justify-content: center; gap: 1.2rem; flex-wrap: wrap; margin: 1.2rem 0; }
+.woordkaart {
+  font: inherit; font-size: 2.8rem; font-weight: bold; min-width: 11rem; padding: 1.2rem 1.6rem;
+  background: #fff; border: 5px solid #ddd; border-radius: 1.2rem; box-shadow: 0 6px 0 #ccc; cursor: pointer;
+  touch-action: manipulation;
+}
+.woordkaart:active { transform: translateY(4px); box-shadow: 0 2px 0 #ccc; }
+.woordkaart.goed { border-color: #2e7d32; background: #c8e6c9; color: #1b5e20; }
+.woordkaart.fout { border-color: #c62828; background: #ffcdd2; color: #b71c1c; animation: schud .4s; }
+.zinnetje { font-size: 2rem; margin-top: .8rem; color: #555; }
+.uitzondering { background: #ffe082; border-radius: .6rem; padding: .1rem .5rem; font-weight: bold; }
