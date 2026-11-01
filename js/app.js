@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 16; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 17; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -54,20 +54,15 @@ function stukjes(tekst) {
 }
 
 let spreekBeurt = 0; // telt op bij elke nieuwe zeg(), zodat een oude zin stopt
-// Tempo kies je op het stem-scherm. Losse dicteewoorden gaan altijd nog iets langzamer.
-const TEMPO = {
-  1: { naam: "🐌 Heel langzaam", zin: 0.75, woord: 0.65 },
-  2: { naam: "🐢 Langzaam", zin: 0.85, woord: 0.75 },
-  3: { naam: "🚶 Gewoon", zin: 1, woord: 0.9 },
-  4: { naam: "🐇 Snel", zin: 1.2, woord: 1 },
-  5: { naam: "🚀 Supersnel", zin: 1.5, woord: 1.3 },
+// Snelheid kies je met het schuifje op het stem-scherm: 0.5 (langzaam) tot 1.5 (supersnel),
+// 1 (gewoon) in het midden. Losse dicteewoorden gaan altijd iets langzamer.
+const tempo = () => {
+  const v = parseFloat(localStorage.getItem("snelheid"));
+  return v >= 0.5 && v <= 1.5 ? v : 1;
 };
-// Heel langzaam praten laat iPhone-stemmen vervormen; daarom is "gewoon" de standaard
-// en geven we pauzes en herhaling in plaats van een hele lage snelheid.
-const tempo = () => TEMPO[localStorage.getItem("tempo")] || TEMPO[3];
 function snelheid(t) {
   const losWoord = !/\s/.test(t.trim());
-  return losWoord ? tempo().woord : tempo().zin;
+  return losWoord ? tempo() * 0.9 : tempo();
 }
 
 let huidigeZin = null; // Safari: bewaar de zin, anders wordt hij soms opgeruimd en blijft het stil
@@ -355,13 +350,13 @@ function stemScherm() {
   if (!nlStem && "speechSynthesis" in window) kiesStem();
   const stemmen = "speechSynthesis" in window ? nlStemmen() : [];
   const heeftVrouw = stemmen.some(isVrouw);
-  const nu = localStorage.getItem("tempo") || "3";
   scherm.innerHTML = `
     <div class="kaart stemkaart">
       <h2>🔊 Hoe praat ${naam()}?</h2>
       <h3>Hoe snel?</h3>
-      <div class="keuzes" id="tempo">
-        ${Object.entries(TEMPO).map(([k, t]) => `<button class="grote-knop${k === nu ? " gekozen" : ""}" data-k="${k}">${t.naam}</button>`).join("")}
+      <div class="schuif">
+        <input type="range" id="tempo" min="0.5" max="1.5" step="0.05" value="${tempo()}" aria-label="Hoe snel">
+        <div class="schuif-labels"><span>🐌 Langzaam</span><span>🚶 Gewoon</span><span>🚀 Supersnel</span></div>
       </div>
       <h3>Welke stem?</h3>
       <div class="keuzes" id="stemmen">
@@ -380,9 +375,9 @@ function stemScherm() {
       <p class="versie">Versie ${VERSIE}</p>
     </div>`;
   const probeer = () => zeg(`Hoi! Ik ben ${naam()} Eekhoorn. Luister goed: kat, Stijn, hulp.`);
-  scherm.querySelectorAll("#tempo button").forEach((b) => (b.onclick = () => {
-    localStorage.setItem("tempo", b.dataset.k); stemScherm(); probeer();
-  }));
+  const schuif = scherm.querySelector("#tempo");
+  // Bij het loslaten van het schuifje: onthouden en even laten horen hoe snel het is.
+  schuif.onchange = () => { localStorage.setItem("snelheid", schuif.value); probeer(); };
   scherm.querySelectorAll("#stemmen button").forEach((b) => (b.onclick = () => {
     localStorage.setItem("stem", stemmen[b.dataset.i].voiceURI); kiesStem(); stemScherm(); probeer();
   }));
