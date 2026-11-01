@@ -4,13 +4,15 @@ const eekhoorn = document.getElementById("eekhoorn");
 
 const zegEekhoorn = (t) => { eekhoorn.textContent = t; };
 const schud = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// Voor het dictee: hoofdletters, spaties en de soort komma (' of ’) maken niet uit.
+const netjes = (t) => t.trim().toLowerCase().replace(/[‘’`]/g, "'").replace(/\s+/g, " ");
 const woord = (x) => (typeof x === "string" ? x : x.w);
 const vindCat = (nr) => CATEGORIEEN.find((c) => c.nr === Number(nr));
 const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstElementChild; };
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 29; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 32; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -89,11 +91,11 @@ function spreekStukje(t, metStem = true) {
   });
 }
 
-// Volgorde: zelf ingesproken opname, dan een echte stem van Wikimedia (losse woorden),
+// Volgorde: een echte stem van Wikimedia (losse woorden),
 // en anders de computerstem van het apparaat.
 async function zeg(tekst) {
   const beurt = ++spreekBeurt;
-  stopOpname();
+  stopGeluid();
   const tts = "speechSynthesis" in window;
   if (tts) {
     if (!nlStem) kiesStem();
@@ -107,8 +109,8 @@ async function zeg(tekst) {
   }
   for (const t of stukjes(tekst)) {
     if (beurt !== spreekBeurt) return;
-    let gedaan = heeftOpname(t) && (await speelOpname(t));
-    if (!gedaan && echteStemAan() && !/\s/.test(t)) gedaan = await speelEchteStem(t);
+    let gedaan = false;
+    if (echteStemAan() && !/\s/.test(t)) gedaan = await speelEchteStem(t);
     if (beurt !== spreekBeurt) return;
     if (!gedaan) {
       if (tts) await spreekStukje(t); else await wacht(600);
@@ -186,12 +188,17 @@ function thuis() {
       <a class="thuis-knop" href="#bordspel" style="background:#f06292"><span>🎲</span>Bordspel</a>
       <a class="thuis-knop" href="#sorteer" style="background:#4fc3f7"><span>🎮</span>Sorteerspel</a>
       <a class="thuis-knop" href="#stickers" style="background:#9575cd"><span>📒</span>Stickerboek</a>
-      <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🎁</span>Prijzen</a>
+      <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🛒</span>Winkel</a>
     </div>
     <p class="thuis-uitleg">👇 Tik op een categorie. Daar vind je alle spelletjes!</p>
     <ul class="grid"></ul>`;
   const lijst = scherm.querySelector(".grid");
   for (const c of CATEGORIEEN) {
+    // Een kopje boven de eerste categorie van elke groep.
+    const groep = GROEPEN.find((g) => g.nr === c.groep);
+    if (groep && c === CATEGORIEEN.find((d) => d.groep === c.groep)) {
+      lijst.appendChild(el(`<li class="groep-kop">${groep.naam}</li>`));
+    }
     lijst.appendChild(el(`
       <li><a class="tegel" href="#cat/${c.nr}" style="background:${c.kleur}">
         <span class="figuur">${c.figuur}</span>
@@ -351,7 +358,7 @@ function dictee(cat) {
         e.preventDefault();
         if (!veld.value.trim()) return;
         veld.disabled = true;
-        const isGoed = veld.value.trim().toLowerCase() === w;
+        const isGoed = netjes(veld.value) === netjes(w);
         veld.classList.add(isGoed ? "goed" : "fout");
         if (!isGoed) doos.querySelector(".uitkomst").innerHTML = `Het is: <b>${gekleurd(cat, x)}</b>`;
         antwoord(isGoed, `Kijk goed: ${w}. ${cat.regel}`);
@@ -428,8 +435,6 @@ function stemScherm() {
       <p class="tip">Met <b>echte mensen</b> hoor je bij losse woorden de stem van een echt persoon,
         steeds iemand anders. Daarvoor is internet nodig. Is er van een woord geen opname, dan praat de computerstem.
         <small>Opnames: Lingua Libre en WikiWoordenboek via Wikimedia Commons (CC BY-SA).</small></p>
-      <h3>Klinkt de stem niet goed?</h3>
-      <a class="grote-knop" href="#opnemen">🎙️ Woorden zelf inspreken</a>
       <p class="versie">Versie ${VERSIE}</p>
     </div>`;
   const probeer = () => zeg(`Hoi! Ik ben ${naam()} Eekhoorn. Luister goed: kat, Stijn, hulp.`);
@@ -454,7 +459,7 @@ function kies() {
 
 // ---------- router ----------
 function route() {
-  spreekBeurt++; stopOpname();
+  spreekBeurt++; stopGeluid();
   if ("speechSynthesis" in window) speechSynthesis.cancel();
   const [naam, nr] = location.hash.slice(1).split("/");
   const cat = vindCat(nr);
@@ -462,7 +467,6 @@ function route() {
   if (naam === "sorteer") return sorteer();
   if (naam === "stem") return stemScherm();
   if (naam === "kies") return kies();
-  if (naam === "opnemen") return opnameScherm();
   if (cat && naam === "cat") return categorie(cat);
   if (cat && naam === "uitleg") return uitleg(cat);
   if (cat && naam === "gaatjes") return gaatjes(cat);

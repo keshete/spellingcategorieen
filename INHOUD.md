@@ -26,17 +26,36 @@ Regels volgen de tekst van de Staal-regelkaart. De **woorden** en de **figuren**
 | – | -eren, -enen, -elen | Ik hoor twee keer /u/, maar ik schrijf e. | kleren, tekenen, wandelen | |
 | – | Samenstelling | Elk deel krijgt zijn eigen categorie en regel. | voetbal, zandbak, appeltaart | |
 
-## Groep 5 (komt erbij)
+## Groep 5 tot en met 8
 
-13 Kilowoord · 14 Komma-s-woord · 15 Centwoord · 16 Komma-s-meervoud · 17 Politiewoord · 18 Colawoord · 19 Tropisch-woord. Plus het gids-rijtje.
+Staan in de app (`js/categorieen-hoger.js`). Regels in eigen, eenvoudige woorden; woorden en figuren zelf bedacht.
 
-## Groep 6 (komt erbij)
+| Groep | Nr | Categorie | Regel | Voorbeeldwoorden | Figuur |
+|---|---|---|---|---|---|
+| 5 | 13 | Kilowoord | /ie/ aan het eind van een klankgroep → i | kilo, kiwi, piraat, piloot, liter, radio | Kiwi Kilo 🥝 |
+| 5 | 14 | Komma-s-woord | Eerst de komma, dan de s. | 's morgens, 's middags, 's avonds, 's nachts | Maan Komma 🌙 |
+| 5 | 15 | Centwoord | /s/ → c | cent, circus, citroen, cijfer, centrum | Muntje Cent 🪙 |
+| 5 | 16 | Komma-s-meervoud | Lange klank a, o, u, i aan het eind → 's (niet bij ee) | pizza's, opa's, auto's, foto's, menu's | Pizza Punt 🍕 |
+| 5 | 17 | Politiewoord | /tsie/ → tie | politie, vakantie, informatie, portie | Agent Tie 🚓 |
+| 5 | 18 | Colawoord | /k/ → c | cola, camping, computer, clown, cactus | Beker Cola 🥤 |
+| 5 | 19 | Tropisch-woord | /ies/ aan het eind → isch | tropisch, logisch, fantastisch, praktisch | Palm Tropisch 🌴 |
+| 6 | 20 | Taxiwoord | /ks/ → x | taxi, extra, examen, mixer | Taxi Toet 🚕 |
+| 6 | 21 | Chefwoord | /sj/ → ch | chef, chocola, chips, machine, douche | Chef Pannetje 🧑‍🍳 |
+| 6 | 22 | Theewoord | /t/ → th | thee, thuis, theater, thema | Pot Thee 🫖 |
+| 6 | 23 | Caféwoord | /ee/ aan het eind → é | café, logé, coupé, paté | Kopje Café ☕ |
+| 6 | 24 | Cadeauwoord | /oo/ → eau | cadeau, bureau, niveau, plateau | Doos Cadeau 🎁 |
+| 6 | 25 | Routewoord | /oe/ → ou | route, douche, journaal, souvenir | Kaart Route 🗺️ |
+| 6 | 26 | Garagewoord | /zj/ → g | garage, bagage, horloge, etage | Sleutel Garage 🔧 |
+| 6 | 27 | Lollywoord | /ie/ → y | lolly, baby, hobby, pony, hockey | Lolly Snoep 🍭 |
+| 6 | 28 | Tremawoord | Klinkers los uitspreken → puntjes op de tweede | ruïne, reünie, naïef, poëzie | Lieveheersbeestje Puntje 🐞 |
+| 7/8 | 29 | Militairwoord | /èr/ aan het eind → air | militair, populair, elementair | Medaille Air 🎖️ |
+| 7/8 | 30 | Koppelteken | Botsende klinkers → streepje | zee-egel, auto-ongeluk, foto-album, tv-gids | Schakel Streepje 🔗 |
+| 7/8 | 31 | Trottoirwoord | /waar/ → oir | trottoir, repertoire, boudoir | Step Trottoir 🛴 |
+| 7/8 | 32 | Tussen-e | Tussenklank /u/ → e (zon, bijv. naamw.) | zonnebloem, zonnebril, verrekijker, eindeloos | Zonnebloem Zon 🌻 |
+| 7/8 | 33 | Trema-meervoud | ee/ie met klemtoon → ën | ideeën, zeeën, feeën, knieën | Fee Ideeën 🧚 |
+| 7/8 | 34 | Latijns voorvoegsel | ab, ad, ob, sub | absoluut, advocaat, object, subtiel | Zuil Latijn 🏛️ |
 
-20 Taxiwoord · 21 Chefwoord · 22 Theewoord · 23 Caféwoord · 24 Cadeauwoord · 25 Routewoord · 26 Garagewoord · 27 Lollywoord · 28 Tremawoord.
-
-## Groep 7 en 8
-
-Nog uit te zoeken. Hier komen onder meer de werkwoordspelling en leenwoorden bij. Ik vul dit aan zodra groep 4 tot en met 6 staan.
+Nog niet in de app: de rijtjes zonder nummer (ei-ij, au-ou, uw-rijtje, gids-rijtje, pech-versje) en de werkwoordspelling van groep 7 en 8.
 
 ## Vragen aan jou
 

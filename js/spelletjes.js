@@ -29,7 +29,7 @@ const TIPS = {
   11: "Denk aan je, tje of pje aan het eind!",
   12: "Denk aan ig of lijk aan het eind!",
 };
-const tip = (cat) => TIPS[catSleutel(cat)] || cat.regel;
+const tip = (cat) => TIPS[catSleutel(cat)] || cat.tip || cat.regel; // cat.tip: groep 5-8, zie categorieen-hoger.js
 // Woorden die hetzelfde klinken (licht / ligt): een plaatje en een zinnetje
 // laten zien welk woord we bedoelen. In het zinnetje staat … op de plek van het woord.
 const BETEKENIS = {
@@ -74,7 +74,7 @@ function eindScherm({ cat, n, tekst, verdiend, opnieuw, terug }) {
       ${verdiend > 0 ? `
         <div class="beloning">
           <h3>🎁 Kies je beloning!</h3>
-          <button class="beloning-knop" id="kies-eikels"><span>🌰 × ${verdiend}</span>Eikels voor Eva's prijzen</button>
+          <button class="beloning-knop" id="kies-eikels"><span>🌰 × ${verdiend}</span>Eikels voor de winkel</button>
           <button class="beloning-knop" id="kies-sticker"><span>🌟</span>Een sticker voor je stickerboek</button>
         </div>` : ""}
       <div class="knoppen">
@@ -309,26 +309,54 @@ function geluid(soort) {
   } catch (e) { /* geen geluid, geen probleem */ }
 }
 
-// ---------- 🌰 eikels sparen en 🎁 prijzen voor Eva ----------
-const PRIJZEN = [
-  { eikels: 10, emoji: "🎀", naam: "een strik" },
-  { eikels: 25, emoji: "🧢", naam: "een pet" },
-  { eikels: 50, emoji: "🕶️", naam: "een zonnebril" },
-  { eikels: 80, emoji: "🎩", naam: "een hoge hoed" },
-  { eikels: 120, emoji: "🦸", naam: "een superheldencape" },
-  { eikels: 170, emoji: "👑", naam: "een kroon" },
-  { eikels: 250, emoji: "🚀", naam: "een raket" },
+// ---------- 🌰 eikels sparen en 🛒 het winkeltje ----------
+// Met eikels koop je in de winkel een dier als jouw figuur, spulletjes erbij,
+// of je mag een foto (bijvoorbeeld van je eigen kat) als figuur gebruiken.
+// Alles blijft op dit apparaat (localStorage), de foto gaat nergens naartoe.
+const WINKEL = [
+  { id: "eekhoorn", soort: "dier", emoji: "🐿️", naam: "Eekhoorn", prijs: 0 },
+  { id: "kat", soort: "dier", emoji: "🐱", naam: "Kat", prijs: 10 },
+  { id: "hond", soort: "dier", emoji: "🐶", naam: "Hond", prijs: 10 },
+  { id: "konijn", soort: "dier", emoji: "🐰", naam: "Konijn", prijs: 10 },
+  { id: "vos", soort: "dier", emoji: "🦊", naam: "Vos", prijs: 15 },
+  { id: "panda", soort: "dier", emoji: "🐼", naam: "Panda", prijs: 15 },
+  { id: "olifant", soort: "dier", emoji: "🐘", naam: "Olifant", prijs: 20 },
+  { id: "giraf", soort: "dier", emoji: "🦒", naam: "Giraf", prijs: 20 },
+  { id: "leeuw", soort: "dier", emoji: "🦁", naam: "Leeuw", prijs: 20 },
+  { id: "eenhoorn", soort: "dier", emoji: "🦄", naam: "Eenhoorn", prijs: 30 },
+  { id: "draak", soort: "dier", emoji: "🐉", naam: "Draak", prijs: 40 },
+  { id: "foto", soort: "foto", emoji: "📷", naam: "Mijn eigen foto", prijs: 25 },
+  { id: "geen", soort: "spul", emoji: "✖️", naam: "Niks", prijs: 0 },
+  { id: "strik", soort: "spul", emoji: "🎀", naam: "Strik", prijs: 5 },
+  { id: "ballon", soort: "spul", emoji: "🎈", naam: "Ballon", prijs: 6 },
+  { id: "pet", soort: "spul", emoji: "🧢", naam: "Pet", prijs: 8 },
+  { id: "bril", soort: "spul", emoji: "🕶️", naam: "Zonnebril", prijs: 10 },
+  { id: "hoed", soort: "spul", emoji: "🎩", naam: "Hoge hoed", prijs: 15 },
+  { id: "kroon", soort: "spul", emoji: "👑", naam: "Kroon", prijs: 25 },
 ];
 const aantalEikels = () => Number(localStorage.getItem("eikels") || 0);
-const gewonnenPrijzen = () => PRIJZEN.filter((p) => aantalEikels() >= p.eikels);
+const gekocht = () => JSON.parse(localStorage.getItem("gekocht") || '["eekhoorn","geen"]');
+const mijnFiguur = () => ({ dier: "eekhoorn", spul: "geen", ...JSON.parse(localStorage.getItem("figuur") || "{}") });
+const winkelItem = (id) => WINKEL.find((w) => w.id === id);
 
-// Teller rechtsboven en Eva's nieuwste prijs naast haar.
+// Jouw figuur als HTML: een dier of je foto, met je spulletje erbij.
+function figuurHtml(klasse = "") {
+  const f = mijnFiguur();
+  const foto = f.dier === "foto" && localStorage.getItem("figuurFoto");
+  const spul = f.spul !== "geen" ? winkelItem(f.spul) : null;
+  return `<span class="mijn-figuur ${klasse}">
+    ${foto ? `<img src="${foto}" alt="Mijn figuur">` : `<span class="figuur-dier">${(winkelItem(f.dier) || WINKEL[0]).emoji}</span>`}
+    ${spul ? `<span class="figuur-spul">${spul.emoji}</span>` : ""}</span>`;
+}
+
+// Teller rechtsboven, met jouw figuur ernaast.
 // (pas na het laden, want el() staat in app.js)
 let teller = null;
 document.addEventListener("DOMContentLoaded", () => {
   const balk = el(`<div class="beloning-balk">
+    <a class="figuur-knop" href="#prijzen" aria-label="Mijn figuur en de winkel"></a>
     <a class="stickerboek-knop" href="#stickers" aria-label="Mijn stickerboek">📒</a>
-    <a class="eikel-teller" href="#prijzen" aria-label="Mijn eikels en prijzen">🌰 <b>0</b></a></div>`);
+    <a class="eikel-teller" href="#prijzen" aria-label="Mijn eikels en de winkel">🌰 <b>0</b></a></div>`);
   document.querySelector("header").appendChild(balk);
   teller = balk.querySelector(".eikel-teller");
   toonEikels();
@@ -336,11 +364,8 @@ document.addEventListener("DOMContentLoaded", () => {
 function toonEikels() {
   if (!teller) return;
   teller.querySelector("b").textContent = aantalEikels();
-  const mascotte = document.querySelector(".mascot");
-  const laatste = gewonnenPrijzen().pop();
-  let p = mascotte.querySelector(".prijs");
-  if (laatste && !p) { p = el(`<span class="prijs"></span>`); mascotte.appendChild(p); }
-  if (p) p.textContent = laatste ? laatste.emoji : "";
+  const knop = document.querySelector(".figuur-knop");
+  if (knop) knop.innerHTML = figuurHtml();
 }
 
 // Een eikeltje springt op als je iets goed hebt (in het potje van dit spel).
@@ -354,39 +379,95 @@ function eikelVlieg() {
 }
 // Eikels echt sparen (aan het eind, als je eikels kiest als beloning).
 function spaarEikels(n) {
-  const voor = gewonnenPrijzen().length;
   localStorage.setItem("eikels", aantalEikels() + n);
   geluid("eikel");
   toonEikels();
   if (teller) { teller.classList.remove("pop"); void teller.offsetWidth; teller.classList.add("pop"); }
-  const nieuw = gewonnenPrijzen()[voor];
-  if (nieuw) {
-    feest();
-    zegEekhoorn(`Hoera! Ik krijg ${nieuw.naam} ${nieuw.emoji}! Dank je wel!`);
-    zeg(`Hoera! Ik krijg ${nieuw.naam}!`);
-  } else {
-    zegEekhoorn(`Dank je wel! Nu heb ik ${aantalEikels()} eikels.`);
-  }
+  zegEekhoorn(`Nu heb je ${aantalEikels()} eikels! Kijk eens in de winkel. 🛒`);
 }
 
+// Foto kleiner maken (vierkant, 200 pixels), zodat hij in de browser past.
+function maakFotoKlein(bestand) {
+  return new Promise((klaar, mis) => {
+    const img = new Image();
+    img.onload = () => {
+      const z = Math.min(img.width, img.height), M = 200;
+      const c = document.createElement("canvas"); c.width = c.height = M;
+      c.getContext("2d").drawImage(img, (img.width - z) / 2, (img.height - z) / 2, z, z, 0, 0, M, M);
+      URL.revokeObjectURL(img.src);
+      klaar(c.toDataURL("image/jpeg", 0.8));
+    };
+    img.onerror = mis;
+    img.src = URL.createObjectURL(bestand);
+  });
+}
+
+// Het winkeltje (route #prijzen).
 function prijzen() {
-  const n = aantalEikels();
-  const volgende = PRIJZEN.find((p) => n < p.eikels);
-  zegEekhoorn(volgende
-    ? `Je hebt ${n} eikels. Nog ${volgende.eikels - n} voor ${volgende.naam}!`
-    : `Wauw, ${n} eikels! Je hebt alle prijzen!`);
+  const n = aantalEikels(), heb = gekocht(), f = mijnFiguur();
+  const fotoGekocht = heb.includes("foto");
+  zegEekhoorn(`Welkom in de winkel! Je hebt ${n} eikels. Wat wil je kopen?`);
+  const vak = (w) => {
+    const bezit = heb.includes(w.id);
+    const aan = (w.soort === "spul" ? f.spul : f.dier) === w.id;
+    return `<button class="winkel-vak ${bezit ? "bezit" : ""} ${aan ? "aan" : ""}" data-id="${w.id}">
+      <span class="winkel-emoji">${w.emoji}</span>${w.naam}
+      <span class="winkel-prijs">${aan ? "✅ Aan" : bezit ? "Kiezen" : `🌰 ${w.prijs}`}</span></button>`;
+  };
   scherm.innerHTML = `
     <div class="kaart">
-      <h2>🎁 Prijzenkast van Eva</h2>
-      <p class="regel">Kies na een spelletje 🌰 eikels als beloning. Spaar ze voor prijzen!</p>
-      <div class="groot-eikels">🌰 ${n}</div>
-      <div class="prijzenkast">${PRIJZEN.map((p) => `
-        <div class="prijsvak ${n >= p.eikels ? "" : "dicht"}">
-          <span>${n >= p.eikels ? p.emoji : "❔"}</span>
-          ${n >= p.eikels ? p.naam : `🌰 ${p.eikels}`}
-        </div>`).join("")}</div>
+      <h2>🛒 Het eikel-winkeltje</h2>
+      <div class="winkel-kop">
+        <div class="groot-figuur">${figuurHtml("groot")}</div>
+        <div class="groot-eikels">🌰 ${n}</div>
+      </div>
+      <p class="regel">Kies na een spelletje 🌰 eikels als beloning en koop hier leuke dingen!</p>
+      <h3 class="spel-kop">🐾 Kies je dier</h3>
+      <div class="winkel-rij">${WINKEL.filter((w) => w.soort === "dier").map(vak).join("")}</div>
+      <h3 class="spel-kop">📷 Jouw eigen foto als figuur</h3>
+      <p class="winkel-uitleg">Bijvoorbeeld een foto van je eigen kat! De foto blijft alleen op dit apparaat.</p>
+      <div class="winkel-rij">${vak(winkelItem("foto"))}
+        ${fotoGekocht ? `<label class="winkel-vak foto-kiezen"><span class="winkel-emoji">🖼️</span>Foto maken of kiezen
+          <input type="file" accept="image/*" hidden></label>` : ""}</div>
+      <h3 class="spel-kop">🎀 Spulletjes</h3>
+      <div class="winkel-rij">${WINKEL.filter((w) => w.soort === "spul").map(vak).join("")}</div>
       <a class="grote-knop" href="#">Verder spelen</a>
     </div>`;
+  scherm.querySelectorAll(".winkel-vak[data-id]").forEach((b) => (b.onclick = () => {
+    const w = winkelItem(b.dataset.id);
+    const fig = mijnFiguur();
+    if (!gekocht().includes(w.id)) {
+      if (aantalEikels() < w.prijs) {
+        geluid("fout");
+        zegEekhoorn(`Je hebt nog ${w.prijs - aantalEikels()} eikels nodig voor ${w.naam.toLowerCase()}. Speel nog een spelletje!`);
+        return;
+      }
+      localStorage.setItem("eikels", aantalEikels() - w.prijs);
+      localStorage.setItem("gekocht", JSON.stringify([...gekocht(), w.id]));
+      feest();
+      zeg(`Gekocht! ${w.naam}!`);
+    } else geluid("eikel");
+    if (w.soort === "spul") fig.spul = w.id;
+    else if (w.soort === "dier") fig.dier = w.id;
+    else if (localStorage.getItem("figuurFoto")) fig.dier = "foto";
+    localStorage.setItem("figuur", JSON.stringify(fig));
+    toonEikels();
+    prijzen();
+    if (w.soort === "foto" && !localStorage.getItem("figuurFoto"))
+      zegEekhoorn("Tik op 'Foto maken of kiezen' en kies een foto!");
+  }));
+  const kies = scherm.querySelector('.foto-kiezen input');
+  if (kies) kies.onchange = async () => {
+    if (!kies.files[0]) return;
+    try {
+      localStorage.setItem("figuurFoto", await maakFotoKlein(kies.files[0]));
+      localStorage.setItem("figuur", JSON.stringify({ ...mijnFiguur(), dier: "foto" }));
+      feest(); toonEikels(); prijzen();
+      zegEekhoorn("Wauw, wat een mooie foto! Dat ben jij nu!");
+    } catch (e) {
+      zegEekhoorn("Oei, die foto lukt niet. Probeer een andere!");
+    }
+  };
 }
 
 // ---------- 🗺️ de weg door een categorie ----------
@@ -657,8 +738,8 @@ function bordspel() {
   const hier = location.hash;
   let plek = 0, levens = LEVENS, goed = 0, fout = 0, bezig = false;
   let stapel = schud(bordVragen());
-  zegEekhoorn("Help mij naar mijn boom! Kies steeds het goede weggetje.");
-  zeg("Help mij naar mijn boom!");
+  zegEekhoorn("Loop naar mijn boom! Kies steeds het goede weggetje.");
+  zeg("Loop naar mijn boom!");
   scherm.innerHTML = `
     <div class="kaart bordkaart">
       <div class="voortgang">🎲 Eva's bordspel</div>
@@ -673,10 +754,10 @@ function bordspel() {
     const vakjes = [];
     for (let i = 0; i < BORD; i++) {
       const rij = Math.floor(i / 5), kol = rij % 2 ? 4 - (i % 5) : i % 5;
-      const soort = i === 0 ? "🏠" : i === BORD - 1 ? "🌳" : i % 4 === 3 ? "⭐" : "";
+      const soort = i === 0 ? "🏠" : i === BORD - 1 ? "🐿️🌳" : i % 4 === 3 ? "⭐" : "";
       vakjes.push(`<div class="vak ${i < plek ? "gelopen" : ""} ${soort === "⭐" ? "ster" : ""}" style="grid-row:${4 - rij};grid-column:${kol + 1}">
         <span class="vak-nr">${i === 0 ? "" : i}</span><span class="vak-teken">${soort}</span>
-        ${i === plek ? `<span class="pion">🐿️</span>` : ""}</div>`);
+        ${i === plek ? figuurHtml("pion") : ""}</div>`);
     }
     bord.innerHTML = vakjes.join("");
   };
