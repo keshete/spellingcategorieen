@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 17; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 18; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -91,9 +91,19 @@ function spreekStukje(t, metStem = true) {
 }
 
 async function zeg(tekst) {
+  const beurt = ++spreekBeurt;
+  stopOpname();
+  // Zijn alle stukjes zelf ingesproken? Dan alleen de opnames afspelen.
+  if (stukjes(tekst).every(heeftOpname)) {
+    for (const t of stukjes(tekst)) {
+      if (beurt !== spreekBeurt) return;
+      await speelOpname(t);
+      await wacht(400);
+    }
+    return;
+  }
   if (!("speechSynthesis" in window)) return wacht(600);
   if (!nlStem) kiesStem();
-  const beurt = ++spreekBeurt;
   // iPhone/iPad: alleen als er al iets klinkt even stoppen en wachten. Anders meteen
   // praten, want na een tik moet de stem direct beginnen, anders blijft hij stil.
   if (speechSynthesis.speaking || speechSynthesis.pending) {
@@ -103,6 +113,7 @@ async function zeg(tekst) {
   if (speechSynthesis.paused) speechSynthesis.resume();
   for (const t of stukjes(tekst)) {
     if (beurt !== spreekBeurt) return;
+    if (heeftOpname(t) && (await speelOpname(t))) { await wacht(250); continue; }
     await spreekStukje(t);
     if (beurt !== spreekBeurt) return;
     await wacht(250);
@@ -372,6 +383,8 @@ function stemScherm() {
         Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands
         de <b>verbeterde</b> versie van de stem downloaden. Die klinkt veel mooier.</p>
       <button class="grote-knop" id="probeer">▶️ Probeer</button>
+      <h3>Klinkt de stem niet goed?</h3>
+      <a class="grote-knop" href="#opnemen">🎙️ Woorden zelf inspreken</a>
       <p class="versie">Versie ${VERSIE}</p>
     </div>`;
   const probeer = () => zeg(`Hoi! Ik ben ${naam()} Eekhoorn. Luister goed: kat, Stijn, hulp.`);
@@ -386,12 +399,14 @@ function stemScherm() {
 
 // ---------- router ----------
 function route() {
-  if ("speechSynthesis" in window) { spreekBeurt++; speechSynthesis.cancel(); }
+  spreekBeurt++; stopOpname();
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
   const [naam, nr] = location.hash.slice(1).split("/");
   const cat = vindCat(nr);
   window.scrollTo(0, 0);
   if (naam === "sorteer") return sorteer();
   if (naam === "stem") return stemScherm();
+  if (naam === "opnemen") return opnameScherm();
   if (cat && naam === "cat") return categorie(cat);
   if (cat && naam === "uitleg") return uitleg(cat);
   if (cat && naam === "gaatjes") return gaatjes(cat);
