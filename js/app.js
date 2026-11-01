@@ -1,9 +1,9 @@
 // ---------- hulpjes ----------
 const scherm = document.getElementById("scherm");
-const erik = document.getElementById("erik");
+const eekhoorn = document.getElementById("eekhoorn");
 const RONDE = 5; // vragen per spelletje
 
-const zegErik = (t) => { erik.textContent = t; };
+const zegEekhoorn = (t) => { eekhoorn.textContent = t; };
 const schud = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const woord = (x) => (typeof x === "string" ? x : x.w);
 const vindCat = (nr) => CATEGORIEEN.find((c) => c.nr === Number(nr));
@@ -12,13 +12,20 @@ const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
 let nlStem = null;
+// Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
+const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
+const MAN = /xander|maarten|frank|ruben|arnaud|daan|male|man\b/i;
 function kiesStem() {
   const stemmen = speechSynthesis.getVoices();
-  const nl = stemmen.filter((v) => v.lang.replace("_", "-").toLowerCase().startsWith("nl"));
+  const taal = (v) => v.lang.replace("_", "-").toLowerCase();
+  const nl = stemmen.filter((v) => taal(v).startsWith("nl"));
+  const nlNL = nl.filter((v) => taal(v) === "nl-nl");
+  const vrouw = (v) => VROUW.test(v.name) && !/\bmale\b/i.test(v.name);
   nlStem =
-    nl.find((v) => /nl-nl/i.test(v.lang.replace("_", "-")) && /google/i.test(v.name)) ||
-    nl.find((v) => /nl-nl/i.test(v.lang.replace("_", "-"))) ||
-    nl[0] || null;
+    nlNL.find(vrouw) ||
+    nlNL.find((v) => !MAN.test(v.name)) ||
+    nl.find(vrouw) ||
+    nlNL[0] || nl[0] || null;
   if (stemmen.length && !nlStem) toonStemWaarschuwing();
 }
 function toonStemWaarschuwing() {
@@ -31,17 +38,48 @@ function toonStemWaarschuwing() {
 }
 if ("speechSynthesis" in window) { kiesStem(); speechSynthesis.onvoiceschanged = kiesStem; }
 
-function zeg(tekst) {
+// Knip een tekst in korte stukjes (zinnen en stukjes tussen komma's),
+// zodat de stem na elk stukje echt even stopt.
+function stukjes(tekst) {
+  return (String(tekst).match(/[^.!?,:;]+[.!?,:;]*/g) || [])
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+let spreekBeurt = 0; // telt op bij elke nieuwe zeg(), zodat een oude zin stopt
+// Rustig praten; losse dicteewoorden nog iets langzamer, zodat je ze goed hoort.
+function snelheid(t) {
+  const losWoord = !/\s/.test(t.trim());
+  return losWoord ? 0.6 : 0.8;
+}
+
+function spreekStukje(t) {
   return new Promise((klaar) => {
-    if (!("speechSynthesis" in window)) return setTimeout(klaar, 600);
-    if (!nlStem) kiesStem();
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(tekst);
-    u.lang = nlStem ? nlStem.lang : "nl-NL"; u.rate = 0.85;
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = nlStem ? nlStem.lang : "nl-NL";
+    u.rate = snelheid(t);
     if (nlStem) u.voice = nlStem;
-    u.onend = klaar; u.onerror = klaar;
+    let gedaan = false;
+    const af = () => { if (!gedaan) { gedaan = true; klaar(); } };
+    u.onend = af; u.onerror = af;
+    // vangnet: sommige browsers vergeten onend
+    setTimeout(af, 2000 + t.length * 200);
     speechSynthesis.speak(u);
   });
+}
+
+async function zeg(tekst) {
+  if (!("speechSynthesis" in window)) return wacht(600);
+  if (!nlStem) kiesStem();
+  const beurt = ++spreekBeurt;
+  speechSynthesis.cancel();
+  await wacht(80); // iOS: direct na cancel() spreken gaat soms mis
+  for (const t of stukjes(tekst)) {
+    if (beurt !== spreekBeurt) return;
+    await spreekStukje(t);
+    if (beurt !== spreekBeurt) return;
+    await wacht(250);
+  }
 }
 
 // ---------- sterren ----------
@@ -83,7 +121,7 @@ function feest() {
 
 // ---------- schermen ----------
 function thuis() {
-  zegErik("Hoi! Ik ben Erik Eekhoorn. Kies een categorie en we gaan oefenen!");
+  zegEekhoorn("Hoi! Ik ben Eva Eekhoorn. Kies een categorie en we gaan oefenen!");
   const s = sterren();
   scherm.innerHTML = `
     <a class="grote-knop sorteer" href="#sorteer">🎮 Sorteerspel: welke categorie is het?</a>
@@ -101,7 +139,7 @@ function thuis() {
 }
 
 function categorie(cat) {
-  zegErik(`Dit is ${cat.figuurNaam}. Wat wil je doen?`);
+  zegEekhoorn(`Dit is ${cat.figuurNaam}. Wat wil je doen?`);
   const heeftGat = cat.woorden.some((x) => maakGat(cat, x));
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
@@ -120,7 +158,7 @@ function categorie(cat) {
 }
 
 async function uitleg(cat) {
-  zegErik("Kijk en luister goed!");
+  zegEekhoorn("Kijk en luister goed!");
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="podium">
@@ -165,8 +203,8 @@ function speelRonde({ titel, cat, maakVraag, terug }) {
         <a class="terug" href="${terug}">← Stoppen</a>
       </div>`;
     maakVraag(scherm.querySelector("#vraag"), async (isGoed, uitlegFout) => {
-      if (isGoed) { goed++; zegErik(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!"); }
-      else { zegErik(uitlegFout); }
+      if (isGoed) { goed++; zegEekhoorn(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!"); }
+      else { zegEekhoorn(uitlegFout); }
       i++;
       await wacht(isGoed ? 900 : 2200);
       if (location.hash === hier) volgende(); // niet doorgaan als het kind al weg is
@@ -177,7 +215,7 @@ function speelRonde({ titel, cat, maakVraag, terug }) {
     const n = goed === RONDE ? 3 : goed >= 3 ? 2 : goed >= 1 ? 1 : 0;
     if (cat) geefSterren(cat.nr, n);
     if (n >= 2) feest();
-    zegErik(n === 3 ? "Alles goed! Wat ben jij een spellingkampioen!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend! Nog een keer?");
+    zegEekhoorn(n === 3 ? "Alles goed! Wat ben jij een spellingkampioen!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend! Nog een keer?");
     scherm.innerHTML = `
       <div class="kaart eind">
         <div class="groot-sterren">${sterTekst(n)}</div>
@@ -200,7 +238,7 @@ function gaatjes(cat) {
     maakVraag: (doos, antwoord) => {
       const x = lijst[Math.floor(Math.random() * lijst.length)];
       const g = maakGat(cat, x);
-      zegErik("Welk stukje past in het gaatje?");
+      zegEekhoorn("Welk stukje past in het gaatje?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
@@ -225,7 +263,7 @@ function dictee(cat) {
     maakVraag: (doos, antwoord) => {
       const x = schud(cat.woorden)[0];
       const w = woord(x);
-      zegErik("Luister goed en schrijf het woord op.");
+      zegEekhoorn("Luister goed en schrijf het woord op.");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
         <form class="dictee">
@@ -256,7 +294,7 @@ function sorteer() {
       const cat = schud(CATEGORIEEN)[0];
       const x = schud(cat.woorden)[0];
       const keuzes = schud([cat, ...schud(CATEGORIEEN.filter((c) => c !== cat)).slice(0, 2)]);
-      zegErik("Bij welke categorie hoort dit woord?");
+      zegEekhoorn("Bij welke categorie hoort dit woord?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
         <div class="woord-groot">${woord(x)}</div>
@@ -279,7 +317,7 @@ function sorteer() {
 
 // ---------- router ----------
 function route() {
-  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  if ("speechSynthesis" in window) { spreekBeurt++; speechSynthesis.cancel(); }
   const [naam, nr] = location.hash.slice(1).split("/");
   const cat = vindCat(nr);
   window.scrollTo(0, 0);
