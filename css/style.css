@@ -195,7 +195,7 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .grond { position: absolute; bottom: 0; left: 0; right: 0; height: 4rem; background: #8d6e63; font-size: 3rem; line-height: 4rem; }
 
 .tip-dictee {
-  display: table; margin: .8rem auto 0; padding: .5rem 1rem;
+  display: table; margin: .5rem auto; padding: .4rem 1rem;
   background: #fff8e1; border: 3px dashed #ffb300; border-radius: 1rem; font-size: 1.3rem; font-weight: bold;
 }
 

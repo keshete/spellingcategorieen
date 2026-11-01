@@ -13,12 +13,12 @@ const SPELLETJES = [
 // Sleutel van een categorie voor links en sterren (id als die er is, anders het nummer).
 const catSleutel = (cat) => cat.id || cat.nr;
 
-// Hulpzinnetje bij dictee en "Welke is goed?": waar moet je aan denken?
+// Hulpzinnetje bij elk spelletje: waar moet je aan denken?
 const TIPS = {
   1: "Hak het woord in stukjes en schrijf wat je hoort.",
   "1s": "Daar mag geen u tussen!",
   2: "Denk aan ng, net als bij ding-dong!",
-  3: "Denk aan de ch van lucht!",
+  3: "Denk aan de ch van lucht! Let op de uitzonderingen: hij ligt, hij legt, hij zegt.",
   4: "Denk aan nk. Daar mag geen g tussen!",
   5: "Denk aan ee, oo of eu!",
   6: "Denk aan de i: aai, ooi of oei!",
@@ -128,6 +128,7 @@ function ballonnen(cat) {
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="voortgang">🎈 Ballonnen knallen</div>
       <div class="levens-balk"><span class="levens">${hartjes(LEVENS)}</span><span class="pot" id="score">🌰 0</span></div>
+      ${tipHtml(cat)}
       <div class="lucht" id="lucht"></div>
       <a class="terug" href="#cat/${catSleutel(cat)}">← Stoppen</a>
     </div>`;
@@ -203,6 +204,7 @@ function eikels(cat) {
       zegEekhoorn("Help mij! Vang de eikel die in het gaatje past.");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
+        ${tipHtml(cat)}
         ${betekenisHtml(woord(x))}
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
         <div class="boom">
@@ -260,6 +262,7 @@ function kiezen(cat) {
       zegEekhoorn("Luister goed. Welk woord is goed geschreven?");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
+        ${tipHtml(cat)}
         ${betekenisHtml(goedW)}
         <div class="twee-keuzes">${schud([goedW, foutW]).map((o) => `
           <button class="woordkaart">${o}</button>`).join("")}</div>
@@ -495,6 +498,7 @@ function wereldSpel(cat, spelId) {
       zegEekhoorn(W.zin);
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
+        ${tipHtml(cat)}
         ${betekenisHtml(w)}
         ${spel.op === "stukje" ? `<div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>` : ""}
         <div class="veld" style="--lucht:${W.lucht};--vloer:${W.vloer}">

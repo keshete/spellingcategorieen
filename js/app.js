@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 25; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 26; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -295,6 +295,7 @@ function gaatjes(cat) {
       zegEekhoorn("Welk stukje past in het gaatje?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
+        ${tipHtml(cat)}
         ${betekenisHtml(woord(x))}
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
         <div class="keuzes">${schud([g.deel, ...g.fout]).map((o) => `<button class="keuze">${o}</button>`).join("")}</div>`;
