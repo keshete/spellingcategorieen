@@ -13,7 +13,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 30; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 31; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -186,7 +186,7 @@ function thuis() {
       <a class="thuis-knop" href="#bordspel" style="background:#f06292"><span>🎲</span>Bordspel</a>
       <a class="thuis-knop" href="#sorteer" style="background:#4fc3f7"><span>🎮</span>Sorteerspel</a>
       <a class="thuis-knop" href="#stickers" style="background:#9575cd"><span>📒</span>Stickerboek</a>
-      <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🎁</span>Prijzen</a>
+      <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🛒</span>Winkel</a>
     </div>
     <p class="thuis-uitleg">👇 Tik op een categorie. Daar vind je alle spelletjes!</p>
     <ul class="grid"></ul>`;
