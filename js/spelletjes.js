@@ -73,7 +73,7 @@ function eindScherm({ cat, n, tekst, verdiend, opnieuw, terug }) {
       ${verdiend > 0 ? `
         <div class="beloning">
           <h3>🎁 Kies je beloning!</h3>
-          <button class="beloning-knop" id="kies-eikels"><span>🌰 × ${verdiend}</span>Eikels voor Eva's prijzen</button>
+          <button class="beloning-knop" id="kies-eikels"><span>🌰 × ${verdiend}</span>Eikels voor het winkeltje</button>
           <button class="beloning-knop" id="kies-sticker"><span>🌟</span>Een sticker voor je stickerboek</button>
         </div>` : ""}
       <div class="knoppen">
@@ -318,7 +318,10 @@ const PRIJZEN = [
   { eikels: 170, emoji: "👑", naam: "een kroon" },
   { eikels: 250, emoji: "🚀", naam: "een raket" },
 ];
+// "eikels" telt alles wat je ooit verdiende (voor Eva's prijzen, die gaan nooit meer weg).
+// In het winkeltje geef je eikels uit; wat je over hebt zit in je portemonnee.
 const aantalEikels = () => Number(localStorage.getItem("eikels") || 0);
+const portemonnee = () => Math.max(0, aantalEikels() - Number(localStorage.getItem("uitgegeven") || 0));
 const gewonnenPrijzen = () => PRIJZEN.filter((p) => aantalEikels() >= p.eikels);
 
 // Teller rechtsboven en Eva's nieuwste prijs naast haar.
@@ -334,7 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 function toonEikels() {
   if (!teller) return;
-  teller.querySelector("b").textContent = aantalEikels();
+  teller.querySelector("b").textContent = portemonnee();
   const mascotte = document.querySelector(".mascot");
   const laatste = gewonnenPrijzen().pop();
   let p = mascotte.querySelector(".prijs");
@@ -364,7 +367,7 @@ function spaarEikels(n) {
     zegEekhoorn(`Hoera! Ik krijg ${nieuw.naam} ${nieuw.emoji}! Dank je wel!`);
     zeg(`Hoera! Ik krijg ${nieuw.naam}!`);
   } else {
-    zegEekhoorn(`Dank je wel! Nu heb ik ${aantalEikels()} eikels.`);
+    zegEekhoorn(`Super! Je hebt nu ${portemonnee()} eikels. Kijk eens in het winkeltje! 🛍️`);
   }
 }
 
@@ -372,18 +375,19 @@ function prijzen() {
   const n = aantalEikels();
   const volgende = PRIJZEN.find((p) => n < p.eikels);
   zegEekhoorn(volgende
-    ? `Je hebt ${n} eikels. Nog ${volgende.eikels - n} voor ${volgende.naam}!`
-    : `Wauw, ${n} eikels! Je hebt alle prijzen!`);
+    ? `Je hebt al ${n} eikels verdiend. Nog ${volgende.eikels - n} voor ${volgende.naam}!`
+    : `Wauw, ${n} eikels verdiend! Je hebt alle prijzen!`);
   scherm.innerHTML = `
     <div class="kaart">
       <h2>🎁 Prijzenkast van Eva</h2>
-      <p class="regel">Kies na een spelletje 🌰 eikels als beloning. Spaar ze voor prijzen!</p>
-      <div class="groot-eikels">🌰 ${n}</div>
+      <p class="regel">Kies na een spelletje 🌰 eikels als beloning. Hoe meer eikels je verdient, hoe meer prijzen Eva krijgt!</p>
+      <div class="groot-eikels">🌰 ${n} <small>verdiend</small></div>
       <div class="prijzenkast">${PRIJZEN.map((p) => `
         <div class="prijsvak ${n >= p.eikels ? "" : "dicht"}">
           <span>${n >= p.eikels ? p.emoji : "❔"}</span>
           ${n >= p.eikels ? p.naam : `🌰 ${p.eikels}`}
         </div>`).join("")}</div>
+      <a class="grote-knop" href="#winkel">🛍️ Naar het winkeltje</a>
       <a class="grote-knop" href="#">Verder spelen</a>
     </div>`;
 }

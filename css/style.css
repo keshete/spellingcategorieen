@@ -382,3 +382,56 @@ header { position: relative; }
 .thuis-knop span { font-size: 2.2rem; }
 .thuis-knop:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
 .thuis-uitleg { font-size: 1.3rem; font-weight: bold; text-align: center; margin: .4rem 0 .8rem; }
+
+/* ---------- 🛍️ winkeltje en avatar ---------- */
+.avatar {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 1.7em; height: 1.7em; border-radius: 50%; background: #fff3e0; flex-shrink: 0; line-height: 1;
+}
+.avatar.groot { font-size: 6rem; border: 6px solid #26a69a; }
+.avatar.klein { font-size: 1.6rem; }
+.av-dier { font-size: 1em; }
+.av-foto { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.av-hoofd { position: absolute; top: -.32em; left: 50%; transform: translateX(-50%); font-size: .6em; }
+.av-ogen { position: absolute; top: .52em; left: 50%; transform: translateX(-50%); font-size: .45em; }
+.av-hand { position: absolute; bottom: -.08em; right: -.18em; font-size: .5em; }
+.avatar-knop {
+  display: flex; border: 3px solid #26a69a; border-radius: 50%; box-shadow: 0 4px 0 #26a69a; background: #fff;
+}
+.winkel { border-color: #26a69a; }
+.winkel-top { display: flex; align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin: 1.6rem 0 1rem; }
+.winkel-actie { flex: 1; min-width: 220px; max-width: 380px; }
+.portemonnee {
+  display: inline-block; background: #fff; border: 3px solid #8d6e63; border-radius: 2rem;
+  padding: .3rem 1.2rem; font-size: 2rem; font-weight: bold; box-shadow: 0 4px 0 #8d6e63;
+}
+.winkel-bericht { font-size: 1.3rem; margin: .8rem 0; }
+.koop-knop { background: #66bb6a; box-shadow: 0 5px 0 #2e7d32; color: #fff; }
+.winkel-tabs { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-bottom: 1rem; }
+.winkel-tab {
+  font: inherit; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 3px solid #b2dfdb; background: #fff;
+  border-radius: 1rem; padding: .5rem .8rem; display: flex; flex-direction: column; align-items: center; min-width: 90px;
+}
+.winkel-tab span { font-size: 1.8rem; }
+.winkel-tab.gekozen { background: #26a69a; border-color: #00796b; color: #fff; }
+.winkel-rek { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); margin-bottom: 1.2rem; }
+.winkel-ding {
+  font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .2rem;
+  padding: .7rem .4rem; background: #fff; border: 4px solid #b2dfdb; border-radius: 1rem; box-shadow: 0 4px 0 #b2dfdb;
+}
+.winkel-ding:active { transform: translateY(3px); box-shadow: 0 1px 0 #b2dfdb; }
+.winkel-ding.te-koop { background: #fafafa; border-color: #e0e0e0; box-shadow: 0 4px 0 #e0e0e0; }
+.winkel-ding.pas { border-color: #ffca28; background: #fff8e1; }
+.winkel-ding.aan { border-color: #66bb6a; background: #e8f5e9; }
+.ding-emoji {
+  font-size: 3rem; width: 4.4rem; height: 4.4rem; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.ding-emoji img { width: 100%; height: 100%; object-fit: cover; }
+.ding-naam { font-size: 1.15rem; font-weight: bold; }
+.ding-prijs { font-size: 1.05rem; color: #6d4c41; }
+.foto-vak { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: .6rem; font-size: 1.25rem; }
+.foto-vak .winkel-ding { min-width: 160px; }
+.foto-knop { background: #4fc3f7; box-shadow: 0 5px 0 #0288d1; cursor: pointer; }
+.klein { font-size: 1rem; color: #777; }
+.groot-eikels small { font-size: 1.2rem; color: #777; }
