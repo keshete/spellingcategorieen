@@ -6,9 +6,11 @@
 // Een categorie zonder groep-veld hoort bij groep 4.
 //
 // Moeilijkheid:
-//   makkelijk: korte woorden, 2 keuzes, 4 vragen, in het dictee zie je hoeveel letters
-//   gemiddeld: alle woorden, 3 keuzes, 5 vragen
-//   moeilijk:  langere woorden, 4 keuzes in het sorteerspel, 8 vragen
+//   makkelijk: korte woorden, 2 keuzes, 4 vragen, in het dictee zie je hoeveel letters,
+//              8 ballonnen, ballonnen en eikels gaan langzamer
+//   gemiddeld: alle woorden, 3 keuzes, 5 vragen, 12 ballonnen
+//   moeilijk:  langere woorden, 4 keuzes in het sorteerspel, 8 vragen, 16 ballonnen,
+//              ballonnen en eikels gaan sneller
 
 const LEEFTIJDEN = [
   { groep: 4, jaar: "7 of 8 jaar" },
@@ -20,11 +22,11 @@ const LEEFTIJDEN = [
 
 const NIVEAUS = {
   makkelijk: { naam: "Makkelijk", icoon: "🌱", uitleg: "Korte woorden en maar 2 keuzes.",
-    vragen: 4, keuzes: 2, letterHulp: true },
+    vragen: 4, keuzes: 2, letterHulp: true, ballonnen: 8, traag: 1.35 },
   gemiddeld: { naam: "Gemiddeld", icoon: "🌳", uitleg: "Alle woorden en 3 keuzes.",
-    vragen: 5, keuzes: 3, letterHulp: false },
+    vragen: 5, keuzes: 3, letterHulp: false, ballonnen: 12, traag: 1 },
   moeilijk: { naam: "Moeilijk", icoon: "🔥", uitleg: "Lange woorden, meer keuzes en meer vragen.",
-    vragen: 8, keuzes: 4, letterHulp: false },
+    vragen: 8, keuzes: 4, letterHulp: false, ballonnen: 16, traag: 0.75 },
 };
 
 const heeftGekozen = () => !!localStorage.getItem("groep") && !!localStorage.getItem("niveau");
