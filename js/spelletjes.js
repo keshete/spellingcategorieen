@@ -30,6 +30,23 @@ const TIPS = {
   12: "Denk aan ig of lijk aan het eind!",
 };
 const tip = (cat) => TIPS[catSleutel(cat)] || cat.regel;
+// Woorden die hetzelfde klinken (licht / ligt): een plaatje en een zinnetje
+// laten zien welk woord we bedoelen. In het zinnetje staat … op de plek van het woord.
+const BETEKENIS = {
+  licht: { plaatje: "💡", zin: "Het licht is aan." },
+  ligt: { plaatje: "🛏️", zin: "Hij ligt in bed." },
+  legt: { plaatje: "🥚", zin: "De kip legt een ei." },
+  zegt: { plaatje: "👋", zin: "Hij zegt hallo." },
+  raad: { plaatje: "❓", zin: "Raad eens wat ik heb!" },
+};
+const betekenisHtml = (w) => {
+  const b = BETEKENIS[w];
+  if (!b) return "";
+  const zin = b.zin.replace(new RegExp(w, "i"), "…");
+  return `<div class="betekenis"><span>${b.plaatje}</span> ${zin}</div>`;
+};
+// Wat Eva zegt: het woord, en bij een klinkt-hetzelfde-woord ook het zinnetje.
+const metZin = (w) => (BETEKENIS[w] ? `${w}. ${BETEKENIS[w].zin}` : w);
 const tipHtml = (cat) => `<div class="tip-dictee">💡 ${tip(cat)}</div>`;
 
 const BALLON_KLEUREN = ["#ef5350", "#42a5f5", "#66bb6a", "#ffa726", "#ab47bc", "#ec407a", "#26c6da"];
@@ -62,7 +79,7 @@ function toonEinde(cat, n, tekst, opnieuw) {
 function ballonnen(cat) {
   const hier = location.hash;
   const AANTAL = 12;
-  const lijst = cat.woorden.filter((x) => foutWoord(cat, x));
+  const lijst = cat.woorden.filter((x) => foutWoord(cat, x, true));
   let gemaakt = 0, weg = 0, geknald = 0, goedeBallonnen = 0, foutjes = 0;
 
   zegEekhoorn("Knal alleen de goed geschreven woorden!");
@@ -89,7 +106,7 @@ function ballonnen(cat) {
     // ongeveer de helft is goed; zorg dat er altijd een paar goede bij zitten
     const isGoed = gemaakt < 2 || Math.random() < 0.5;
     if (isGoed) goedeBallonnen++;
-    const tekst = isGoed ? woord(x) : foutWoord(cat, x);
+    const tekst = isGoed ? woord(x) : foutWoord(cat, x, true);
     const b = el(`<button class="ballon-spel"><span>${tekst}</span></button>`);
     b.style.left = 5 + Math.random() * 65 + "%";
     b.style.setProperty("--kleur", schud(BALLON_KLEUREN)[0]);
@@ -138,6 +155,7 @@ function eikels(cat) {
       zegEekhoorn("Help mij! Vang de eikel die in het gaatje past.");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
+        ${betekenisHtml(woord(x))}
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
         <div class="boom">
           ${opties.map((o, i) => `
@@ -146,8 +164,8 @@ function eikels(cat) {
               <span class="eikel-plaatje">🌰</span><span class="eikel-tekst">${o}</span></button>`).join("")}
           <div class="grond">🐿️</div>
         </div>`;
-      doos.querySelector(".luister").onclick = () => zeg(woord(x));
-      zeg(woord(x));
+      doos.querySelector(".luister").onclick = () => zeg(metZin(woord(x)));
+      zeg(metZin(woord(x)));
       const vul = () => { const gat = doos.querySelector(".gat"); gat.textContent = g.deel; gat.classList.add("ingevuld"); };
       const stop = () => { klaar = true; doos.querySelectorAll(".eikel").forEach((e) => e.classList.add("stil")); };
       doos.querySelectorAll(".eikel").forEach((e) => {
@@ -174,9 +192,9 @@ function eikels(cat) {
 // Bij sommige categorieën komen ook uitzonderingen langs (hij ligt, niet hij licht).
 const UITZONDERINGEN = {
   3: [
-    { w: "ligt", zin: "hij ligt", fout: "licht" },
-    { w: "legt", zin: "hij legt", fout: "lecht" },
-    { w: "zegt", zin: "hij zegt", fout: "zecht" },
+    { w: "ligt", fout: "licht" },
+    { w: "legt", fout: "lecht" },
+    { w: "zegt", fout: "zecht" },
   ],
 };
 function kiezen(cat) {
@@ -190,11 +208,11 @@ function kiezen(cat) {
       const x = u ? null : schud(lijst)[0];
       const goedW = u ? u.w : woord(x);
       const foutW = u ? u.fout : foutWoord(cat, x);
-      const hoor = u ? u.zin : goedW;
+      const hoor = metZin(goedW);
       zegEekhoorn("Luister goed. Welk woord is goed geschreven?");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
-        ${u ? `<div class="zinnetje">${u.zin.replace(u.w, "…")}</div>` : ""}
+        ${betekenisHtml(goedW)}
         <div class="twee-keuzes">${schud([goedW, foutW]).map((o) => `
           <button class="woordkaart">${o}</button>`).join("")}</div>
         <div class="uitkomst"></div>`;
@@ -206,10 +224,10 @@ function kiezen(cat) {
         k.classList.add(isGoed ? "goed" : "fout");
         [...doos.querySelectorAll(".woordkaart")].find((b) => b.textContent.trim() === goedW).classList.add("goed");
         const uitkomst = doos.querySelector(".uitkomst");
-        if (u) uitkomst.innerHTML = `<span class="uitzondering">⚠️ Uitzondering!</span> ${u.zin} schrijf je met een g.`;
+        if (u) uitkomst.innerHTML = `<span class="uitzondering">⚠️ Uitzondering!</span> ${u.w} schrijf je met een g.`;
         else uitkomst.innerHTML = `${gekleurd(cat, x)}`;
         antwoord(isGoed, u
-          ? `Dit is een uitzondering! ${u.zin}: met een g.`
+          ? `Dit is een uitzondering! ${u.w} schrijf je met een g.`
           : `Kijk goed: ${goedW}. ${tip(cat)}`);
       }));
     },
@@ -359,4 +377,143 @@ function tekenWeg(cat) {
         </${tag}>`;
       }).join("")}
     </div>`;
+}
+
+// ---------- 🏀 werelden: kies de goede bal en scoor! ----------
+// Eén spel-motor met verschillende "werelden". Eva zegt een woord; op de ballen
+// (of vissen, raketten, ...) staan stukjes of woorden. Tik de goede en hij vliegt naar het doel.
+const WERELDEN = {
+  basketbal: { emoji: "🏀", doel: "🗑️", naam: "Basketbal", lucht: "#ffe0b2", vloer: "#bf8040",
+    zin: "Gooi de goede bal in de basket!", hoera: ["Score!", "Swish! Raak!", "Twee punten!"] },
+  voetbal: { emoji: "⚽", doel: "🥅", naam: "Voetbal", lucht: "#b3e5fc", vloer: "#66bb6a",
+    zin: "Schiet de goede bal in het doel!", hoera: ["Goal!", "Doelpunt!", "Wat een schot!"] },
+  ruimte: { emoji: "🚀", doel: "🌙", naam: "Ruimte", lucht: "#283593", vloer: "#1a237e",
+    zin: "Stuur de goede raket naar de maan!", hoera: ["Geland!", "Raketje op de maan!", "Woesj!"] },
+  pinguin: { emoji: "🐟", doel: "🐧", naam: "Pinguïn", lucht: "#e1f5fe", vloer: "#b3e5fc",
+    zin: "Geef de pinguïn de goede vis!", hoera: ["Smakelijk!", "Mmm, lekker!", "Hap!"] },
+  konijn: { emoji: "🥕", doel: "🐰", naam: "Konijn", lucht: "#f1f8e9", vloer: "#aed581",
+    zin: "Geef het konijn de goede wortel!", hoera: ["Knabbel knabbel!", "Lekker!", "Hap!"] },
+  piraat: { emoji: "💣", doel: "🏴‍☠️", naam: "Piraten", lucht: "#80deea", vloer: "#0277bd",
+    zin: "Schiet de goede kogel naar het piratenschip!", hoera: ["Boem! Raak!", "Ahoi!", "Raak!"] },
+};
+// Spelletjes die er al zijn (bedacht door Eva). Eigen spelletjes komen erbij.
+const KANT_EN_KLAAR = [
+  { id: "k-basket", naam: "Basketbal", wereld: "basketbal", op: "stukje", aantal: 2 },
+  { id: "k-voetbal", naam: "Voetbal", wereld: "voetbal", op: "woord", aantal: 2 },
+  { id: "k-ruimte", naam: "Naar de maan", wereld: "ruimte", op: "stukje", aantal: 3 },
+  { id: "k-pinguin", naam: "Pinguïn voeren", wereld: "pinguin", op: "woord", aantal: 3 },
+];
+const mijnSpellen = () => JSON.parse(localStorage.getItem("mijnSpellen") || "[]");
+const alleWereldSpellen = () => [...KANT_EN_KLAAR, ...mijnSpellen()];
+
+// Knoppen onder de weg: meer spelletjes, eigen spelletjes en "maak je eigen spel".
+function tekenMeerSpellen(cat) {
+  const k = catSleutel(cat);
+  const tegel = (s, eigen) => `
+    <a class="spel-tegel ${eigen ? "eigen" : ""}" href="#wereld/${k}/${s.id}">
+      <span>${WERELDEN[s.wereld].emoji}</span>${s.naam}</a>`;
+  return `
+    <h3 class="spel-kop">🎮 Nog meer spelletjes</h3>
+    <div class="spel-lijst">${KANT_EN_KLAAR.map((s) => tegel(s)).join("")}</div>
+    <h3 class="spel-kop">⭐ Mijn eigen spelletjes</h3>
+    <div class="spel-lijst">
+      ${mijnSpellen().map((s) => tegel(s, true)).join("")}
+      <a class="spel-tegel maak" href="#maak/${k}"><span>🛠️</span>Maak je eigen spel!</a>
+    </div>`;
+}
+
+function wereldSpel(cat, spelId) {
+  const spel = alleWereldSpellen().find((s) => s.id === spelId);
+  if (!spel) return categorie(cat);
+  const W = WERELDEN[spel.wereld];
+  const lijst = cat.woorden.filter((x) => foutWoord(cat, x));
+  speelRonde({
+    titel: `${W.emoji} ${spel.naam}`, cat, terug: `#cat/${catSleutel(cat)}`,
+    maakVraag: (doos, antwoord) => {
+      const x = schud(lijst)[0];
+      const w = woord(x), g = maakGat(cat, x);
+      const fouten = schud([...new Set(g.fout)]).slice(0, spel.aantal - 1);
+      const goed = spel.op === "woord" ? w : g.deel;
+      const opties = schud([goed, ...fouten.map((f) => (spel.op === "woord" ? g.voor + f + g.na : f))]);
+      zegEekhoorn(W.zin);
+      doos.innerHTML = `
+        <button class="luister" title="Luister">🔊</button>
+        ${betekenisHtml(w)}
+        ${spel.op === "stukje" ? `<div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>` : ""}
+        <div class="veld" style="--lucht:${W.lucht};--vloer:${W.vloer}">
+          <div class="doel">${W.doel}</div>
+          <div class="ballen">${opties.map((o) => `
+            <button class="bal ${spel.op}" data-o="${o}">
+              <span class="bal-emoji">${W.emoji}</span><span class="bal-tekst">${o}</span></button>`).join("")}
+          </div>
+        </div>`;
+      doos.querySelector(".luister").onclick = () => zeg(metZin(w));
+      zeg(metZin(w));
+      const doel = doos.querySelector(".doel");
+      doos.querySelectorAll(".bal").forEach((b) => (b.onclick = () => {
+        doos.querySelectorAll(".bal").forEach((x) => (x.disabled = true));
+        const isGoed = b.dataset.o === goed;
+        const gat = doos.querySelector(".gat");
+        if (gat) { gat.textContent = g.deel; gat.classList.add("ingevuld"); }
+        if (isGoed) {
+          // de bal vliegt naar het doel
+          const a = b.getBoundingClientRect(), d = doel.getBoundingClientRect();
+          b.style.transform = `translate(${d.left + d.width / 2 - (a.left + a.width / 2)}px, ${d.top + d.height / 2 - (a.top + a.height / 2)}px) scale(.6) rotate(360deg)`;
+          b.classList.add("vlieg");
+          setTimeout(() => { doel.classList.add("raak"); zegEekhoorn(schud(W.hoera)[0]); }, 550);
+        } else {
+          b.classList.add("mis");
+        }
+        antwoord(isGoed, `Bijna! Het is ${w}. ${tip(cat)}`);
+      }));
+    },
+  });
+}
+
+// ---------- 🛠️ maak je eigen spel ----------
+function maakSpel(cat) {
+  const k = catSleutel(cat);
+  const keuze = { wereld: "basketbal", op: "stukje", aantal: 2 };
+  zegEekhoorn("Jij bent de baas! Kies een wereld en maak je eigen spel.");
+  scherm.innerHTML = `
+    <div class="kaart maker">
+      <h2>🛠️ Maak je eigen spel</h2>
+      <h3>1. Kies een wereld</h3>
+      <div class="kies-rij" data-veld="wereld">${Object.entries(WERELDEN).map(([id, W]) => `
+        <button class="kies-knop" data-w="${id}"><span>${W.emoji}${W.doel}</span>${W.naam}</button>`).join("")}</div>
+      <h3>2. Wat staat er op de ${"ballen"}?</h3>
+      <div class="kies-rij" data-veld="op">
+        <button class="kies-knop" data-w="stukje"><span>b · p</span>Een stukje</button>
+        <button class="kies-knop" data-w="woord"><span>krab · krap</span>Een heel woord</button>
+      </div>
+      <h3>3. Hoeveel om uit te kiezen?</h3>
+      <div class="kies-rij" data-veld="aantal">
+        <button class="kies-knop" data-w="2"><span>⚪⚪</span>2</button>
+        <button class="kies-knop" data-w="3"><span>⚪⚪⚪</span>3</button>
+      </div>
+      <h3>4. Hoe heet jouw spel?</h3>
+      <input class="spel-naam" maxlength="24" placeholder="Mijn basketbalspel" autocomplete="off">
+      <div class="knoppen">
+        <button class="grote-knop" id="bewaar">✅ Klaar, spelen!</button>
+        <a class="grote-knop grijs" href="#cat/${k}">Terug</a>
+      </div>
+    </div>`;
+  const naamVeld = scherm.querySelector(".spel-naam");
+  const toon = () => {
+    scherm.querySelectorAll(".kies-rij").forEach((rij) => rij.querySelectorAll(".kies-knop").forEach((b) =>
+      b.classList.toggle("gekozen", String(keuze[rij.dataset.veld]) === b.dataset.w)));
+    naamVeld.placeholder = `Mijn ${WERELDEN[keuze.wereld].naam.toLowerCase()}spel`;
+  };
+  scherm.querySelectorAll(".kies-rij").forEach((rij) => rij.querySelectorAll(".kies-knop").forEach((b) => (b.onclick = () => {
+    const v = rij.dataset.veld;
+    keuze[v] = v === "aantal" ? Number(b.dataset.w) : b.dataset.w;
+    geluid("eikel"); toon();
+  })));
+  toon();
+  scherm.querySelector("#bewaar").onclick = () => {
+    const spel = { id: "m-" + Date.now(), naam: naamVeld.value.trim() || naamVeld.placeholder, ...keuze };
+    localStorage.setItem("mijnSpellen", JSON.stringify([...mijnSpellen(), spel]));
+    feest();
+    location.hash = `#wereld/${k}/${spel.id}`;
+  };
 }

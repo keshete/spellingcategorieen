@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 21; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 23; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -148,10 +148,16 @@ const KLINKER_GAT = {
           i: ["ie"], ie: ["i"], oe: ["oo"], ui: ["ou"], eu: ["u"], ou: ["au"], ei: ["ij"], ij: ["ei"] },
 };
 // Een woord met een spelfout erin (voor de ballonnen).
-function foutWoord(cat, x) {
+// Met echtNee = true: geen "fout" woord dat eigenlijk een echt woord is (man, bank, ligt),
+// voor spelletjes zonder voorlezen, zoals de ballonnen.
+function foutWoord(cat, x, echtNee = false) {
   const g = maakGat(cat, x);
-  return g ? g.voor + schud(g.fout)[0] + g.na : null;
+  if (!g) return null;
+  const opties = g.fout.map((f) => g.voor + f + g.na).filter((f) => !echtNee || !ECHTE_WOORDEN.has(f));
+  return opties.length ? schud(opties)[0] : null;
 }
+const ECHTE_WOORDEN = new Set(("vies peen rook man bot ram ban bank bang ton slank bier pier mier oer dor " +
+  "ligt licht raat raad krap poten kiel vel per ping rink del deel kus kussen bed bet").split(" "));
 function gekleurd(cat, x) {
   const g = maakGat(cat, x);
   return g ? `${g.voor}<mark>${g.deel}</mark>${g.na}` : woord(x);
@@ -198,6 +204,7 @@ function categorie(cat) {
       </div>
       <p class="regel">${cat.regel}</p>
       ${tekenWeg(cat)}
+      ${tekenMeerSpellen(cat)}
       <a class="terug" href="#">← Terug</a>
     </div>`;
 }
@@ -287,10 +294,11 @@ function gaatjes(cat) {
       zegEekhoorn("Welk stukje past in het gaatje?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
+        ${betekenisHtml(woord(x))}
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
         <div class="keuzes">${schud([g.deel, ...g.fout]).map((o) => `<button class="keuze">${o}</button>`).join("")}</div>`;
-      doos.querySelector(".luister").onclick = () => zeg(woord(x));
-      zeg(woord(x));
+      doos.querySelector(".luister").onclick = () => zeg(metZin(woord(x)));
+      zeg(metZin(woord(x)));
       doos.querySelectorAll(".keuze").forEach((k) => (k.onclick = () => {
         doos.querySelectorAll(".keuze").forEach((b) => (b.disabled = true));
         const isGoed = k.textContent === g.deel;
@@ -312,6 +320,7 @@ function dictee(cat) {
       zegEekhoorn("Luister goed en schrijf het woord op.");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
+        ${betekenisHtml(w)}
         ${tipHtml(cat)}
         <form class="dictee">
           <input autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Schrijf het woord">
@@ -320,7 +329,7 @@ function dictee(cat) {
         <div class="uitkomst"></div>`;
       const veld = doos.querySelector("input");
       // Zeg het woord twee keer, met een pauze ertussen, zodat je het goed hoort.
-      const zegWoord = () => zeg(`${w}. ${w}.`);
+      const zegWoord = () => zeg(BETEKENIS[w] ? metZin(w) : `${w}. ${w}.`);
       doos.querySelector(".luister").onclick = zegWoord;
       zegWoord(); veld.focus();
       doos.querySelector("form").onsubmit = (e) => {
@@ -435,6 +444,8 @@ function route() {
   if (cat && naam === "ballonnen") return ballonnen(cat);
   if (cat && naam === "eikels") return eikels(cat);
   if (cat && naam === "kiezen") return kiezen(cat);
+  if (cat && naam === "wereld") return wereldSpel(cat, location.hash.split("/")[2]);
+  if (cat && naam === "maak") return maakSpel(cat);
   thuis();
 }
 window.addEventListener("hashchange", route);

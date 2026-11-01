@@ -264,3 +264,48 @@ header { position: relative; }
 .woordkaart.fout { border-color: #c62828; background: #ffcdd2; color: #b71c1c; animation: schud .4s; }
 .zinnetje { font-size: 2rem; margin-top: .8rem; color: #555; }
 .uitzondering { background: #ffe082; border-radius: .6rem; padding: .1rem .5rem; font-weight: bold; }
+
+/* ---------- 🏀 werelden ---------- */
+.spel-tegel.eigen { background: #fff3e0; border-color: #ffb74d; box-shadow: 0 5px 0 #fb8c00; }
+.spel-tegel.maak { background: #ede7f6; border-color: #9575cd; box-shadow: 0 5px 0 #7e57c2; border-style: dashed; }
+.veld {
+  position: relative; height: 46vh; min-height: 320px; border-radius: 1rem; margin-top: .8rem; overflow: hidden;
+  background: linear-gradient(var(--lucht) 72%, var(--vloer) 72%);
+  display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 1rem;
+}
+.doel { font-size: 5.5rem; line-height: 1; }
+.doel.raak { animation: spring .6s ease-out; }
+.ballen { display: flex; gap: 1.4rem; justify-content: center; flex-wrap: wrap; }
+.bal {
+  position: relative; border: none; background: none; padding: 0; cursor: pointer; font: inherit;
+  transition: transform .6s cubic-bezier(.3,-.3,.5,1); touch-action: manipulation;
+}
+.bal-emoji { font-size: 6.5rem; line-height: 1; display: block; }
+.bal-tekst {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  background: #fff; border: 4px solid #333; border-radius: 1rem; padding: 0 .5rem;
+  font-size: 2.2rem; font-weight: bold; white-space: nowrap;
+}
+.bal.woord .bal-tekst { font-size: 1.7rem; }
+.bal:disabled { opacity: 1; }
+.bal.vlieg { z-index: 2; }
+.bal.mis .bal-tekst { background: #ffcdd2; border-color: #c62828; }
+.bal.mis { animation: schud .4s; opacity: .5; }
+
+/* ---------- 🛠️ maker ---------- */
+.maker h3 { margin: 1.2rem 0 .5rem; font-size: 1.3rem; }
+.kies-rij { display: flex; flex-wrap: wrap; gap: .7rem; justify-content: center; }
+.kies-knop {
+  font: inherit; font-size: 1.05rem; font-weight: bold; min-width: 7.5rem; padding: .6rem .8rem; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: .2rem;
+  background: #fff; border: 4px solid #ddd; border-radius: 1rem; box-shadow: 0 4px 0 #ccc;
+}
+.kies-knop span { font-size: 2rem; }
+.kies-knop.gekozen { border-color: #7e57c2; background: #ede7f6; }
+.spel-naam { font: inherit; font-size: 1.6rem; padding: .5rem .8rem; width: min(100%, 22ch); text-align: center; border: 4px solid #ccc; border-radius: 1rem; }
+.grote-knop.grijs { background: #e0e0e0; box-shadow: 0 5px 0 #9e9e9e; }
+.betekenis {
+  display: table; margin: .8rem auto 0; padding: .4rem 1.1rem; font-size: 1.7rem;
+  background: #e3f2fd; border: 3px solid #64b5f6; border-radius: 1rem;
+}
+.betekenis span { font-size: 2.6rem; vertical-align: middle; }
