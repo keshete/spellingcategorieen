@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 15; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 16; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -56,13 +56,15 @@ function stukjes(tekst) {
 let spreekBeurt = 0; // telt op bij elke nieuwe zeg(), zodat een oude zin stopt
 // Tempo kies je op het stem-scherm. Losse dicteewoorden gaan altijd nog iets langzamer.
 const TEMPO = {
-  1: { naam: "🐌 Heel langzaam", zin: 0.6, woord: 0.5 },
-  2: { naam: "🐢 Langzaam", zin: 0.8, woord: 0.65 },
-  3: { naam: "🚶 Gewoon", zin: 1, woord: 0.85 },
+  1: { naam: "🐌 Heel langzaam", zin: 0.75, woord: 0.65 },
+  2: { naam: "🐢 Langzaam", zin: 0.85, woord: 0.75 },
+  3: { naam: "🚶 Gewoon", zin: 1, woord: 0.9 },
   4: { naam: "🐇 Snel", zin: 1.2, woord: 1 },
   5: { naam: "🚀 Supersnel", zin: 1.5, woord: 1.3 },
 };
-const tempo = () => TEMPO[localStorage.getItem("tempo")] || TEMPO[2];
+// Heel langzaam praten laat iPhone-stemmen vervormen; daarom is "gewoon" de standaard
+// en geven we pauzes en herhaling in plaats van een hele lage snelheid.
+const tempo = () => TEMPO[localStorage.getItem("tempo")] || TEMPO[3];
 function snelheid(t) {
   const losWoord = !/\s/.test(t.trim());
   return losWoord ? tempo().woord : tempo().zin;
@@ -302,8 +304,10 @@ function dictee(cat) {
         </form>
         <div class="uitkomst"></div>`;
       const veld = doos.querySelector("input");
-      doos.querySelector(".luister").onclick = () => zeg(w);
-      zeg(w); veld.focus();
+      // Zeg het woord twee keer, met een pauze ertussen, zodat je het goed hoort.
+      const zegWoord = () => zeg(`${w}. ${w}.`);
+      doos.querySelector(".luister").onclick = zegWoord;
+      zegWoord(); veld.focus();
       doos.querySelector("form").onsubmit = (e) => {
         e.preventDefault();
         if (!veld.value.trim()) return;
@@ -351,7 +355,7 @@ function stemScherm() {
   if (!nlStem && "speechSynthesis" in window) kiesStem();
   const stemmen = "speechSynthesis" in window ? nlStemmen() : [];
   const heeftVrouw = stemmen.some(isVrouw);
-  const nu = localStorage.getItem("tempo") || "2";
+  const nu = localStorage.getItem("tempo") || "3";
   scherm.innerHTML = `
     <div class="kaart stemkaart">
       <h2>🔊 Hoe praat ${naam()}?</h2>
@@ -362,7 +366,7 @@ function stemScherm() {
       <h3>Welke stem?</h3>
       <div class="keuzes" id="stemmen">
         ${stemmen.map((v, i) => `<button class="grote-knop${nlStem && v.voiceURI === nlStem.voiceURI ? " gekozen" : ""}" data-i="${i}">
-          ${isVrouw(v) ? "👧" : isMan(v) ? "👦" : "🙂"} ${v.name.replace(/\(.*\)/, "").trim()}</button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
+          ${isVrouw(v) ? "👧" : isMan(v) ? "👦" : "🙂"} ${v.name} <small>(${v.lang})</small></button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
       </div>
       ${heeftVrouw ? "" : `<p class="tip">Er is nog geen meisjesstem op dit apparaat. Vraag een grote mens om te helpen:
         iPhone of iPad → Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands →
