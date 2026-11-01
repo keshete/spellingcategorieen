@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 23; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 24; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -244,41 +244,42 @@ async function uitleg(cat) {
 }
 
 // Een ronde van RONDE vragen. maakVraag(i) tekent een vraag en roept antwoord(goed) aan.
+// Je hebt LEVENS hartjes. Fout = een hartje kwijt. Alle hartjes op = geen punten.
+const LEVENS = 3;
+const hartjes = (n) => "❤️".repeat(n) + "🤍".repeat(LEVENS - n);
 function speelRonde({ titel, cat, maakVraag, terug }) {
-  let i = 0, goed = 0;
+  let i = 0, goed = 0, levens = LEVENS;
   const hier = location.hash;
+  const opnieuw = () => speelRonde({ titel, cat, maakVraag, terug });
   const volgende = () => {
     if (i === RONDE) return einde();
     scherm.innerHTML = `
       <div class="kaart" ${cat ? `style="border-color:${cat.kleur}"` : ""}>
-        <div class="voortgang">${titel} · vraag ${i + 1} van ${RONDE} · ${"⭐".repeat(goed)}</div>
+        <div class="voortgang">${titel} · vraag ${i + 1} van ${RONDE}</div>
+        <div class="levens-balk"><span class="levens">${hartjes(levens)}</span><span class="pot">🌰 ${goed}</span></div>
         <div id="vraag"></div>
         <a class="terug" href="${terug}">← Stoppen</a>
       </div>`;
     maakVraag(scherm.querySelector("#vraag"), async (isGoed, uitlegFout) => {
-      if (isGoed) { goed++; geluid("goed"); geefEikel(); zegEekhoorn(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!"); }
-      else { geluid("fout"); zegEekhoorn(uitlegFout); }
+      if (isGoed) {
+        goed++; geluid("goed"); eikelVlieg();
+        scherm.querySelector(".pot").textContent = `🌰 ${goed}`;
+        zegEekhoorn(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!");
+      } else {
+        levens--; geluid("fout"); zegEekhoorn(uitlegFout);
+        const l = scherm.querySelector(".levens");
+        l.textContent = hartjes(levens); l.classList.add("au");
+      }
       i++;
-      await wacht(isGoed ? 900 : 2200);
-      if (location.hash === hier) volgende(); // niet doorgaan als het kind al weg is
-
+      await wacht(isGoed ? 900 : 2400);
+      if (location.hash !== hier) return; // niet doorgaan als het kind al weg is
+      if (levens === 0) return levensOp({ cat, opnieuw, terug });
+      volgende();
     });
   };
   const einde = () => {
     const n = goed === RONDE ? 3 : goed >= 3 ? 2 : goed >= 1 ? 1 : 0;
-    if (cat) geefSterren(cat.nr, n);
-    if (n >= 2) feest();
-    zegEekhoorn(n === 3 ? "Alles goed! Wat ben jij een spellingkampioen!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend! Nog een keer?");
-    scherm.innerHTML = `
-      <div class="kaart eind">
-        <div class="groot-sterren">${sterTekst(n)}</div>
-        <p>Je had er ${goed} van de ${RONDE} goed.</p>
-        <div class="knoppen">
-          <button class="grote-knop" id="nog">🔁 Nog een keer</button>
-          <a class="grote-knop" href="${terug}">Klaar</a>
-        </div>
-      </div>`;
-    scherm.querySelector("#nog").onclick = () => speelRonde({ titel, cat, maakVraag, terug });
+    eindScherm({ cat, n, tekst: `Je had er ${goed} van de ${RONDE} goed.`, verdiend: goed, opnieuw, terug });
   };
   volgende();
 }
@@ -441,6 +442,7 @@ function route() {
   if (cat && naam === "gaatjes") return gaatjes(cat);
   if (cat && naam === "dictee") return dictee(cat);
   if (naam === "prijzen") return prijzen();
+  if (naam === "stickers") return stickerboek();
   if (cat && naam === "ballonnen") return ballonnen(cat);
   if (cat && naam === "eikels") return eikels(cat);
   if (cat && naam === "kiezen") return kiezen(cat);
