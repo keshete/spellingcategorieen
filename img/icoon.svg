@@ -1,19 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#14b8c4"/><stop offset=".55" stop-color="#3b5bf0"/><stop offset="1" stop-color="#7a2ff0"/>
+      <stop offset="0" stop-color="#ff8fc8"/><stop offset=".5" stop-color="#b98bff"/><stop offset="1" stop-color="#5fd3dc"/>
     </linearGradient>
   </defs>
   <rect width="512" height="512" fill="url(#bg)"/>
-  <g fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="14" stroke-linecap="round">
-    <path d="M70,110 a28,28 0 1,1 28,28 a16,16 0 1,1 -14,-18"/>
-    <path d="M430,420 a28,28 0 1,1 28,28 a16,16 0 1,1 -14,-18"/>
+  <!-- regenboog -->
+  <g transform="translate(130,150)" fill="none" stroke-width="16" stroke-linecap="round">
+    <path d="M-70,0 A70,70 0 0,1 70,0" stroke="#ff4fa3"/>
+    <path d="M-54,0 A54,54 0 0,1 54,0" stroke="#ffb01f"/>
+    <path d="M-38,0 A38,38 0 0,1 38,0" stroke="#2ec27e"/>
+    <path d="M-22,0 A22,22 0 0,1 22,0" stroke="#3b6cf5"/>
   </g>
-  <g transform="translate(256,300) scale(7)">
-    <path d="M-18,-2 L-20,-24 L-8,-14 Q0,-17 8,-14 L20,-24 L18,-2 Q18,16 0,17 Q-18,16 -18,-2 Z" fill="#1b1f5e" transform="translate(-1.2,1.4)" opacity=".5"/>
-    <path d="M-18,-2 L-20,-24 L-8,-14 Q0,-17 8,-14 L20,-24 L18,-2 Q18,16 0,17 Q-18,16 -18,-2 Z" fill="#1b1f5e"/>
+  <!-- bloem -->
+  <g transform="translate(400,400) rotate(-12)" stroke="#1b1f5e" stroke-width="5">
+    <g fill="#ff4fa3">
+      <ellipse cy="-36" rx="16" ry="30"/><ellipse cy="-36" rx="16" ry="30" transform="rotate(72)"/><ellipse cy="-36" rx="16" ry="30" transform="rotate(144)"/><ellipse cy="-36" rx="16" ry="30" transform="rotate(216)"/><ellipse cy="-36" rx="16" ry="30" transform="rotate(288)"/>
+    </g>
+    <circle r="18" fill="#ffd23f"/>
+  </g>
+  <!-- hartje -->
+  <path transform="translate(408,150) rotate(12) scale(4)" d="M0,6 C-10,-2 -8,-12 0,-7 C8,-12 10,-2 0,6 Z" fill="#ff7a1f" stroke="#1b1f5e" stroke-width="1.2"/>
+  <!-- sterren -->
+  <path d="M410,40 Q410,70 440,70 Q410,70 410,100 Q410,70 380,70 Q410,70 410,40 Z" fill="#ffd23f"/>
+  <path d="M80,380 Q80,405 105,405 Q80,405 80,430 Q80,405 55,405 Q80,405 80,380 Z" fill="#fff"/>
+  <path transform="translate(120,440) rotate(-14) scale(3.2)" d="M0,6 C-10,-2 -8,-12 0,-7 C8,-12 10,-2 0,6 Z" fill="#2ec27e" stroke="#1b1f5e" stroke-width="1.4"/>
+  <!-- poes -->
+  <g transform="translate(256,296) scale(6)" stroke-linejoin="round">
+    <path d="M-18,-2 L-20,-24 L-8,-14 Q0,-17 8,-14 L20,-24 L18,-2 Q18,16 0,17 Q-18,16 -18,-2 Z" fill="#1b1f5e" transform="translate(1,1.2)"/>
+    <path d="M-18,-2 L-20,-24 L-8,-14 Q0,-17 8,-14 L20,-24 L18,-2 Q18,16 0,17 Q-18,16 -18,-2 Z" fill="#8b3ff0" stroke="#1b1f5e" stroke-width="1.6"/>
+    <path d="M-16,-19 L-9,-13 L-15,-9 Z M16,-19 L9,-13 L15,-9 Z" fill="#ff8fc8"/>
     <circle cx="-7" cy="-2" r="2.8" fill="#ffd23f"/><circle cx="7" cy="-2" r="2.8" fill="#ffd23f"/>
-    <path d="M-3,5 L3,5 L0,8 Z" fill="#ff7a59"/>
+    <path d="M-3,5 L3,5 L0,8 Z" fill="#ff4fa3"/>
+    <path d="M-6,9 l-11,-2 M-6,11 l-11,3 M6,9 l11,-2 M6,11 l11,3" stroke="#1b1f5e" stroke-width="1" stroke-linecap="round" fill="none"/>
   </g>
-  <path d="M405,70 Q405,110 445,110 Q405,110 405,150 Q405,110 365,110 Q405,110 405,70 Z" fill="#ffd23f"/>
 </svg>
