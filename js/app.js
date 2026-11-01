@@ -178,7 +178,7 @@ function categorie(cat) {
       <h3 class="spel-kop">🎮 Spelletjes</h3>
       <div class="spel-lijst">
         ${SPELLETJES.filter((g) => heeftGat || !g.gat).map((g) => `
-          <a class="spel-tegel" href="#${g.id}/${cat.nr}"><span>${g.emoji}</span>${g.naam}</a>`).join("")}
+          <a class="spel-tegel" href="#${g.id}/${sleutel(cat)}"><span>${g.emoji}</span>${g.naam}</a>`).join("")}
       </div>
       <a class="terug" href="#">← Terug</a>
     </div>`;

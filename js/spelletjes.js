@@ -10,20 +10,29 @@ const SPELLETJES = [
   { id: "dictee", emoji: "🎧", naam: "Dictee" },
 ];
 
+// Sleutel van een categorie voor links en sterren (id als die er is, anders het nummer).
+const sleutel = (cat) => cat.id || cat.nr;
+
 const BALLON_KLEUREN = ["#ef5350", "#42a5f5", "#66bb6a", "#ffa726", "#ab47bc", "#ec407a", "#26c6da"];
 
 // Eindscherm met sterren, voor spelletjes die niet uit losse vragen bestaan.
 function toonEinde(cat, n, tekst, opnieuw) {
-  geefSterren(cat.nr, n);
+  // gaat er een nieuwe categorie open? (alleen als de slotjes er zijn)
+  const telOpen = typeof aantalOpen === "function" ? aantalOpen : () => 0;
+  const openVoor = telOpen();
+  geefSterren(sleutel(cat), n);
+  const nieuw = telOpen() > openVoor ? CATEGORIEEN[telOpen() - 1] : null;
   if (n >= 2) feest();
   zegEekhoorn(n === 3 ? "Wauw! Wat ben jij goed!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend! Nog een keer?");
+  if (nieuw) { zegEekhoorn(`Hoera! ${nieuw.naam} is nu open! 🔓`); zeg(`Hoera! ${nieuw.naam} is nu open!`); }
   scherm.innerHTML = `
     <div class="kaart eind" style="border-color:${cat.kleur}">
       <div class="groot-sterren">${sterTekst(n)}</div>
       <p>${tekst}</p>
+      ${nieuw ? `<a class="nieuw-open" href="#cat/${sleutel(nieuw)}" style="background:${nieuw.kleur}">🔓 ${nieuw.figuur} ${nieuw.naam} is open!</a>` : ""}
       <div class="knoppen">
         <button class="grote-knop" id="nog">🔁 Nog een keer</button>
-        <a class="grote-knop" href="#cat/${cat.nr}">Klaar</a>
+        <a class="grote-knop" href="#cat/${sleutel(cat)}">Klaar</a>
       </div>
     </div>`;
   scherm.querySelector("#nog").onclick = opnieuw;
@@ -43,7 +52,7 @@ function ballonnen(cat) {
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="voortgang">🎈 Ballonnen knallen · <span id="score">⭐ 0</span></div>
       <div class="lucht" id="lucht"></div>
-      <a class="terug" href="#cat/${cat.nr}">← Stoppen</a>
+      <a class="terug" href="#cat/${sleutel(cat)}">← Stoppen</a>
     </div>`;
   const lucht = scherm.querySelector("#lucht");
   const score = scherm.querySelector("#score");
@@ -99,7 +108,7 @@ function ballonnen(cat) {
 function eikels(cat) {
   const lijst = schud(cat.woorden.filter((x) => maakGat(cat, x)));
   speelRonde({
-    titel: "🌰 Eikels vangen", cat, terug: `#cat/${cat.nr}`,
+    titel: "🌰 Eikels vangen", cat, terug: `#cat/${sleutel(cat)}`,
     maakVraag: (doos, antwoord) => {
       const x = lijst[Math.floor(Math.random() * lijst.length)];
       const g = maakGat(cat, x);
@@ -143,7 +152,7 @@ function eikels(cat) {
 // Eva zegt een woord. Bouw het met blokjes; het lastige stukje is één blokje.
 function bouwen(cat) {
   speelRonde({
-    titel: "🧱 Woord bouwen", cat, terug: `#cat/${cat.nr}`,
+    titel: "🧱 Woord bouwen", cat, terug: `#cat/${sleutel(cat)}`,
     maakVraag: (doos, antwoord) => {
       const x = schud(cat.woorden)[0];
       const w = woord(x);
