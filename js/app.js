@@ -6,7 +6,7 @@ const RONDE = 5; // vragen per spelletje
 const zegEekhoorn = (t) => { eekhoorn.textContent = t; };
 const schud = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 // Voor het dictee: hoofdletters, spaties en de soort komma (' of ’) maken niet uit.
-const netjes = (t) => t.trim().toLowerCase().replace(/[‘’`´]/g, "'").replace(/\s+/g, " ");
+const netjes = (t) => t.trim().toLowerCase().replace(/[‘’`]/g, "'").replace(/\s+/g, " ");
 const woord = (x) => (typeof x === "string" ? x : x.w);
 const vindCat = (nr) => CATEGORIEEN.find((c) => c.nr === Number(nr));
 const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstElementChild; };
@@ -56,9 +56,11 @@ function stukjes(tekst) {
 let spreekBeurt = 0; // telt op bij elke nieuwe zeg(), zodat een oude zin stopt
 // Tempo kies je op het stem-scherm. Losse dicteewoorden gaan altijd nog iets langzamer.
 const TEMPO = {
-  1: { naam: "🐌 Heel langzaam", zin: 0.55, woord: 0.45 },
-  2: { naam: "🐢 Langzaam", zin: 0.7, woord: 0.55 },
-  3: { naam: "🐇 Gewoon", zin: 0.9, woord: 0.7 },
+  1: { naam: "🐌 Heel langzaam", zin: 0.6, woord: 0.5 },
+  2: { naam: "🐢 Langzaam", zin: 0.8, woord: 0.65 },
+  3: { naam: "🚶 Gewoon", zin: 1, woord: 0.85 },
+  4: { naam: "🐇 Snel", zin: 1.2, woord: 1 },
+  5: { naam: "🚀 Supersnel", zin: 1.5, woord: 1.3 },
 };
 const tempo = () => TEMPO[localStorage.getItem("tempo")] || TEMPO[2];
 function snelheid(t) {
@@ -72,8 +74,7 @@ function spreekStukje(t) {
     u.lang = nlStem ? nlStem.lang : "nl-NL";
     u.rate = snelheid(t);
     if (nlStem) u.voice = nlStem;
-    // Is er alleen een mannenstem? Dan wat hoger, zodat Eva meer als een meisje klinkt.
-    u.pitch = nlStem && isMan(nlStem) ? 1.6 : 1.1;
+    u.pitch = 1; // gewone toonhoogte: hoger of lager klinkt raar en onduidelijk
     let gedaan = false;
     const af = () => { if (!gedaan) { gedaan = true; klaar(); } };
     u.onend = af; u.onerror = af;
@@ -357,6 +358,9 @@ function stemScherm() {
       ${heeftVrouw ? "" : `<p class="tip">Er is nog geen meisjesstem op dit apparaat. Vraag een grote mens om te helpen:
         iPhone of iPad → Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands →
         tik op <b>Claire</b> om haar te downloaden. Kom daarna hier terug.</p>`}
+      <p class="tip">Klinkt een stem raar of krakerig? Op een iPhone of iPad kun je bij
+        Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands
+        de <b>verbeterde</b> versie van de stem downloaden. Die klinkt veel mooier.</p>
       <button class="grote-knop" id="probeer">▶️ Probeer</button>
       <p class="versie">Versie ${VERSIE}</p>
     </div>`;
