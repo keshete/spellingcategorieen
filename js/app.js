@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 18; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 19; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -90,33 +90,32 @@ function spreekStukje(t, metStem = true) {
   });
 }
 
+// Volgorde: zelf ingesproken opname, dan een echte stem van Wikimedia (losse woorden),
+// en anders de computerstem van het apparaat.
 async function zeg(tekst) {
   const beurt = ++spreekBeurt;
   stopOpname();
-  // Zijn alle stukjes zelf ingesproken? Dan alleen de opnames afspelen.
-  if (stukjes(tekst).every(heeftOpname)) {
-    for (const t of stukjes(tekst)) {
-      if (beurt !== spreekBeurt) return;
-      await speelOpname(t);
-      await wacht(400);
+  const tts = "speechSynthesis" in window;
+  if (tts) {
+    if (!nlStem) kiesStem();
+    // iPhone/iPad: alleen als er al iets klinkt even stoppen en wachten. Anders meteen
+    // praten, want na een tik moet de stem direct beginnen, anders blijft hij stil.
+    if (speechSynthesis.speaking || speechSynthesis.pending) {
+      speechSynthesis.cancel();
+      await wacht(100);
     }
-    return;
+    if (speechSynthesis.paused) speechSynthesis.resume();
   }
-  if (!("speechSynthesis" in window)) return wacht(600);
-  if (!nlStem) kiesStem();
-  // iPhone/iPad: alleen als er al iets klinkt even stoppen en wachten. Anders meteen
-  // praten, want na een tik moet de stem direct beginnen, anders blijft hij stil.
-  if (speechSynthesis.speaking || speechSynthesis.pending) {
-    speechSynthesis.cancel();
-    await wacht(100);
-  }
-  if (speechSynthesis.paused) speechSynthesis.resume();
   for (const t of stukjes(tekst)) {
     if (beurt !== spreekBeurt) return;
-    if (heeftOpname(t) && (await speelOpname(t))) { await wacht(250); continue; }
-    await spreekStukje(t);
+    let gedaan = heeftOpname(t) && (await speelOpname(t));
+    if (!gedaan && echteStemAan() && !/\s/.test(t)) gedaan = await speelEchteStem(t);
     if (beurt !== spreekBeurt) return;
-    await wacht(250);
+    if (!gedaan) {
+      if (tts) await spreekStukje(t); else await wacht(600);
+    }
+    if (beurt !== spreekBeurt) return;
+    await wacht(gedaan ? 400 : 250);
   }
 }
 
@@ -383,6 +382,14 @@ function stemScherm() {
         Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands
         de <b>verbeterde</b> versie van de stem downloaden. Die klinkt veel mooier.</p>
       <button class="grote-knop" id="probeer">▶️ Probeer</button>
+      <h3>Echte stemmen</h3>
+      <div class="keuzes" id="echt">
+        <button class="grote-knop${echteStemAan() ? " gekozen" : ""}" data-v="aan">🧑 Echte mensen</button>
+        <button class="grote-knop${echteStemAan() ? "" : " gekozen"}" data-v="uit">🤖 Computerstem</button>
+      </div>
+      <p class="tip">Met <b>echte mensen</b> hoor je bij losse woorden de stem van een echt persoon,
+        steeds iemand anders. Daarvoor is internet nodig. Is er van een woord geen opname, dan praat de computerstem.
+        <small>Opnames: Lingua Libre en WikiWoordenboek via Wikimedia Commons (CC BY-SA).</small></p>
       <h3>Klinkt de stem niet goed?</h3>
       <a class="grote-knop" href="#opnemen">🎙️ Woorden zelf inspreken</a>
       <p class="versie">Versie ${VERSIE}</p>
@@ -395,6 +402,9 @@ function stemScherm() {
     localStorage.setItem("stem", stemmen[b.dataset.i].voiceURI); kiesStem(); stemScherm(); probeer();
   }));
   scherm.querySelector("#probeer").onclick = probeer;
+  scherm.querySelectorAll("#echt button").forEach((b) => (b.onclick = () => {
+    localStorage.setItem("echteStem", b.dataset.v); stemScherm(); zeg("kat. vis. hulp.");
+  }));
 }
 
 // ---------- router ----------
