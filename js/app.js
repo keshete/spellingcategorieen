@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 13; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 14; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -173,7 +173,7 @@ function categorie(cat) {
       </div>
       <p class="regel">${cat.regel}</p>
       <div class="knoppen">
-        <a class="grote-knop" href="#uitleg/${cat.nr}">🎬 Uitleg</a>
+        <a class="grote-knop" href="#uitleg/${sleutel(cat)}">🎬 Uitleg</a>
       </div>
       <h3 class="spel-kop">🎮 Spelletjes</h3>
       <div class="spel-lijst">
@@ -293,6 +293,7 @@ function dictee(cat) {
       zegEekhoorn("Luister goed en schrijf het woord op.");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
+        ${tipHtml(cat)}
         <form class="dictee">
           <input autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Schrijf het woord">
           <button class="grote-knop">Klaar ✔</button>

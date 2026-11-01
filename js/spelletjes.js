@@ -13,6 +13,25 @@ const SPELLETJES = [
 // Sleutel van een categorie voor links en sterren (id als die er is, anders het nummer).
 const sleutel = (cat) => cat.id || cat.nr;
 
+// Hulpzinnetje bij dictee en woord bouwen: waar moet je aan denken?
+const TIPS = {
+  1: "Hak het woord in stukjes en schrijf wat je hoort.",
+  "1s": "Daar mag geen u tussen!",
+  2: "Denk aan ng, net als bij ding-dong!",
+  3: "Denk aan de ch van lucht!",
+  4: "Denk aan nk. Daar mag geen g tussen!",
+  5: "Denk aan ee, oo of eu!",
+  6: "Denk aan de i: aai, ooi of oei!",
+  7: "Denk aan de u: eeuw of ieuw!",
+  8: "Maak het woord langer. Hoor je d of t?",
+  9: "Denk aan be, ge of ver vooraan!",
+  10: "Lange klank of korte klank? Denk aan de klankgroep!",
+  11: "Denk aan je, tje of pje aan het eind!",
+  12: "Denk aan ig of lijk aan het eind!",
+};
+const tip = (cat) => TIPS[sleutel(cat)] || cat.regel;
+const tipHtml = (cat) => `<div class="tip-dictee">💡 ${tip(cat)}</div>`;
+
 const BALLON_KLEUREN = ["#ef5350", "#42a5f5", "#66bb6a", "#ffa726", "#ab47bc", "#ec407a", "#26c6da"];
 
 // Eindscherm met sterren, voor spelletjes die niet uit losse vragen bestaan.
@@ -165,6 +184,7 @@ function bouwen(cat) {
       zegEekhoorn("Luister goed en bouw het woord met de blokjes.");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
+        ${tipHtml(cat)}
         <div class="bouwplaats">${delen.map(() => `<button class="vakje"></button>`).join("")}</div>
         <div class="blokjes">${blokjes.map((b, i) => `<button class="blokje" data-i="${i}">${b}</button>`).join("")}</div>
         <div class="uitkomst"></div>`;
