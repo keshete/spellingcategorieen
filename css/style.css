@@ -105,3 +105,18 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .confetti { position: fixed; top: -2rem; font-size: 2rem; animation: val 2.2s linear forwards; pointer-events: none; }
 @keyframes val { to { transform: translateY(110vh) rotate(360deg); } }
 .waarschuwing { background: #fff3cd; border-bottom: 3px solid #ffb300; padding: .7rem 1.2rem; font-size: 1rem; }
+
+/* ---------- slotjes ---------- */
+.tegel.dicht { background: #cfcfcf; color: #777; box-shadow: 0 5px 0 rgba(0,0,0,.12); }
+.tegel.dicht .naam { text-shadow: none; }
+.tegel.dicht .slot { font-size: 2.6rem; line-height: 1; }
+.grote-knop.sorteer.dicht { width: 100%; background: #cfcfcf; color: #777; box-shadow: 0 5px 0 #aaa; }
+.nieuw-open {
+  display: inline-block; margin: .5rem 0 1rem; padding: .8rem 1.4rem; border-radius: 1rem;
+  color: #fff; font-size: 1.4rem; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,.3);
+  box-shadow: 0 5px 0 rgba(0,0,0,.2); animation: pop .5s ease-out;
+}
+.ouder { text-align: center; margin-top: 2rem; }
+.klein-knop { font: inherit; font-size: 1rem; padding: .6rem 1rem; border-radius: .8rem; border: 2px solid #ccc; background: #fff; color: #777; cursor: pointer; }
+.ouder-vraag { font-size: 1.1rem; color: #555; }
+.ouder-vraag input { font: inherit; font-size: 1.2rem; width: 4em; text-align: center; padding: .3rem; border: 2px solid #ccc; border-radius: .6rem; margin: 0 .4rem; }

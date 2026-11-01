@@ -1,4 +1,6 @@
 // Staal-categorieën voor groep 4 (nummers, namen en regels volgens Staal).
+// De volgorde hier is ook de volgorde waarin ze opengaan in de app.
+// id: unieke sleutel (voor links en sterren); standaard het nummer.
 // Woorden en figuren zijn eigen werk. Zie INHOUD.md.
 //
 // gat: welk stukje van het woord het "lastige stukje" is (voor het gaatjesspel
@@ -10,7 +12,16 @@ const CATEGORIEEN = [
     regel: "Ik schrijf het woord zoals ik het hoor.",
     uitleg: "Ik ben Specht Hakkie. Ik hak een woord in stukjes: k, a, t. Wat je hoort, schrijf je op!",
     woorden: ["kat", "vis", "pen", "rok", "maan", "boot", "soep", "tuin", "kip", "raam",
-              "melk", "werk", "hulp", "arm", "film"],
+              "bus", "zon", "mes", "pop", "buik"],
+  },
+  {
+    id: "1s", nr: 1, naam: "Speciaal hakwoord", kleur: "#f4511e", figuur: "🛑", figuurNaam: "Specht Stop",
+    regel: "Daar mag geen u tussen.",
+    uitleg: "Ik ben Specht Stop, met mijn stopbord! Bij melk hoor je soms mel-uk. Maar daar mag geen u tussen. Je schrijft gewoon melk.",
+    woorden: ["melk", "werk", "hulp", "arm", "film", "kerk", "wolk", "warm", "hals", "golf"],
+    gat: { re: /[lr][kpmsf]$/, alts: {
+      lk: ["luk", "lek"], rk: ["ruk", "rek"], lp: ["lup", "lep"], rm: ["rum", "rem"],
+      lm: ["lum", "lem"], ls: ["lus", "les"], lf: ["luf", "lef"] } },
   },
   {
     nr: 2, naam: "Zingwoord", kleur: "#ffb74d", figuur: "🔔", figuurNaam: "Bel Ding-Dong",
@@ -93,3 +104,4 @@ const CATEGORIEEN = [
     gat: { re: /(lijk|ig)$/, alts: { ig: ["ug", "ich"], lijk: ["luk", "lek"] } },
   },
 ];
+for (const c of CATEGORIEEN) c.id = c.id || String(c.nr);

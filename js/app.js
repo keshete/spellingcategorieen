@@ -6,7 +6,7 @@ const RONDE = 5; // vragen per spelletje
 const zegEekhoorn = (t) => { eekhoorn.textContent = t; };
 const schud = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const woord = (x) => (typeof x === "string" ? x : x.w);
-const vindCat = (nr) => CATEGORIEEN.find((c) => c.nr === Number(nr));
+const vindCat = (id) => CATEGORIEEN.find((c) => c.id === id);
 const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstElementChild; };
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -91,6 +91,21 @@ function geefSterren(nr, aantal) {
 }
 const sterTekst = (n) => "★".repeat(n) + "☆".repeat(3 - n);
 
+// ---------- slotjes ----------
+// Eerst is alleen de eerste categorie open. Heb je bij een categorie
+// 2 of meer sterren gehaald (gaatjes of dictee), dan gaat de volgende open.
+const NODIG = 2;
+const allesOpen = () => localStorage.getItem("allesOpen") === "ja";
+function aantalOpen() {
+  if (allesOpen()) return CATEGORIEEN.length;
+  const s = sterren();
+  let n = 1;
+  while (n < CATEGORIEEN.length && (s[CATEGORIEEN[n - 1].id] || 0) >= NODIG) n++;
+  return n;
+}
+const isOpen = (cat) => CATEGORIEEN.indexOf(cat) < aantalOpen();
+const openCats = () => CATEGORIEEN.slice(0, aantalOpen());
+
 // ---------- het lastige stukje ----------
 function maakGat(cat, x) {
   const w = woord(x);
@@ -123,19 +138,70 @@ function feest() {
 function thuis() {
   zegEekhoorn("Hoi! Ik ben Eva Eekhoorn. Kies een categorie en we gaan oefenen!");
   const s = sterren();
+  const n = aantalOpen();
+  const sorteerOpen = n >= 2;
   scherm.innerHTML = `
-    <a class="grote-knop sorteer" href="#sorteer">🎮 Sorteerspel: welke categorie is het?</a>
-    <ul class="grid"></ul>`;
+    ${sorteerOpen
+      ? `<a class="grote-knop sorteer" href="#sorteer">🎮 Sorteerspel: welke categorie is het?</a>`
+      : `<button class="grote-knop sorteer dicht" id="sorteer-dicht">🔒 Sorteerspel</button>`}
+    <ul class="grid"></ul>
+    <div class="ouder"></div>`;
+  if (!sorteerOpen) scherm.querySelector("#sorteer-dicht").onclick = () =>
+    zegEekhoorn(`Het sorteerspel gaat open als je ${CATEGORIEEN[1].naam} ook hebt.`);
   const lijst = scherm.querySelector(".grid");
-  for (const c of CATEGORIEEN) {
-    lijst.appendChild(el(`
-      <li><a class="tegel" href="#cat/${c.nr}" style="background:${c.kleur}">
-        <span class="figuur">${c.figuur}</span>
-        <span class="nr">${c.nr}</span>
-        <span class="naam">${c.naam}</span>
-        <span class="sterren">${sterTekst(s[c.nr] || 0)}</span>
-      </a></li>`));
+  CATEGORIEEN.forEach((c, i) => {
+    if (i < n) {
+      lijst.appendChild(el(`
+        <li><a class="tegel" href="#cat/${c.id}" style="background:${c.kleur}">
+          <span class="figuur">${c.figuur}</span>
+          <span class="nr">${c.nr}</span>
+          <span class="naam">${c.naam}</span>
+          <span class="sterren">${sterTekst(s[c.id] || 0)}</span>
+        </a></li>`));
+    } else {
+      const li = el(`
+        <li><button class="tegel dicht" aria-label="${c.naam} (op slot)">
+          <span class="slot">🔒</span>
+          <span class="nr">${c.nr}</span>
+          <span class="naam">${c.naam}</span>
+        </button></li>`);
+      li.querySelector("button").onclick = () => {
+        const vorige = CATEGORIEEN[i - 1];
+        zegEekhoorn(i === n
+          ? `Deze gaat open als je bij ${vorige.naam} 2 sterren haalt. Jij kunt het!`
+          : `Deze zit nog op slot. Eerst ${CATEGORIEEN[n - 1].naam}!`);
+      };
+      lijst.appendChild(li);
+    }
+  });
+  ouderKnop(scherm.querySelector(".ouder"));
+}
+
+// Voor de juf of een ouder: alles openzetten (met een sommetje, zodat kinderen
+// het niet per ongeluk doen) of weer op volgorde zetten.
+function ouderKnop(doos) {
+  if (allesOpen()) {
+    doos.innerHTML = `<button class="klein-knop">🔒 Weer op volgorde openen</button>`;
+    doos.querySelector("button").onclick = () => { localStorage.removeItem("allesOpen"); thuis(); };
+    return;
   }
+  doos.innerHTML = `<button class="klein-knop">🔑 Voor juf of ouder</button>`;
+  doos.querySelector("button").onclick = () => {
+    const a = 6 + Math.floor(Math.random() * 4), b = 6 + Math.floor(Math.random() * 4);
+    doos.innerHTML = `
+      <form class="ouder-vraag">
+        <label>Alles openzetten? Hoeveel is ${a} × ${b}?
+          <input inputmode="numeric" autocomplete="off" size="4"></label>
+        <button class="klein-knop">OK</button>
+      </form>`;
+    const veld = doos.querySelector("input");
+    veld.focus();
+    doos.querySelector("form").onsubmit = (e) => {
+      e.preventDefault();
+      if (Number(veld.value) === a * b) { localStorage.setItem("allesOpen", "ja"); thuis(); }
+      else ouderKnop(doos);
+    };
+  };
 }
 
 function categorie(cat) {
@@ -149,9 +215,9 @@ function categorie(cat) {
       </div>
       <p class="regel">${cat.regel}</p>
       <div class="knoppen">
-        <a class="grote-knop" href="#uitleg/${cat.nr}">🎬 Uitleg</a>
-        ${heeftGat ? `<a class="grote-knop" href="#gaatjes/${cat.nr}">🧩 Gaatjes</a>` : ""}
-        <a class="grote-knop" href="#dictee/${cat.nr}">🎧 Dictee</a>
+        <a class="grote-knop" href="#uitleg/${cat.id}">🎬 Uitleg</a>
+        ${heeftGat ? `<a class="grote-knop" href="#gaatjes/${cat.id}">🧩 Gaatjes</a>` : ""}
+        <a class="grote-knop" href="#dictee/${cat.id}">🎧 Dictee</a>
       </div>
       <a class="terug" href="#">← Terug</a>
     </div>`;
@@ -168,7 +234,7 @@ async function uitleg(cat) {
       <ul class="voorbeelden" id="vb"></ul>
       <div class="knoppen">
         <button class="grote-knop" id="start">▶ Speel de uitleg</button>
-        <a class="grote-knop" href="#cat/${cat.nr}">Klaar</a>
+        <a class="grote-knop" href="#cat/${cat.id}">Klaar</a>
       </div>
     </div>`;
   const ballon = scherm.querySelector("#ballon");
@@ -213,13 +279,17 @@ function speelRonde({ titel, cat, maakVraag, terug }) {
   };
   const einde = () => {
     const n = goed === RONDE ? 3 : goed >= 3 ? 2 : goed >= 1 ? 1 : 0;
-    if (cat) geefSterren(cat.nr, n);
+    const openVoor = aantalOpen();
+    if (cat) geefSterren(cat.id, n);
+    const nieuw = aantalOpen() > openVoor ? CATEGORIEEN[aantalOpen() - 1] : null;
     if (n >= 2) feest();
     zegEekhoorn(n === 3 ? "Alles goed! Wat ben jij een spellingkampioen!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend! Nog een keer?");
+    if (nieuw) { zegEekhoorn(`Hoera! ${nieuw.naam} is nu open! 🔓`); zeg(`Hoera! ${nieuw.naam} is nu open!`); }
     scherm.innerHTML = `
       <div class="kaart eind">
         <div class="groot-sterren">${sterTekst(n)}</div>
         <p>Je had er ${goed} van de ${RONDE} goed.</p>
+        ${nieuw ? `<a class="nieuw-open" href="#cat/${nieuw.id}" style="background:${nieuw.kleur}">🔓 ${nieuw.figuur} ${nieuw.naam} is open!</a>` : ""}
         <div class="knoppen">
           <button class="grote-knop" id="nog">🔁 Nog een keer</button>
           <a class="grote-knop" href="${terug}">Klaar</a>
@@ -234,7 +304,7 @@ function gaatjes(cat) {
   const lijst = schud(cat.woorden.filter((x) => maakGat(cat, x)));
   if (!lijst.length) return categorie(cat);
   speelRonde({
-    titel: "🧩 Gaatjes", cat, terug: `#cat/${cat.nr}`,
+    titel: "🧩 Gaatjes", cat, terug: `#cat/${cat.id}`,
     maakVraag: (doos, antwoord) => {
       const x = lijst[Math.floor(Math.random() * lijst.length)];
       const g = maakGat(cat, x);
@@ -259,7 +329,7 @@ function gaatjes(cat) {
 
 function dictee(cat) {
   speelRonde({
-    titel: "🎧 Dictee", cat, terug: `#cat/${cat.nr}`,
+    titel: "🎧 Dictee", cat, terug: `#cat/${cat.id}`,
     maakVraag: (doos, antwoord) => {
       const x = schud(cat.woorden)[0];
       const w = woord(x);
@@ -291,23 +361,24 @@ function sorteer() {
   speelRonde({
     titel: "🎮 Sorteerspel", cat: null, terug: "#",
     maakVraag: (doos, antwoord) => {
-      const cat = schud(CATEGORIEEN)[0];
+      const open = openCats();
+      const cat = schud(open)[0];
       const x = schud(cat.woorden)[0];
-      const keuzes = schud([cat, ...schud(CATEGORIEEN.filter((c) => c !== cat)).slice(0, 2)]);
+      const keuzes = schud([cat, ...schud(open.filter((c) => c !== cat)).slice(0, 2)]);
       zegEekhoorn("Bij welke categorie hoort dit woord?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
         <div class="woord-groot">${woord(x)}</div>
         <div class="keuzes cats">${keuzes.map((c) => `
-          <button class="keuze cat" data-nr="${c.nr}" style="background:${c.kleur}">
+          <button class="keuze cat" data-nr="${c.id}" style="background:${c.kleur}">
             <span class="figuur">${c.figuur}</span>${c.nr} ${c.naam}</button>`).join("")}</div>`;
       doos.querySelector(".luister").onclick = () => zeg(woord(x));
       zeg(woord(x));
       doos.querySelectorAll(".keuze").forEach((k) => (k.onclick = () => {
         doos.querySelectorAll(".keuze").forEach((b) => (b.disabled = true));
-        const isGoed = Number(k.dataset.nr) === cat.nr;
+        const isGoed = k.dataset.nr === cat.id;
         k.classList.add(isGoed ? "goed" : "fout");
-        doos.querySelector(`[data-nr="${cat.nr}"]`).classList.add("goed");
+        doos.querySelector(`[data-nr="${cat.id}"]`).classList.add("goed");
         doos.querySelector(".woord-groot").innerHTML = gekleurd(cat, x);
         antwoord(isGoed, `${woord(x)} is een ${cat.naam.toLowerCase()}. ${cat.regel}`);
       }));
@@ -318,10 +389,11 @@ function sorteer() {
 // ---------- router ----------
 function route() {
   if ("speechSynthesis" in window) { spreekBeurt++; speechSynthesis.cancel(); }
-  const [naam, nr] = location.hash.slice(1).split("/");
-  const cat = vindCat(nr);
+  const [naam, id] = location.hash.slice(1).split("/");
+  const gevonden = vindCat(id);
+  const cat = gevonden && isOpen(gevonden) ? gevonden : null; // op slot: terug naar het begin
   window.scrollTo(0, 0);
-  if (naam === "sorteer") return sorteer();
+  if (naam === "sorteer" && aantalOpen() >= 2) return sorteer();
   if (cat && naam === "cat") return categorie(cat);
   if (cat && naam === "uitleg") return uitleg(cat);
   if (cat && naam === "gaatjes") return gaatjes(cat);
