@@ -1,16 +1,17 @@
 // Leeftijd/groep en moeilijkheid die het kind zelf kiest (scherm #kies).
-// Bewaard in localStorage: "groep" (4 t/m 8) en "niveau" (makkelijk, gemiddeld, moeilijk).
+// Bewaard in localStorage: "groep" (4 t/m 8) en "niveau" (extraMakkelijk, makkelijk, moeilijk, extraMoeilijk).
 //
 // Groep: categorieën van eerdere groepen zijn al geleerd, dus die horen meteen bij
 // "open". Categorieën van een hogere groep mag je ook doen (vooruit werken).
 // Een categorie zonder groep-veld hoort bij groep 4.
 //
-// Moeilijkheid:
-//   makkelijk: korte woorden, 2 keuzes, 4 vragen, in het dictee zie je hoeveel letters,
-//              8 ballonnen, ballonnen en eikels gaan langzamer
-//   gemiddeld: alle woorden, 3 keuzes, 5 vragen, 12 ballonnen
-//   moeilijk:  langere woorden, 4 keuzes in het sorteerspel, 8 vragen, 16 ballonnen,
-//              ballonnen en eikels gaan sneller
+// Moeilijkheid (4 niveaus). De 💡 tip zie je alleen bij de twee makkelijke.
+//   extra makkelijk: kortste woorden, 2 keuzes, 4 vragen, letterhulp in het dictee,
+//                    6 trage ballonnen
+//   makkelijk:       alle woorden, 3 keuzes, 5 vragen, 10 ballonnen
+//   moeilijk:        alle woorden, 3 keuzes (sorteerspel 4), 6 vragen, 12 ballonnen, geen tip
+//   extra moeilijk:  langste woorden, 4 keuzes in het sorteerspel, 8 vragen,
+//                    16 snelle ballonnen, geen tip
 
 const LEEFTIJDEN = [
   { groep: 4, jaar: "7 of 8 jaar" },
@@ -21,13 +22,17 @@ const LEEFTIJDEN = [
 ];
 
 const NIVEAUS = {
-  makkelijk: { naam: "Makkelijk", icoon: "🌱", uitleg: "Korte woorden en maar 2 keuzes.",
-    vragen: 4, keuzes: 2, letterHulp: true, ballonnen: 8, traag: 1.35 },
-  gemiddeld: { naam: "Gemiddeld", icoon: "🌳", uitleg: "Alle woorden en 3 keuzes.",
-    vragen: 5, keuzes: 3, letterHulp: false, ballonnen: 12, traag: 1 },
-  moeilijk: { naam: "Moeilijk", icoon: "🔥", uitleg: "Lange woorden, meer keuzes en meer vragen.",
-    vragen: 8, keuzes: 4, letterHulp: false, ballonnen: 16, traag: 0.75 },
+  extraMakkelijk: { naam: "Extra makkelijk", icoon: "🐣", uitleg: "Korte woorden, 2 keuzes en een tip.",
+    woorden: "kort", vragen: 4, keuzes: 2, letterHulp: true, tip: true, ballonnen: 6, traag: 1.5 },
+  makkelijk: { naam: "Makkelijk", icoon: "🌱", uitleg: "Alle woorden en een tip.",
+    woorden: "alle", vragen: 5, keuzes: 3, letterHulp: false, tip: true, ballonnen: 10, traag: 1.2 },
+  moeilijk: { naam: "Moeilijk", icoon: "🔥", uitleg: "Geen tip en meer vragen.",
+    woorden: "alle", vragen: 6, keuzes: 3, sorteerKeuzes: 4, letterHulp: false, tip: false, ballonnen: 12, traag: 1 },
+  extraMoeilijk: { naam: "Extra moeilijk", icoon: "🌋", uitleg: "Lange woorden, geen tip en veel vragen.",
+    woorden: "lang", vragen: 8, keuzes: 4, letterHulp: false, tip: false, ballonnen: 16, traag: 0.75 },
 };
+// Oude keuzes van eerdere versies.
+const OUDE_NIVEAUS = { gemiddeld: "makkelijk" };
 
 const heeftGekozen = () => !!localStorage.getItem("groep") && !!localStorage.getItem("niveau");
 function mijnGroep() {
@@ -36,7 +41,7 @@ function mijnGroep() {
 }
 function mijnNiveauNaam() {
   const n = localStorage.getItem("niveau");
-  return NIVEAUS[n] ? n : "gemiddeld";
+  return NIVEAUS[n] ? n : OUDE_NIVEAUS[n] || "makkelijk";
 }
 const mijnNiveau = () => NIVEAUS[mijnNiveauNaam()];
 const catGroep = (cat) => cat.groep || 4;
@@ -48,15 +53,20 @@ const alGeleerd = (lijst) => lijst.filter((c) => catGroep(c) < mijnGroep()).leng
 // Welke woorden passen bij de moeilijkheid? Kort = makkelijk, lang = moeilijk.
 // Er blijven altijd minstens 4 woorden over (of alle, als het er minder zijn).
 function woordenVoorNiveau(lijst) {
-  const n = mijnNiveauNaam();
-  if (n === "gemiddeld" || lijst.length <= 4) return lijst;
+  const n = mijnNiveau().woorden;
+  if (n === "alle" || lijst.length <= 4) return lijst;
   const len = (x) => (typeof x === "string" ? x : x.w).length;
   const gesorteerd = [...lijst].sort((a, b) => len(a) - len(b));
   const aantal = Math.max(4, Math.ceil(lijst.length * 0.6));
-  return n === "makkelijk" ? gesorteerd.slice(0, aantal) : gesorteerd.slice(-aantal);
+  return n === "kort" ? gesorteerd.slice(0, aantal) : gesorteerd.slice(-aantal);
 }
 
-// Hoeveel foute keuzes naast de goede (gaatjes): makkelijk 1, anders allemaal.
+// Laat je de 💡 tip zien? Alleen bij extra makkelijk en makkelijk.
+const toonTip = () => mijnNiveau().tip;
+// Keuzes in het sorteerspel.
+const sorteerKeuzes = () => mijnNiveau().sorteerKeuzes || mijnNiveau().keuzes;
+
+// Hoeveel foute keuzes naast de goede (gaatjes): extra makkelijk 1, anders allemaal.
 const fouteKeuzes = (fout) => (mijnNiveau().keuzes <= 2 ? fout.slice(0, 1) : fout);
 
 // Sterren bij het eind: alles goed = 3, 60% of meer = 2, minstens 1 goed = 1.

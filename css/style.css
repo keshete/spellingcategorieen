@@ -309,10 +309,10 @@ header { position: relative; }
 .spel-naam { font: inherit; font-size: 1.6rem; padding: .5rem .8rem; width: min(100%, 22ch); text-align: center; border: 4px solid #ccc; border-radius: 1rem; }
 .grote-knop.grijs { background: #e0e0e0; box-shadow: 0 5px 0 #9e9e9e; }
 .betekenis {
-  display: table; margin: .8rem auto 0; padding: .4rem 1.1rem; font-size: 1.7rem;
-  background: #e3f2fd; border: 3px solid #64b5f6; border-radius: 1rem;
+  display: block; margin: .6rem auto 0; padding: .3rem 1.4rem; font: inherit; font-size: 4.5rem; line-height: 1.2;
+  background: #e3f2fd; border: 4px solid #64b5f6; border-radius: 1.4rem; cursor: pointer;
+  box-shadow: 0 5px 0 #64b5f6; animation: pop .4s ease-out;
 }
-.betekenis span { font-size: 2.6rem; vertical-align: middle; }
 
 /* ---------- ❤️ levens ---------- */
 .levens-balk { display: flex; justify-content: space-between; align-items: center; font-size: 1.8rem; margin-bottom: .3rem; }
@@ -387,7 +387,8 @@ header { position: relative; }
 .kieskaart h2 { margin: .8rem 0 .4rem; }
 .kieskaart .keuzes .grote-knop { display: inline-flex; flex-direction: column; align-items: center; min-width: 9rem; }
 .kieskaart small { font-size: .95rem; font-weight: normal; margin-top: .2rem; }
-.kieskaart .niveaus .grote-knop { max-width: 13rem; }
+.kieskaart .niveaus { display: grid; grid-template-columns: repeat(2, minmax(0, 15rem)); justify-content: center; }
+.kieskaart .niveaus .grote-knop { min-width: 0; }
 .kieskaart .icoon { font-size: 2.2rem; }
 .kieskaart .start { display: block; margin: 1.4rem auto .4rem; font-size: 1.5rem; background: #4fc3f7; box-shadow: 0 5px 0 #0288d1; }
 .kieskaart .start:disabled { opacity: .45; cursor: default; }

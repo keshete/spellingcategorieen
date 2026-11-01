@@ -34,20 +34,21 @@ const tip = (cat) => TIPS[catSleutel(cat)] || cat.regel;
 // laten zien welk woord we bedoelen. In het zinnetje staat … op de plek van het woord.
 const BETEKENIS = {
   licht: { plaatje: "💡", zin: "Het licht is aan." },
-  ligt: { plaatje: "🛏️", zin: "Hij ligt in bed." },
-  legt: { plaatje: "🥚", zin: "De kip legt een ei." },
-  zegt: { plaatje: "👋", zin: "Hij zegt hallo." },
-  raad: { plaatje: "❓", zin: "Raad eens wat ik heb!" },
+  ligt: { plaatje: "🛌", zin: "Hij ligt in bed." },
+  legt: { plaatje: "🐔🥚", zin: "De kip legt een ei." },
+  zegt: { plaatje: "🧒💬👋", zin: "Hij zegt hallo." },
+  raad: { plaatje: "🤔❓", zin: "Raad eens wat ik heb!" },
 };
 const betekenisHtml = (w) => {
   const b = BETEKENIS[w];
   if (!b) return "";
-  const zin = b.zin.replace(new RegExp(w, "i"), "…");
-  return `<div class="betekenis"><span>${b.plaatje}</span> ${zin}</div>`;
+  // alleen een plaatje, het zinnetje zegt Eva (tik erop om het nog eens te horen)
+  return `<button class="betekenis" onclick="zeg('${b.zin}')" aria-label="Plaatje, tik om het zinnetje te horen">${b.plaatje}</button>`;
 };
 // Wat Eva zegt: het woord, en bij een klinkt-hetzelfde-woord ook het zinnetje.
 const metZin = (w) => (BETEKENIS[w] ? `${w}. ${BETEKENIS[w].zin}` : w);
-const tipHtml = (cat) => `<div class="tip-dictee">💡 ${tip(cat)}</div>`;
+// De tip zie je alleen bij (extra) makkelijk, anders wordt het te makkelijk.
+const tipHtml = (cat) => (toonTip() ? `<div class="tip-dictee">💡 ${tip(cat)}</div>` : "");
 
 const BALLON_KLEUREN = ["#ef5350", "#42a5f5", "#66bb6a", "#ffa726", "#ab47bc", "#ec407a", "#26c6da"];
 
@@ -622,24 +623,24 @@ function stickerboek() {
 // weggetjes (bv. ligt of licht). Kies het goede weggetje, gooi de dobbelsteen en loop vooruit.
 // Vooral voor de lastige, speciale woorden.
 const BORD_VRAGEN = [
-  { cat: "3", zin: "Hij … in zijn bed.", plaatje: "🛏️", goed: "ligt", fout: "licht", uitz: true },
+  { cat: "3", zin: "Hij … in zijn bed.", plaatje: "🛌", goed: "ligt", fout: "licht", uitz: true },
   { cat: "3", zin: "Het … is aan.", plaatje: "💡", goed: "licht", fout: "ligt" },
-  { cat: "3", zin: "De kip … een ei.", plaatje: "🥚", goed: "legt", fout: "lecht", uitz: true },
-  { cat: "3", zin: "Hij … hallo.", plaatje: "👋", goed: "zegt", fout: "zecht", uitz: true },
-  { cat: "3", zin: "Het is … buiten.", plaatje: "🌙", goed: "nacht", fout: "nagt" },
+  { cat: "3", zin: "De kip … een ei.", plaatje: "🐔🥚", goed: "legt", fout: "lecht", uitz: true },
+  { cat: "3", zin: "Hij … hallo.", plaatje: "🧒💬👋", goed: "zegt", fout: "zecht", uitz: true },
+  { cat: "3", zin: "Het is … buiten.", plaatje: "🌙⭐", goed: "nacht", fout: "nagt" },
   { cat: "1s", zin: "Ik drink een glas … .", plaatje: "🥛", goed: "melk", fout: "meluk" },
   { cat: "1s", zin: "We kijken een … .", plaatje: "🎬", goed: "film", fout: "filum" },
-  { cat: "1s", zin: "Papa gaat naar zijn … .", plaatje: "💼", goed: "werk", fout: "weruk" },
+  { cat: "1s", zin: "Papa gaat naar zijn … .", plaatje: "👨‍💼💼", goed: "werk", fout: "weruk" },
   { cat: "1s", zin: "Er is een … in de lucht.", plaatje: "☁️", goed: "wolk", fout: "woluk" },
   { cat: "1s", zin: "Het is … in de zon.", plaatje: "☀️", goed: "warm", fout: "warum" },
-  { cat: "1s", zin: "Ik heb … nodig!", plaatje: "🆘", goed: "hulp", fout: "hulup" },
-  { cat: "1s", zin: "De bel van de … luidt.", plaatje: "⛪", goed: "kerk", fout: "keruk" },
-  { cat: "8", zin: "De … blaft.", plaatje: "🐶", goed: "hond", fout: "hont" },
+  { cat: "1s", zin: "Ik heb … nodig!", plaatje: "🙋🆘", goed: "hulp", fout: "hulup" },
+  { cat: "1s", zin: "De bel van de … luidt.", plaatje: "⛪🔔", goed: "kerk", fout: "keruk" },
+  { cat: "8", zin: "De … blaft.", plaatje: "🐶💬", goed: "hond", fout: "hont" },
   { cat: "8", zin: "Ik slaap in mijn … .", plaatje: "🛏️", goed: "bed", fout: "bet" },
   { cat: "8", zin: "Het … rent in de wei.", plaatje: "🐴", goed: "paard", fout: "paart" },
-  { cat: "8", zin: "… eens wat ik heb!", plaatje: "❓", goed: "Raad", fout: "Raat" },
+  { cat: "8", zin: "… eens wat ik heb!", plaatje: "🤔❓", goed: "Raad", fout: "Raat" },
   { cat: "2", zin: "De … sist.", plaatje: "🐍", goed: "slang", fout: "slank" },
-  { cat: "4", zin: "Ik zit op de … .", plaatje: "🛋️", goed: "bank", fout: "bangk" },
+  { cat: "4", zin: "Ik zit op de … .", plaatje: "🧒🛋️", goed: "bank", fout: "bangk" },
 ];
 const BORD = 20; // vakjes
 // Alleen vragen van categorieën die al open zijn (als de slotjes er zijn).
@@ -695,11 +696,12 @@ function bordspel() {
     const opties = schud([v.goed, v.fout]);
     const doos = scherm.querySelector("#beurt");
     doos.innerHTML = `
-      <div class="betekenis"><span>${v.plaatje}</span> ${v.zin}</div>
+      <button class="betekenis" aria-label="Plaatje, tik om het zinnetje te horen">${v.plaatje}</button>
       <div class="weggetjes">${opties.map((o, i) => `
         <button class="weggetje ${i ? "rechts" : "links"}" data-o="${o}"><span class="bordje">${o}</span></button>`).join("")}</div>`;
     const hoor = v.zin.replace("…", v.goed);
     zeg(hoor);
+    doos.querySelector(".betekenis").onclick = () => zeg(hoor);
     bezig = false;
     doos.querySelectorAll(".weggetje").forEach((b) => (b.onclick = async () => {
       if (bezig) return; bezig = true;
