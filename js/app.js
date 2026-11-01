@@ -11,20 +11,25 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
+const VERSIE = 12; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
-const MAN = /xander|maarten|frank|ruben|arnaud|daan|male|man\b/i;
+const MAN = /xander|maarten|frank|ruben|arnaud|daan|\bmale\b|\bman\b/i;
+const taal = (v) => v.lang.replace("_", "-").toLowerCase();
+const nlStemmen = () => speechSynthesis.getVoices().filter((v) => taal(v).startsWith("nl"));
+const isVrouw = (v) => VROUW.test(v.name) && !/\bmale\b/i.test(v.name);
+const isMan = (v) => MAN.test(v.name);
 function kiesStem() {
   const stemmen = speechSynthesis.getVoices();
-  const taal = (v) => v.lang.replace("_", "-").toLowerCase();
-  const nl = stemmen.filter((v) => taal(v).startsWith("nl"));
+  const nl = nlStemmen();
   const nlNL = nl.filter((v) => taal(v) === "nl-nl");
-  const vrouw = (v) => VROUW.test(v.name) && !/\bmale\b/i.test(v.name);
+  const gekozen = localStorage.getItem("stem");
   nlStem =
-    nlNL.find(vrouw) ||
-    nlNL.find((v) => !MAN.test(v.name)) ||
-    nl.find(vrouw) ||
+    nl.find((v) => v.voiceURI === gekozen) ||
+    nlNL.find(isVrouw) ||
+    nlNL.find((v) => !isMan(v)) ||
+    nl.find(isVrouw) ||
     nlNL[0] || nl[0] || null;
   if (stemmen.length && !nlStem) toonStemWaarschuwing();
 }
@@ -47,10 +52,16 @@ function stukjes(tekst) {
 }
 
 let spreekBeurt = 0; // telt op bij elke nieuwe zeg(), zodat een oude zin stopt
-// Rustig praten; losse dicteewoorden nog iets langzamer, zodat je ze goed hoort.
+// Tempo kies je op het stem-scherm. Losse dicteewoorden gaan altijd nog iets langzamer.
+const TEMPO = {
+  1: { naam: "🐌 Heel langzaam", zin: 0.55, woord: 0.45 },
+  2: { naam: "🐢 Langzaam", zin: 0.7, woord: 0.55 },
+  3: { naam: "🐇 Gewoon", zin: 0.9, woord: 0.7 },
+};
+const tempo = () => TEMPO[localStorage.getItem("tempo")] || TEMPO[2];
 function snelheid(t) {
   const losWoord = !/\s/.test(t.trim());
-  return losWoord ? 0.6 : 0.8;
+  return losWoord ? tempo().woord : tempo().zin;
 }
 
 function spreekStukje(t) {
@@ -59,6 +70,8 @@ function spreekStukje(t) {
     u.lang = nlStem ? nlStem.lang : "nl-NL";
     u.rate = snelheid(t);
     if (nlStem) u.voice = nlStem;
+    // Is er alleen een mannenstem? Dan wat hoger, zodat Eva meer als een meisje klinkt.
+    u.pitch = nlStem && isMan(nlStem) ? 1.6 : 1.1;
     let gedaan = false;
     const af = () => { if (!gedaan) { gedaan = true; klaar(); } };
     u.onend = af; u.onerror = af;
@@ -315,6 +328,41 @@ function sorteer() {
   });
 }
 
+// ---------- stem kiezen ----------
+function stemScherm() {
+  zegEekhoorn("Hoe wil je dat ik praat? Kies een stem en hoe snel ik praat.");
+  if (!nlStem && "speechSynthesis" in window) kiesStem();
+  const stemmen = "speechSynthesis" in window ? nlStemmen() : [];
+  const heeftVrouw = stemmen.some(isVrouw);
+  const nu = localStorage.getItem("tempo") || "2";
+  scherm.innerHTML = `
+    <div class="kaart stemkaart">
+      <h2>🔊 Hoe praat Eva?</h2>
+      <h3>Hoe snel?</h3>
+      <div class="keuzes" id="tempo">
+        ${Object.entries(TEMPO).map(([k, t]) => `<button class="grote-knop${k === nu ? " gekozen" : ""}" data-k="${k}">${t.naam}</button>`).join("")}
+      </div>
+      <h3>Welke stem?</h3>
+      <div class="keuzes" id="stemmen">
+        ${stemmen.map((v, i) => `<button class="grote-knop${nlStem && v.voiceURI === nlStem.voiceURI ? " gekozen" : ""}" data-i="${i}">
+          ${isVrouw(v) ? "👧" : isMan(v) ? "👦" : "🙂"} ${v.name.replace(/\(.*\)/, "").trim()}</button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
+      </div>
+      ${heeftVrouw ? "" : `<p class="tip">Er is nog geen meisjesstem op dit apparaat. Vraag een grote mens om te helpen:
+        iPhone of iPad → Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands →
+        tik op <b>Claire</b> om haar te downloaden. Kom daarna hier terug.</p>`}
+      <button class="grote-knop" id="probeer">▶️ Probeer</button>
+      <p class="versie">Versie ${VERSIE}</p>
+    </div>`;
+  const probeer = () => zeg("Hoi! Ik ben Eva Eekhoorn. Luister goed: kat, Stijn, hulp.");
+  scherm.querySelectorAll("#tempo button").forEach((b) => (b.onclick = () => {
+    localStorage.setItem("tempo", b.dataset.k); stemScherm(); probeer();
+  }));
+  scherm.querySelectorAll("#stemmen button").forEach((b) => (b.onclick = () => {
+    localStorage.setItem("stem", stemmen[b.dataset.i].voiceURI); kiesStem(); stemScherm(); probeer();
+  }));
+  scherm.querySelector("#probeer").onclick = probeer;
+}
+
 // ---------- router ----------
 function route() {
   if ("speechSynthesis" in window) { spreekBeurt++; speechSynthesis.cancel(); }
@@ -322,6 +370,7 @@ function route() {
   const cat = vindCat(nr);
   window.scrollTo(0, 0);
   if (naam === "sorteer") return sorteer();
+  if (naam === "stem") return stemScherm();
   if (cat && naam === "cat") return categorie(cat);
   if (cat && naam === "uitleg") return uitleg(cat);
   if (cat && naam === "gaatjes") return gaatjes(cat);

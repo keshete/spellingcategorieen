@@ -105,3 +105,15 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .confetti { position: fixed; top: -2rem; font-size: 2rem; animation: val 2.2s linear forwards; pointer-events: none; }
 @keyframes val { to { transform: translateY(110vh) rotate(360deg); } }
 .waarschuwing { background: #fff3cd; border-bottom: 3px solid #ffb300; padding: .7rem 1.2rem; font-size: 1rem; }
+
+/* ---------- stem kiezen ---------- */
+.stem-knop {
+  display: inline-block; font-size: 1.8rem; line-height: 1;
+  background: #fff; border: 3px solid #333; border-radius: 50%;
+  padding: .45rem; margin-top: .4rem;
+}
+.stemkaart h3 { margin: 1.2rem 0 .4rem; }
+.keuzes { display: flex; flex-wrap: wrap; justify-content: center; }
+.grote-knop.gekozen { background: #81c784; box-shadow: 0 5px 0 #388e3c; }
+.tip { background: #fff3cd; border-radius: 1rem; padding: .8rem 1rem; font-size: 1.05rem; text-align: left; }
+.versie { color: #999; font-size: .9rem; margin-top: 1rem; }
