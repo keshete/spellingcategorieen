@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 14; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 18; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -20,6 +20,8 @@ const taal = (v) => v.lang.replace("_", "-").toLowerCase();
 const nlStemmen = () => speechSynthesis.getVoices().filter((v) => taal(v).startsWith("nl"));
 const isVrouw = (v) => VROUW.test(v.name) && !/\bmale\b/i.test(v.name);
 const isMan = (v) => MAN.test(v.name);
+// Met een jongensstem heet de eekhoorn Erik, met een meisjesstem Eva.
+const naam = () => (nlStem && isMan(nlStem) ? "Erik" : "Eva");
 function kiesStem() {
   const stemmen = speechSynthesis.getVoices();
   const nl = nlStemmen();
@@ -41,7 +43,7 @@ function toonStemWaarschuwing() {
     Of gebruik Google Chrome.</div>`);
   document.body.prepend(w);
 }
-if ("speechSynthesis" in window) { kiesStem(); speechSynthesis.onvoiceschanged = kiesStem; }
+if ("speechSynthesis" in window) { kiesStem(); speechSynthesis.onvoiceschanged = () => { kiesStem(); if (!location.hash || location.hash === "#") route(); }; }
 
 // Knip een tekst in korte stukjes (zinnen en stukjes tussen komma's),
 // zodat de stem na elk stukje echt even stopt.
@@ -52,31 +54,38 @@ function stukjes(tekst) {
 }
 
 let spreekBeurt = 0; // telt op bij elke nieuwe zeg(), zodat een oude zin stopt
-// Tempo kies je op het stem-scherm. Losse dicteewoorden gaan altijd nog iets langzamer.
-const TEMPO = {
-  1: { naam: "🐌 Heel langzaam", zin: 0.55, woord: 0.45 },
-  2: { naam: "🐢 Langzaam", zin: 0.7, woord: 0.55 },
-  3: { naam: "🐇 Gewoon", zin: 0.9, woord: 0.7 },
+// Snelheid kies je met het schuifje op het stem-scherm: 0.5 (langzaam) tot 1.5 (supersnel),
+// 1 (gewoon) in het midden. Losse dicteewoorden gaan altijd iets langzamer.
+const tempo = () => {
+  const v = parseFloat(localStorage.getItem("snelheid"));
+  return v >= 0.5 && v <= 1.5 ? v : 1;
 };
-const tempo = () => TEMPO[localStorage.getItem("tempo")] || TEMPO[2];
 function snelheid(t) {
   const losWoord = !/\s/.test(t.trim());
-  return losWoord ? tempo().woord : tempo().zin;
+  return losWoord ? tempo() * 0.9 : tempo();
 }
 
-function spreekStukje(t) {
+let huidigeZin = null; // Safari: bewaar de zin, anders wordt hij soms opgeruimd en blijft het stil
+function spreekStukje(t, metStem = true) {
   return new Promise((klaar) => {
     const u = new SpeechSynthesisUtterance(t);
+    huidigeZin = u;
     u.lang = nlStem ? nlStem.lang : "nl-NL";
     u.rate = snelheid(t);
-    if (nlStem) u.voice = nlStem;
-    // Is er alleen een mannenstem? Dan wat hoger, zodat Eva meer als een meisje klinkt.
-    u.pitch = nlStem && isMan(nlStem) ? 1.6 : 1.1;
-    let gedaan = false;
+    u.pitch = 1; // gewone toonhoogte: hoger of lager klinkt raar en onduidelijk
+    if (metStem && nlStem) u.voice = nlStem;
+    let gedaan = false, begonnen = false;
     const af = () => { if (!gedaan) { gedaan = true; klaar(); } };
-    u.onend = af; u.onerror = af;
+    u.onstart = () => { begonnen = true; };
+    u.onend = af;
+    u.onerror = (e) => {
+      // Werkt de gekozen stem niet? Probeer het dan nog een keer met de gewone stem.
+      if (!gedaan && metStem && !begonnen && !/interrupted|canceled/.test(e.error || "")) {
+        gedaan = true; spreekStukje(t, false).then(klaar);
+      } else af();
+    };
     // vangnet: sommige browsers vergeten onend
-    setTimeout(af, 2000 + t.length * 200);
+    setTimeout(af, 2500 + t.length * 250);
     speechSynthesis.speak(u);
   });
 }
@@ -85,8 +94,13 @@ async function zeg(tekst) {
   if (!("speechSynthesis" in window)) return wacht(600);
   if (!nlStem) kiesStem();
   const beurt = ++spreekBeurt;
-  speechSynthesis.cancel();
-  await wacht(80); // iOS: direct na cancel() spreken gaat soms mis
+  // iPhone/iPad: alleen als er al iets klinkt even stoppen en wachten. Anders meteen
+  // praten, want na een tik moet de stem direct beginnen, anders blijft hij stil.
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+    await wacht(100);
+  }
+  if (speechSynthesis.paused) speechSynthesis.resume();
   for (const t of stukjes(tekst)) {
     if (beurt !== spreekBeurt) return;
     await spreekStukje(t);
@@ -145,7 +159,7 @@ function feest() {
 
 // ---------- schermen ----------
 function thuis() {
-  zegEekhoorn("Hoi! Ik ben Eva Eekhoorn. Kies een categorie en we gaan oefenen!");
+  zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. Kies een categorie en we gaan oefenen!`);
   const s = sterren();
   scherm.innerHTML = `
     <a class="grote-knop sorteer" href="#sorteer">🎮 Sorteerspel: welke categorie is het?</a>
@@ -300,8 +314,10 @@ function dictee(cat) {
         </form>
         <div class="uitkomst"></div>`;
       const veld = doos.querySelector("input");
-      doos.querySelector(".luister").onclick = () => zeg(w);
-      zeg(w); veld.focus();
+      // Zeg het woord twee keer, met een pauze ertussen, zodat je het goed hoort.
+      const zegWoord = () => zeg(`${w}. ${w}.`);
+      doos.querySelector(".luister").onclick = zegWoord;
+      zegWoord(); veld.focus();
       doos.querySelector("form").onsubmit = (e) => {
         e.preventDefault();
         if (!veld.value.trim()) return;
@@ -349,29 +365,34 @@ function stemScherm() {
   if (!nlStem && "speechSynthesis" in window) kiesStem();
   const stemmen = "speechSynthesis" in window ? nlStemmen() : [];
   const heeftVrouw = stemmen.some(isVrouw);
-  const nu = localStorage.getItem("tempo") || "2";
   scherm.innerHTML = `
     <div class="kaart stemkaart">
-      <h2>🔊 Hoe praat Eva?</h2>
+      <h2>🔊 Hoe praat ${naam()}?</h2>
       <h3>Hoe snel?</h3>
-      <div class="keuzes" id="tempo">
-        ${Object.entries(TEMPO).map(([k, t]) => `<button class="grote-knop${k === nu ? " gekozen" : ""}" data-k="${k}">${t.naam}</button>`).join("")}
+      <div class="schuif">
+        <input type="range" id="tempo" min="0.5" max="1.5" step="0.05" value="${tempo()}" aria-label="Hoe snel">
+        <div class="schuif-labels"><span>🐌 Langzaam</span><span>🚶 Gewoon</span><span>🚀 Supersnel</span></div>
       </div>
       <h3>Welke stem?</h3>
       <div class="keuzes" id="stemmen">
         ${stemmen.map((v, i) => `<button class="grote-knop${nlStem && v.voiceURI === nlStem.voiceURI ? " gekozen" : ""}" data-i="${i}">
-          ${isVrouw(v) ? "👧" : isMan(v) ? "👦" : "🙂"} ${v.name.replace(/\(.*\)/, "").trim()}</button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
+          ${isVrouw(v) ? "👧" : isMan(v) ? "👦" : "🙂"} ${v.name} <small>(${v.lang})</small></button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
       </div>
       ${heeftVrouw ? "" : `<p class="tip">Er is nog geen meisjesstem op dit apparaat. Vraag een grote mens om te helpen:
         iPhone of iPad → Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands →
         tik op <b>Claire</b> om haar te downloaden. Kom daarna hier terug.</p>`}
+      <p class="tip">Hoor je niks? Zet het geluid harder en zet de iPhone of iPad niet op stil
+        (het knopje aan de zijkant).</p>
+      <p class="tip">Klinkt een stem raar of krakerig? Op een iPhone of iPad kun je bij
+        Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands
+        de <b>verbeterde</b> versie van de stem downloaden. Die klinkt veel mooier.</p>
       <button class="grote-knop" id="probeer">▶️ Probeer</button>
       <p class="versie">Versie ${VERSIE}</p>
     </div>`;
-  const probeer = () => zeg("Hoi! Ik ben Eva Eekhoorn. Luister goed: kat, Stijn, hulp.");
-  scherm.querySelectorAll("#tempo button").forEach((b) => (b.onclick = () => {
-    localStorage.setItem("tempo", b.dataset.k); stemScherm(); probeer();
-  }));
+  const probeer = () => zeg(`Hoi! Ik ben ${naam()} Eekhoorn. Luister goed: kat, Stijn, hulp.`);
+  const schuif = scherm.querySelector("#tempo");
+  // Bij het loslaten van het schuifje: onthouden en even laten horen hoe snel het is.
+  schuif.onchange = () => { localStorage.setItem("snelheid", schuif.value); probeer(); };
   scherm.querySelectorAll("#stemmen button").forEach((b) => (b.onclick = () => {
     localStorage.setItem("stem", stemmen[b.dataset.i].voiceURI); kiesStem(); stemScherm(); probeer();
   }));
