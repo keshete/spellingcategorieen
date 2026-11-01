@@ -178,11 +178,17 @@ function feest() {
 function thuis() {
   // De eerste keer kiest het kind eerst hoe oud het is en hoe moeilijk het wil.
   if (!heeftGekozen()) return kies();
-  zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. Kies een categorie en we gaan oefenen!`);
+  zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. Tik op een categorie en kies een spelletje!`);
   const s = sterren();
   scherm.innerHTML = `
     ${niveauKnop()}
-    <a class="grote-knop sorteer" href="#sorteer">🎮 Sorteerspel: welke categorie is het?</a>
+    <div class="thuis-spellen">
+      <a class="thuis-knop" href="#bordspel" style="background:#f06292"><span>🎲</span>Bordspel</a>
+      <a class="thuis-knop" href="#sorteer" style="background:#4fc3f7"><span>🎮</span>Sorteerspel</a>
+      <a class="thuis-knop" href="#stickers" style="background:#9575cd"><span>📒</span>Stickerboek</a>
+      <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🎁</span>Prijzen</a>
+    </div>
+    <p class="thuis-uitleg">👇 Tik op een categorie. Daar vind je alle spelletjes!</p>
     <ul class="grid"></ul>`;
   const lijst = scherm.querySelector(".grid");
   for (const c of CATEGORIEEN) {

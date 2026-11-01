@@ -377,6 +377,17 @@ header { position: relative; }
 @keyframes rol { from { transform: rotate(-540deg) scale(.3); } to { transform: rotate(0) scale(1); } }
 .weggetje:disabled, .woordkaart:disabled { color: #333; opacity: 1; }
 
+/* ---------- spelletjes op het beginscherm ---------- */
+.thuis-spellen { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: .6rem; }
+.thuis-knop {
+  display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 72px;
+  color: #fff; font-size: 1.35rem; font-weight: bold; border-radius: 1.2rem;
+  text-shadow: 0 1px 2px rgba(0,0,0,.3); box-shadow: 0 5px 0 rgba(0,0,0,.2);
+}
+.thuis-knop span { font-size: 2.2rem; }
+.thuis-knop:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.thuis-uitleg { font-size: 1.3rem; font-weight: bold; text-align: center; margin: .4rem 0 .8rem; }
+
 /* ---------- leeftijd en moeilijkheid ---------- */
 .niveau-knop {
   display: inline-block; margin: 0 0 1rem; padding: .6rem 1.1rem;
