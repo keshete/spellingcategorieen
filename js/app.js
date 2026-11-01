@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 19; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 26; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -125,6 +125,7 @@ function geefSterren(nr, aantal) {
   const s = sterren();
   s[nr] = Math.max(s[nr] || 0, aantal);
   localStorage.setItem("sterren", JSON.stringify(s));
+  bewaarSpelSterren(nr, location.hash.slice(1).split("/")[0], aantal); // voor de weg
 }
 const sterTekst = (n) => "★".repeat(n) + "☆".repeat(3 - n);
 
@@ -135,11 +136,28 @@ function maakGat(cat, x) {
     const i = w.indexOf(x.deel);
     return { voor: w.slice(0, i), deel: x.deel, na: w.slice(i + x.deel.length), fout: x.fout };
   }
-  if (!cat.gat) return null;
-  const m = w.match(cat.gat.re);
+  const gat = cat.gat || KLINKER_GAT; // geen eigen gat (zoals hakwoord): dan de klinker
+  const m = w.match(gat.re);
   if (!m) return null;
-  return { voor: w.slice(0, m.index), deel: m[0], na: w.slice(m.index + m[0].length), fout: cat.gat.alts[m[0]] };
+  return { voor: w.slice(0, m.index), deel: m[0], na: w.slice(m.index + m[0].length), fout: gat.alts[m[0]] };
 }
+// Voor woorden zonder eigen lastig stukje: de klinkerklank, met een veelgemaakte fout.
+const KLINKER_GAT = {
+  re: /aa|ee|oo|uu|ie|oe|ui|eu|ou|ei|ij|[aeiou]/,
+  alts: { a: ["aa"], aa: ["a"], e: ["ee"], ee: ["e"], o: ["oo"], oo: ["o"], u: ["uu"], uu: ["u"],
+          i: ["ie"], ie: ["i"], oe: ["oo"], ui: ["ou"], eu: ["u"], ou: ["au"], ei: ["ij"], ij: ["ei"] },
+};
+// Een woord met een spelfout erin (voor de ballonnen).
+// Met echtNee = true: geen "fout" woord dat eigenlijk een echt woord is (man, bank, ligt),
+// voor spelletjes zonder voorlezen, zoals de ballonnen.
+function foutWoord(cat, x, echtNee = false) {
+  const g = maakGat(cat, x);
+  if (!g) return null;
+  const opties = g.fout.map((f) => g.voor + f + g.na).filter((f) => !echtNee || !ECHTE_WOORDEN.has(f));
+  return opties.length ? schud(opties)[0] : null;
+}
+const ECHTE_WOORDEN = new Set(("vies peen rook man bot ram ban bank bang ton slank bier pier mier oer dor " +
+  "ligt licht raat raad krap poten kiel vel per ping rink del deel kus kussen bed bet").split(" "));
 function gekleurd(cat, x) {
   const g = maakGat(cat, x);
   return g ? `${g.voor}<mark>${g.deel}</mark>${g.na}` : woord(x);
@@ -147,6 +165,7 @@ function gekleurd(cat, x) {
 
 // ---------- feestje ----------
 function feest() {
+  geluid("feest");
   for (let i = 0; i < 18; i++) {
     const s = el(`<span class="confetti">${schud(["⭐", "🎉", "✨", "🌟"])[0]}</span>`);
     s.style.left = Math.random() * 100 + "vw";
@@ -176,8 +195,7 @@ function thuis() {
 }
 
 function categorie(cat) {
-  zegEekhoorn(`Dit is ${cat.figuurNaam}. Wat wil je doen?`);
-  const heeftGat = cat.woorden.some((x) => maakGat(cat, x));
+  zegEekhoorn(`Dit is ${cat.figuurNaam}. Loop met mij over de weg naar de beker!`);
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="kop" style="background:${cat.kleur}">
@@ -185,11 +203,8 @@ function categorie(cat) {
         <div><div class="nr">${cat.nr}</div><h2>${cat.naam}</h2></div>
       </div>
       <p class="regel">${cat.regel}</p>
-      <div class="knoppen">
-        <a class="grote-knop" href="#uitleg/${cat.nr}">🎬 Uitleg</a>
-        ${heeftGat ? `<a class="grote-knop" href="#gaatjes/${cat.nr}">🧩 Gaatjes</a>` : ""}
-        <a class="grote-knop" href="#dictee/${cat.nr}">🎧 Dictee</a>
-      </div>
+      ${tekenWeg(cat)}
+      ${tekenMeerSpellen(cat)}
       <a class="terug" href="#">← Terug</a>
     </div>`;
 }
@@ -213,6 +228,7 @@ async function uitleg(cat) {
   ballon.textContent = cat.uitleg;
   const huidig = location.hash;
   scherm.querySelector("#start").onclick = async () => {
+    bewaarSpelSterren(catSleutel(cat), "uitleg", 1);
     vb.innerHTML = "";
     ballon.textContent = cat.uitleg;
     await zeg(cat.uitleg);
@@ -228,41 +244,42 @@ async function uitleg(cat) {
 }
 
 // Een ronde van RONDE vragen. maakVraag(i) tekent een vraag en roept antwoord(goed) aan.
+// Je hebt LEVENS hartjes. Fout = een hartje kwijt. Alle hartjes op = geen punten.
+const LEVENS = 3;
+const hartjes = (n) => "❤️".repeat(n) + "🤍".repeat(LEVENS - n);
 function speelRonde({ titel, cat, maakVraag, terug }) {
-  let i = 0, goed = 0;
+  let i = 0, goed = 0, levens = LEVENS;
   const hier = location.hash;
+  const opnieuw = () => speelRonde({ titel, cat, maakVraag, terug });
   const volgende = () => {
     if (i === RONDE) return einde();
     scherm.innerHTML = `
       <div class="kaart" ${cat ? `style="border-color:${cat.kleur}"` : ""}>
-        <div class="voortgang">${titel} · vraag ${i + 1} van ${RONDE} · ${"⭐".repeat(goed)}</div>
+        <div class="voortgang">${titel} · vraag ${i + 1} van ${RONDE}</div>
+        <div class="levens-balk"><span class="levens">${hartjes(levens)}</span><span class="pot">🌰 ${goed}</span></div>
         <div id="vraag"></div>
         <a class="terug" href="${terug}">← Stoppen</a>
       </div>`;
     maakVraag(scherm.querySelector("#vraag"), async (isGoed, uitlegFout) => {
-      if (isGoed) { goed++; zegEekhoorn(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!"); }
-      else { zegEekhoorn(uitlegFout); }
+      if (isGoed) {
+        goed++; geluid("goed"); eikelVlieg();
+        scherm.querySelector(".pot").textContent = `🌰 ${goed}`;
+        zegEekhoorn(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!");
+      } else {
+        levens--; geluid("fout"); zegEekhoorn(uitlegFout);
+        const l = scherm.querySelector(".levens");
+        l.textContent = hartjes(levens); l.classList.add("au");
+      }
       i++;
-      await wacht(isGoed ? 900 : 2200);
-      if (location.hash === hier) volgende(); // niet doorgaan als het kind al weg is
-
+      await wacht(isGoed ? 900 : 2400);
+      if (location.hash !== hier) return; // niet doorgaan als het kind al weg is
+      if (levens === 0) return levensOp({ cat, opnieuw, terug });
+      volgende();
     });
   };
   const einde = () => {
     const n = goed === RONDE ? 3 : goed >= 3 ? 2 : goed >= 1 ? 1 : 0;
-    if (cat) geefSterren(cat.nr, n);
-    if (n >= 2) feest();
-    zegEekhoorn(n === 3 ? "Alles goed! Wat ben jij een spellingkampioen!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend! Nog een keer?");
-    scherm.innerHTML = `
-      <div class="kaart eind">
-        <div class="groot-sterren">${sterTekst(n)}</div>
-        <p>Je had er ${goed} van de ${RONDE} goed.</p>
-        <div class="knoppen">
-          <button class="grote-knop" id="nog">🔁 Nog een keer</button>
-          <a class="grote-knop" href="${terug}">Klaar</a>
-        </div>
-      </div>`;
-    scherm.querySelector("#nog").onclick = () => speelRonde({ titel, cat, maakVraag, terug });
+    eindScherm({ cat, n, tekst: `Je had er ${goed} van de ${RONDE} goed.`, verdiend: goed, opnieuw, terug });
   };
   volgende();
 }
@@ -278,10 +295,12 @@ function gaatjes(cat) {
       zegEekhoorn("Welk stukje past in het gaatje?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
+        ${tipHtml(cat)}
+        ${betekenisHtml(woord(x))}
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
         <div class="keuzes">${schud([g.deel, ...g.fout]).map((o) => `<button class="keuze">${o}</button>`).join("")}</div>`;
-      doos.querySelector(".luister").onclick = () => zeg(woord(x));
-      zeg(woord(x));
+      doos.querySelector(".luister").onclick = () => zeg(metZin(woord(x)));
+      zeg(metZin(woord(x)));
       doos.querySelectorAll(".keuze").forEach((k) => (k.onclick = () => {
         doos.querySelectorAll(".keuze").forEach((b) => (b.disabled = true));
         const isGoed = k.textContent === g.deel;
@@ -303,6 +322,8 @@ function dictee(cat) {
       zegEekhoorn("Luister goed en schrijf het woord op.");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
+        ${betekenisHtml(w)}
+        ${tipHtml(cat)}
         <form class="dictee">
           <input autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Schrijf het woord">
           <button class="grote-knop">Klaar ✔</button>
@@ -310,7 +331,7 @@ function dictee(cat) {
         <div class="uitkomst"></div>`;
       const veld = doos.querySelector("input");
       // Zeg het woord twee keer, met een pauze ertussen, zodat je het goed hoort.
-      const zegWoord = () => zeg(`${w}. ${w}.`);
+      const zegWoord = () => zeg(BETEKENIS[w] ? metZin(w) : `${w}. ${w}.`);
       doos.querySelector(".luister").onclick = zegWoord;
       zegWoord(); veld.focus();
       doos.querySelector("form").onsubmit = (e) => {
@@ -421,6 +442,14 @@ function route() {
   if (cat && naam === "uitleg") return uitleg(cat);
   if (cat && naam === "gaatjes") return gaatjes(cat);
   if (cat && naam === "dictee") return dictee(cat);
+  if (naam === "prijzen") return prijzen();
+  if (naam === "bordspel") return bordspel();
+  if (naam === "stickers") return stickerboek();
+  if (cat && naam === "ballonnen") return ballonnen(cat);
+  if (cat && naam === "eikels") return eikels(cat);
+  if (cat && naam === "kiezen") return kiezen(cat);
+  if (cat && naam === "wereld") return wereldSpel(cat, location.hash.split("/")[2]);
+  if (cat && naam === "maak") return maakSpel(cat);
   thuis();
 }
 window.addEventListener("hashchange", route);

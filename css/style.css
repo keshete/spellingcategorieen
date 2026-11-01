@@ -134,3 +134,245 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .rond:disabled { opacity: .3; }
 .rond.bezig { background: #ef5350; animation: knipper 1s infinite; }
 @keyframes knipper { 50% { opacity: .5; } }
+/* ---------- spelletjes-menu ---------- */
+.spel-kop { font-size: 1.5rem; margin: 1.4rem 0 .6rem; }
+.spel-lijst { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.spel-tegel {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+  min-height: 120px; padding: .6rem; border-radius: 1.2rem;
+  background: #e8f5e9; border: 4px solid #81c784; font-size: 1.15rem; font-weight: bold;
+  box-shadow: 0 5px 0 #66bb6a;
+}
+.spel-tegel span { font-size: 3rem; line-height: 1; }
+.spel-tegel:active { transform: translateY(4px); box-shadow: 0 1px 0 #66bb6a; }
+
+/* ---------- 🎈 ballonnen ---------- */
+.lucht {
+  position: relative; height: 52vh; min-height: 340px; overflow: hidden;
+  border-radius: 1rem; background: linear-gradient(#b3e5fc, #e1f5fe 70%, #c5e1a5);
+}
+.ballon-spel {
+  position: absolute; bottom: -150px; width: 9rem; height: 10.5rem; padding: 0;
+  border: none; cursor: pointer; background: none; font: inherit;
+  animation: stijg 8s linear forwards;
+  touch-action: manipulation;
+}
+.ballon-spel span {
+  display: flex; align-items: center; justify-content: center;
+  width: 9rem; height: 9rem; border-radius: 50% 50% 48% 48%;
+  background: var(--kleur); color: #fff; font-size: 1.6rem; font-weight: bold;
+  text-shadow: 0 2px 2px rgba(0,0,0,.35);
+  box-shadow: inset -10px -12px 0 rgba(0,0,0,.12);
+}
+.ballon-spel::after { content: ""; position: absolute; left: 50%; top: 9rem; width: 2px; height: 1.5rem; background: #777; }
+@keyframes stijg { to { transform: translateY(calc(-52vh - 360px)); } }
+.ballon-spel.knal { animation-play-state: paused; }
+.ballon-spel.knal span { animation: knal .35s ease-out forwards; }
+.ballon-spel.knal::after { display: none; }
+.ballon-spel.mis span { background: #9e9e9e; }
+@keyframes knal { 50% { transform: scale(1.3); } to { transform: scale(0); opacity: 0; } }
+
+/* ---------- 🌰 eikels ---------- */
+.boom {
+  position: relative; height: 52vh; min-height: 340px; overflow: hidden; border-radius: 1rem; margin-top: .5rem;
+  background: linear-gradient(#a5d6a7 0 18%, #e8f5e9 18%);
+}
+.eikel {
+  position: absolute; top: -6rem; border: none; background: none; cursor: pointer; padding: 0; font: inherit;
+  display: flex; flex-direction: column; align-items: center; touch-action: manipulation;
+  animation: val-eikel 8s linear forwards;
+}
+.eikel-plaatje { font-size: 3.4rem; line-height: 1; }
+.eikel-tekst {
+  background: #fff; border: 4px solid #8d6e63; border-radius: .8rem; padding: .1rem .7rem;
+  font-size: 2rem; font-weight: bold; min-width: 3.5rem;
+}
+@keyframes val-eikel { to { transform: translateY(calc(52vh + 2rem)); } }
+.eikel.stil { animation-play-state: paused; }
+.eikel.gevangen .eikel-tekst { background: #c8e6c9; border-color: #2e7d32; }
+.eikel.gevangen .eikel-plaatje { transform: scale(1.4); transition: transform .3s; }
+.eikel.mis .eikel-tekst { background: #ffcdd2; border-color: #c62828; }
+.grond { position: absolute; bottom: 0; left: 0; right: 0; height: 4rem; background: #8d6e63; font-size: 3rem; line-height: 4rem; }
+
+.tip-dictee {
+  display: table; margin: .5rem auto; padding: .4rem 1rem;
+  background: #fff8e1; border: 3px dashed #ffb300; border-radius: 1rem; font-size: 1.3rem; font-weight: bold;
+}
+
+/* ---------- 🗺️ de weg ---------- */
+.weg { position: relative; margin: 1rem auto 0; max-width: 560px; }
+.weg-lijn { position: absolute; inset: 0; width: 100%; height: 100%; }
+.weg-lijn polyline {
+  fill: none; stroke: #d7ccc8; stroke-width: 22; stroke-linejoin: round; stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.steen {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 104px; height: 104px; border-radius: 50%;
+  background: #fff; border: 5px solid #bcaaa4; box-shadow: 0 5px 0 rgba(0,0,0,.18);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #333; font-weight: bold;
+}
+.steen:active { transform: translate(-50%, -46%); }
+.steen-emoji { font-size: 2.4rem; line-height: 1; }
+.steen-naam { font-size: .85rem; line-height: 1.1; text-align: center; }
+.steen-sterren { font-size: .85rem; color: #ffb300; letter-spacing: 1px; }
+.steen.klaar { border-color: #fff; color: #fff; }
+.steen.klaar .steen-naam { text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.steen.klaar .steen-sterren { color: #fff7c2; }
+.steen.hier { border-color: #ffb300; animation: gloei 1.2s ease-in-out infinite; }
+@keyframes gloei { 50% { box-shadow: 0 0 0 10px rgba(255,179,0,.35), 0 5px 0 rgba(0,0,0,.18); } }
+.eva-hier { position: absolute; left: -2.6rem; top: -1.2rem; font-size: 2.8rem; animation: dans 1.6s ease-in-out infinite; }
+.steen.gewonnen { border-color: #ffd54f; }
+.steen.gewonnen .steen-emoji { font-size: 3rem; animation: dans 1.6s ease-in-out infinite; }
+
+/* ---------- 🌰 eikels sparen ---------- */
+header { position: relative; }
+.beloning-balk { position: absolute; top: 1rem; right: 1.2rem; display: flex; gap: .6rem; align-items: center; }
+.stickerboek-knop {
+  font-size: 1.8rem; background: #fff; border: 3px solid #7e57c2; border-radius: 50%;
+  width: 3.2rem; height: 3.2rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #7e57c2;
+}
+.eikel-teller {
+  background: #fff; border: 3px solid #8d6e63; border-radius: 2rem;
+  padding: .3rem .9rem; font-size: 1.6rem; box-shadow: 0 4px 0 #8d6e63;
+}
+.eikel-teller.pop { animation: pop .4s ease-out; }
+.mascot { position: relative; display: inline-block; }
+.mascot.spring { animation: spring .6s ease-out; }
+@keyframes spring { 30% { transform: translateY(-24px) rotate(-8deg); } 60% { transform: translateY(0) rotate(4deg); } }
+.mascot .prijs { position: absolute; right: -.6rem; top: -.4rem; font-size: 2.2rem; }
+.eikel-vlieg {
+  position: fixed; left: 50%; top: 50%; font-size: 3rem; pointer-events: none; z-index: 10;
+  animation: vlieg .8s ease-in forwards;
+}
+@keyframes vlieg { to { top: 25%; transform: scale(1.8); opacity: 0; } }
+.groot-eikels { font-size: 3rem; font-weight: bold; margin: .5rem 0 1rem; }
+.prijzenkast { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); margin-bottom: 1.2rem; }
+.prijsvak {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .8rem;
+  background: #fff8e1; border: 4px solid #ffca28; border-radius: 1rem; font-weight: bold;
+}
+.prijsvak span { font-size: 3rem; }
+.prijsvak.dicht { background: #f3f3f3; border-color: #ddd; color: #999; }
+
+/* ---------- ⚖️ welke is goed? ---------- */
+.twee-keuzes { display: flex; justify-content: center; gap: 1.2rem; flex-wrap: wrap; margin: 1.2rem 0; }
+.woordkaart {
+  font: inherit; font-size: 2.8rem; font-weight: bold; min-width: 11rem; padding: 1.2rem 1.6rem;
+  background: #fff; border: 5px solid #ddd; border-radius: 1.2rem; box-shadow: 0 6px 0 #ccc; cursor: pointer;
+  touch-action: manipulation;
+}
+.woordkaart:active { transform: translateY(4px); box-shadow: 0 2px 0 #ccc; }
+.woordkaart.goed { border-color: #2e7d32; background: #c8e6c9; color: #1b5e20; }
+.woordkaart.fout { border-color: #c62828; background: #ffcdd2; color: #b71c1c; animation: schud .4s; }
+.zinnetje { font-size: 2rem; margin-top: .8rem; color: #555; }
+.uitzondering { background: #ffe082; border-radius: .6rem; padding: .1rem .5rem; font-weight: bold; }
+
+/* ---------- 🏀 werelden ---------- */
+.spel-tegel.eigen { background: #fff3e0; border-color: #ffb74d; box-shadow: 0 5px 0 #fb8c00; }
+.spel-tegel.maak { background: #ede7f6; border-color: #9575cd; box-shadow: 0 5px 0 #7e57c2; border-style: dashed; }
+.veld {
+  position: relative; height: 46vh; min-height: 320px; border-radius: 1rem; margin-top: .8rem; overflow: hidden;
+  background: linear-gradient(var(--lucht) 72%, var(--vloer) 72%);
+  display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 1rem;
+}
+.doel { font-size: 5.5rem; line-height: 1; }
+.doel.raak { animation: spring .6s ease-out; }
+.ballen { display: flex; gap: 1.4rem; justify-content: center; flex-wrap: wrap; }
+.bal {
+  position: relative; border: none; background: none; padding: 0; cursor: pointer; font: inherit;
+  transition: transform .6s cubic-bezier(.3,-.3,.5,1); touch-action: manipulation;
+}
+.bal-emoji { font-size: 6.5rem; line-height: 1; display: block; }
+.bal-tekst {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  background: #fff; border: 4px solid #333; border-radius: 1rem; padding: 0 .5rem;
+  font-size: 2.2rem; font-weight: bold; white-space: nowrap;
+}
+.bal.woord .bal-tekst { font-size: 1.7rem; }
+.bal:disabled { opacity: 1; }
+.bal.vlieg { z-index: 2; }
+.bal.mis .bal-tekst { background: #ffcdd2; border-color: #c62828; }
+.bal.mis { animation: schud .4s; opacity: .5; }
+
+/* ---------- 🛠️ maker ---------- */
+.maker h3 { margin: 1.2rem 0 .5rem; font-size: 1.3rem; }
+.kies-rij { display: flex; flex-wrap: wrap; gap: .7rem; justify-content: center; }
+.kies-knop {
+  font: inherit; font-size: 1.05rem; font-weight: bold; min-width: 7.5rem; padding: .6rem .8rem; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: .2rem;
+  background: #fff; border: 4px solid #ddd; border-radius: 1rem; box-shadow: 0 4px 0 #ccc;
+}
+.kies-knop span { font-size: 2rem; }
+.kies-knop.gekozen { border-color: #7e57c2; background: #ede7f6; }
+.spel-naam { font: inherit; font-size: 1.6rem; padding: .5rem .8rem; width: min(100%, 22ch); text-align: center; border: 4px solid #ccc; border-radius: 1rem; }
+.grote-knop.grijs { background: #e0e0e0; box-shadow: 0 5px 0 #9e9e9e; }
+.betekenis {
+  display: table; margin: .8rem auto 0; padding: .4rem 1.1rem; font-size: 1.7rem;
+  background: #e3f2fd; border: 3px solid #64b5f6; border-radius: 1rem;
+}
+.betekenis span { font-size: 2.6rem; vertical-align: middle; }
+
+/* ---------- ❤️ levens ---------- */
+.levens-balk { display: flex; justify-content: space-between; align-items: center; font-size: 1.8rem; margin-bottom: .3rem; }
+.levens.au { animation: schud .5s; }
+.pot { background: #fff8e1; border-radius: 1rem; padding: 0 .7rem; font-weight: bold; }
+
+/* ---------- 🎁 beloning kiezen ---------- */
+.beloning { margin: 1rem 0; }
+.beloning h3 { font-size: 1.6rem; margin: .3rem 0 .8rem; }
+.beloning-knop {
+  font: inherit; font-size: 1.15rem; font-weight: bold; cursor: pointer; margin: .4rem; width: 15rem; padding: .8rem;
+  display: inline-flex; flex-direction: column; align-items: center; gap: .3rem;
+  background: #fff8e1; border: 4px solid #ffb300; border-radius: 1.2rem; box-shadow: 0 5px 0 #ffb300;
+}
+.beloning-knop span { font-size: 2.6rem; }
+.beloning-knop:active { transform: translateY(4px); box-shadow: 0 1px 0 #ffb300; }
+
+/* ---------- 📒 stickerboek ---------- */
+.boek {
+  position: relative; height: 58vh; min-height: 360px; margin: 1rem 0; border-radius: 1rem;
+  background: #fffdf5 repeating-linear-gradient(#fffdf5 0 38px, #e3f2fd 38px 40px);
+  border: 6px solid #9575cd; box-shadow: inset 0 0 0 6px #ede7f6; overflow: hidden;
+}
+.boek.plak-modus { border-style: dashed; cursor: crosshair; animation: gloei 1.2s ease-in-out infinite; }
+.sticker { position: absolute; font-size: 4rem; filter: drop-shadow(0 3px 0 #fff) drop-shadow(0 0 2px rgba(0,0,0,.3)); pointer-events: none; }
+.nieuwe-sticker { font-size: 1.4rem; font-weight: bold; }
+.nieuwe-sticker span { font-size: 4rem; display: inline-block; animation: dans 1.6s ease-in-out infinite; vertical-align: middle; }
+
+/* ---------- 🎲 bordspel ---------- */
+.spel-tegel.bordspel-tegel { background: #fce4ec; border-color: #f06292; box-shadow: 0 5px 0 #ec407a; }
+.bord {
+  display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr); gap: .45rem;
+  background: #c5e1a5; padding: .7rem; border-radius: 1.2rem; margin: .4rem 0 .8rem;
+}
+.vak {
+  position: relative; aspect-ratio: 1.5; border-radius: .9rem; background: #fffde7; border: 3px solid #a1887f;
+  display: flex; align-items: center; justify-content: center; max-height: 66px;
+}
+.vak.gelopen { background: #ffe082; }
+.vak.ster { background: #fff59d; }
+.vak-nr { position: absolute; left: .35rem; top: .1rem; font-size: .8rem; color: #8d6e63; }
+.vak-teken { font-size: 1.8rem; }
+.pion { position: absolute; font-size: 2.6rem; animation: pop .3s ease-out; filter: drop-shadow(0 3px 2px rgba(0,0,0,.3)); }
+.weggetjes { display: flex; justify-content: center; gap: 1.5rem; margin: .8rem 0; }
+.weggetje {
+  font: inherit; cursor: pointer; border: none; padding: 0; background: none; touch-action: manipulation;
+  display: flex; flex-direction: column; align-items: center;
+}
+.weggetje::after { /* het paadje */
+  content: ""; width: 5rem; height: 2.4rem; margin-top: -.2rem;
+  background: #bcaaa4; clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+}
+.weggetje.links::after { transform: skewX(18deg); }
+.weggetje.rechts::after { transform: skewX(-18deg); }
+.bordje {
+  font-size: 2.4rem; font-weight: bold; padding: .4rem 1.2rem; min-width: 8rem;
+  background: #fff; border: 5px solid #8d6e63; border-radius: .8rem; box-shadow: 0 5px 0 #6d4c41;
+}
+.weggetje.goed .bordje { background: #c8e6c9; border-color: #2e7d32; }
+.weggetje.fout .bordje { background: #ffcdd2; border-color: #c62828; animation: schud .4s; }
+.dobbel { font-size: 4rem; animation: rol .6s ease-out; }
+@keyframes rol { from { transform: rotate(-540deg) scale(.3); } to { transform: rotate(0) scale(1); } }
+.weggetje:disabled, .woordkaart:disabled { color: #333; opacity: 1; }
