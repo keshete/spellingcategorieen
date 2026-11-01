@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 14; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 15; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -20,6 +20,8 @@ const taal = (v) => v.lang.replace("_", "-").toLowerCase();
 const nlStemmen = () => speechSynthesis.getVoices().filter((v) => taal(v).startsWith("nl"));
 const isVrouw = (v) => VROUW.test(v.name) && !/\bmale\b/i.test(v.name);
 const isMan = (v) => MAN.test(v.name);
+// Met een jongensstem heet de eekhoorn Erik, met een meisjesstem Eva.
+const naam = () => (nlStem && isMan(nlStem) ? "Erik" : "Eva");
 function kiesStem() {
   const stemmen = speechSynthesis.getVoices();
   const nl = nlStemmen();
@@ -41,7 +43,7 @@ function toonStemWaarschuwing() {
     Of gebruik Google Chrome.</div>`);
   document.body.prepend(w);
 }
-if ("speechSynthesis" in window) { kiesStem(); speechSynthesis.onvoiceschanged = kiesStem; }
+if ("speechSynthesis" in window) { kiesStem(); speechSynthesis.onvoiceschanged = () => { kiesStem(); if (!location.hash || location.hash === "#") route(); }; }
 
 // Knip een tekst in korte stukjes (zinnen en stukjes tussen komma's),
 // zodat de stem na elk stukje echt even stopt.
@@ -149,7 +151,7 @@ function feest() {
 
 // ---------- schermen ----------
 function thuis() {
-  zegEekhoorn("Hoi! Ik ben Eva Eekhoorn. Kies een categorie en we gaan oefenen!");
+  zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. Kies een categorie en we gaan oefenen!`);
   const s = sterren();
   scherm.innerHTML = `
     <a class="grote-knop sorteer" href="#sorteer">🎮 Sorteerspel: welke categorie is het?</a>
@@ -352,7 +354,7 @@ function stemScherm() {
   const nu = localStorage.getItem("tempo") || "2";
   scherm.innerHTML = `
     <div class="kaart stemkaart">
-      <h2>🔊 Hoe praat Eva?</h2>
+      <h2>🔊 Hoe praat ${naam()}?</h2>
       <h3>Hoe snel?</h3>
       <div class="keuzes" id="tempo">
         ${Object.entries(TEMPO).map(([k, t]) => `<button class="grote-knop${k === nu ? " gekozen" : ""}" data-k="${k}">${t.naam}</button>`).join("")}
@@ -373,7 +375,7 @@ function stemScherm() {
       <button class="grote-knop" id="probeer">▶️ Probeer</button>
       <p class="versie">Versie ${VERSIE}</p>
     </div>`;
-  const probeer = () => zeg("Hoi! Ik ben Eva Eekhoorn. Luister goed: kat, Stijn, hulp.");
+  const probeer = () => zeg(`Hoi! Ik ben ${naam()} Eekhoorn. Luister goed: kat, Stijn, hulp.`);
   scherm.querySelectorAll("#tempo button").forEach((b) => (b.onclick = () => {
     localStorage.setItem("tempo", b.dataset.k); stemScherm(); probeer();
   }));
