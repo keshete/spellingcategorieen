@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 13; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 14; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -66,18 +66,27 @@ function snelheid(t) {
   return losWoord ? tempo().woord : tempo().zin;
 }
 
-function spreekStukje(t) {
+let huidigeZin = null; // Safari: bewaar de zin, anders wordt hij soms opgeruimd en blijft het stil
+function spreekStukje(t, metStem = true) {
   return new Promise((klaar) => {
     const u = new SpeechSynthesisUtterance(t);
+    huidigeZin = u;
     u.lang = nlStem ? nlStem.lang : "nl-NL";
     u.rate = snelheid(t);
-    if (nlStem) u.voice = nlStem;
     u.pitch = 1; // gewone toonhoogte: hoger of lager klinkt raar en onduidelijk
-    let gedaan = false;
+    if (metStem && nlStem) u.voice = nlStem;
+    let gedaan = false, begonnen = false;
     const af = () => { if (!gedaan) { gedaan = true; klaar(); } };
-    u.onend = af; u.onerror = af;
+    u.onstart = () => { begonnen = true; };
+    u.onend = af;
+    u.onerror = (e) => {
+      // Werkt de gekozen stem niet? Probeer het dan nog een keer met de gewone stem.
+      if (!gedaan && metStem && !begonnen && !/interrupted|canceled/.test(e.error || "")) {
+        gedaan = true; spreekStukje(t, false).then(klaar);
+      } else af();
+    };
     // vangnet: sommige browsers vergeten onend
-    setTimeout(af, 2000 + t.length * 200);
+    setTimeout(af, 2500 + t.length * 250);
     speechSynthesis.speak(u);
   });
 }
@@ -86,8 +95,13 @@ async function zeg(tekst) {
   if (!("speechSynthesis" in window)) return wacht(600);
   if (!nlStem) kiesStem();
   const beurt = ++spreekBeurt;
-  speechSynthesis.cancel();
-  await wacht(80); // iOS: direct na cancel() spreken gaat soms mis
+  // iPhone/iPad: alleen als er al iets klinkt even stoppen en wachten. Anders meteen
+  // praten, want na een tik moet de stem direct beginnen, anders blijft hij stil.
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+    await wacht(100);
+  }
+  if (speechSynthesis.paused) speechSynthesis.resume();
   for (const t of stukjes(tekst)) {
     if (beurt !== spreekBeurt) return;
     await spreekStukje(t);
@@ -351,6 +365,8 @@ function stemScherm() {
       ${heeftVrouw ? "" : `<p class="tip">Er is nog geen meisjesstem op dit apparaat. Vraag een grote mens om te helpen:
         iPhone of iPad → Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands →
         tik op <b>Claire</b> om haar te downloaden. Kom daarna hier terug.</p>`}
+      <p class="tip">Hoor je niks? Zet het geluid harder en zet de iPhone of iPad niet op stil
+        (het knopje aan de zijkant).</p>
       <p class="tip">Klinkt een stem raar of krakerig? Op een iPhone of iPad kun je bij
         Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands
         de <b>verbeterde</b> versie van de stem downloaden. Die klinkt veel mooier.</p>
