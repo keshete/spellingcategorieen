@@ -134,3 +134,19 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .rond:disabled { opacity: .3; }
 .rond.bezig { background: #ef5350; animation: knipper 1s infinite; }
 @keyframes knipper { 50% { opacity: .5; } }
+
+/* ---------- leeftijd en moeilijkheid ---------- */
+.niveau-knop {
+  display: inline-block; margin: 0 0 1rem; padding: .6rem 1.1rem;
+  background: #fff; border: 3px solid #333; border-radius: 2rem;
+  font-size: 1.2rem; font-weight: bold;
+}
+.niveau-knop .pen { font-size: 1rem; }
+.kieskaart h2 { margin: .8rem 0 .4rem; }
+.kieskaart .keuzes .grote-knop { display: inline-flex; flex-direction: column; align-items: center; min-width: 9rem; }
+.kieskaart small { font-size: .95rem; font-weight: normal; margin-top: .2rem; }
+.kieskaart .niveaus .grote-knop { max-width: 13rem; }
+.kieskaart .icoon { font-size: 2.2rem; }
+.kieskaart .start { display: block; margin: 1.4rem auto .4rem; font-size: 1.5rem; background: #4fc3f7; box-shadow: 0 5px 0 #0288d1; }
+.kieskaart .start:disabled { opacity: .45; cursor: default; }
+.letterhulp { font-size: 2.2rem; letter-spacing: .25rem; font-family: monospace; margin: .4rem 0; color: #999; }
