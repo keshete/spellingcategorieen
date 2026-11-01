@@ -377,6 +377,15 @@ header { position: relative; }
 @keyframes rol { from { transform: rotate(-540deg) scale(.3); } to { transform: rotate(0) scale(1); } }
 .weggetje:disabled, .woordkaart:disabled { color: #333; opacity: 1; }
 
+/* ---------- kopjes per groep op het beginscherm ---------- */
+.grid .groep-kop {
+  grid-column: 1 / -1;
+  font-size: 1.5rem; font-weight: bold;
+  margin: 1rem 0 0; padding: .3rem .8rem;
+  border-bottom: 4px dashed #ffca28;
+}
+.grid .groep-kop:first-child { margin-top: 0; }
+
 /* ---------- spelletjes op het beginscherm ---------- */
 .thuis-spellen { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: .6rem; }
 .thuis-knop {

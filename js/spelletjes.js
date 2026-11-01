@@ -29,7 +29,7 @@ const TIPS = {
   11: "Denk aan je, tje of pje aan het eind!",
   12: "Denk aan ig of lijk aan het eind!",
 };
-const tip = (cat) => TIPS[catSleutel(cat)] || cat.regel;
+const tip = (cat) => TIPS[catSleutel(cat)] || cat.tip || cat.regel; // cat.tip: groep 5-8, zie categorieen-hoger.js
 // Woorden die hetzelfde klinken (licht / ligt): een plaatje en een zinnetje
 // laten zien welk woord we bedoelen. In het zinnetje staat … op de plek van het woord.
 const BETEKENIS = {
