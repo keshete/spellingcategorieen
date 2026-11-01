@@ -99,11 +99,13 @@ function ballonnen(cat) {
       if (isGoed) {
         geknald++;
         b.classList.add("knal");
+        geluid("knal"); geefEikel();
         zegEekhoorn(schud(["Knal! Goed zo!", "Pang! Super!", "Ja! Goed geschreven!"])[0]);
         zeg(woord(x));
       } else {
         foutjes++;
         b.classList.add("knal", "mis");
+        geluid("fout");
         zegEekhoorn(`Oeps! Zo schrijf je het: ${woord(x)}.`);
       }
       score.textContent = `⭐ ${Math.max(0, geknald - foutjes)}`;
@@ -220,4 +222,149 @@ function bouwen(cat) {
       }));
     },
   });
+}
+
+// ---------- 🔊 geluidjes (gemaakt met de browser, geen bestanden) ----------
+let geluidCtx = null;
+function toon(freq, start, duur, type = "sine", volume = 0.15) {
+  const t0 = geluidCtx.currentTime + start;
+  const o = geluidCtx.createOscillator(), g = geluidCtx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t0);
+  g.gain.setValueAtTime(volume, t0);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + duur);
+  o.connect(g).connect(geluidCtx.destination);
+  o.start(t0); o.stop(t0 + duur);
+}
+function geluid(soort) {
+  try {
+    geluidCtx = geluidCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (geluidCtx.state === "suspended") geluidCtx.resume();
+    if (soort === "goed") { toon(660, 0, .12); toon(880, .1, .2); }
+    if (soort === "fout") { toon(220, 0, .18, "triangle"); toon(175, .15, .25, "triangle"); }
+    if (soort === "knal") { toon(900, 0, .06, "square", .08); toon(300, .03, .1, "square", .06); }
+    if (soort === "eikel") toon(1200, 0, .1, "sine", .1);
+    if (soort === "feest") [523, 659, 784, 1047].forEach((f, i) => toon(f, i * .12, .3));
+  } catch (e) { /* geen geluid, geen probleem */ }
+}
+
+// ---------- 🌰 eikels sparen en 🎁 prijzen voor Eva ----------
+const PRIJZEN = [
+  { eikels: 10, emoji: "🎀", naam: "een strik" },
+  { eikels: 25, emoji: "🧢", naam: "een pet" },
+  { eikels: 50, emoji: "🕶️", naam: "een zonnebril" },
+  { eikels: 80, emoji: "🎩", naam: "een hoge hoed" },
+  { eikels: 120, emoji: "🦸", naam: "een superheldencape" },
+  { eikels: 170, emoji: "👑", naam: "een kroon" },
+  { eikels: 250, emoji: "🚀", naam: "een raket" },
+];
+const aantalEikels = () => Number(localStorage.getItem("eikels") || 0);
+const gewonnenPrijzen = () => PRIJZEN.filter((p) => aantalEikels() >= p.eikels);
+
+// Teller rechtsboven en Eva's nieuwste prijs naast haar.
+// (pas na het laden, want el() staat in app.js)
+let teller = null;
+document.addEventListener("DOMContentLoaded", () => {
+  teller = el(`<a class="eikel-teller" href="#prijzen" aria-label="Mijn eikels en prijzen">🌰 <b>0</b></a>`);
+  document.querySelector("header").appendChild(teller);
+  toonEikels();
+});
+function toonEikels() {
+  if (!teller) return;
+  teller.querySelector("b").textContent = aantalEikels();
+  const mascotte = document.querySelector(".mascot");
+  const laatste = gewonnenPrijzen().pop();
+  let p = mascotte.querySelector(".prijs");
+  if (laatste && !p) { p = el(`<span class="prijs"></span>`); mascotte.appendChild(p); }
+  if (p) p.textContent = laatste ? laatste.emoji : "";
+}
+
+function geefEikel(n = 1) {
+  const voor = gewonnenPrijzen().length;
+  localStorage.setItem("eikels", aantalEikels() + n);
+  // een eikeltje vliegt naar de teller
+  const vlieg = el(`<span class="eikel-vlieg">🌰</span>`);
+  document.body.appendChild(vlieg);
+  setTimeout(() => vlieg.remove(), 900);
+  geluid("eikel");
+  const m = document.querySelector(".mascot");
+  m.classList.remove("spring"); void m.offsetWidth; m.classList.add("spring");
+  setTimeout(() => {
+    toonEikels();
+    if (teller) { teller.classList.remove("pop"); void teller.offsetWidth; teller.classList.add("pop"); }
+    const nieuw = gewonnenPrijzen()[voor];
+    if (nieuw) {
+      feest();
+      zegEekhoorn(`Hoera! Ik krijg ${nieuw.naam} ${nieuw.emoji}! Dank je wel!`);
+      zeg(`Hoera! Ik krijg ${nieuw.naam}!`);
+    }
+  }, 700);
+}
+
+function prijzen() {
+  const n = aantalEikels();
+  const volgende = PRIJZEN.find((p) => n < p.eikels);
+  zegEekhoorn(volgende
+    ? `Je hebt ${n} eikels. Nog ${volgende.eikels - n} voor ${volgende.naam}!`
+    : `Wauw, ${n} eikels! Je hebt alle prijzen!`);
+  scherm.innerHTML = `
+    <div class="kaart">
+      <h2>🎁 Prijzenkast van Eva</h2>
+      <p class="regel">Elk goed antwoord geeft een eikel 🌰. Spaar ze voor prijzen!</p>
+      <div class="groot-eikels">🌰 ${n}</div>
+      <div class="prijzenkast">${PRIJZEN.map((p) => `
+        <div class="prijsvak ${n >= p.eikels ? "" : "dicht"}">
+          <span>${n >= p.eikels ? p.emoji : "❔"}</span>
+          ${n >= p.eikels ? p.naam : `🌰 ${p.eikels}`}
+        </div>`).join("")}</div>
+      <a class="grote-knop" href="#">Verder spelen</a>
+    </div>`;
+}
+
+// ---------- 🗺️ de weg door een categorie ----------
+// Per spelletje bewaren we de beste sterren: { "3": { gaatjes: 2, ... } }
+const spelSterren = () => JSON.parse(localStorage.getItem("spelSterren") || "{}");
+function bewaarSpelSterren(sleutelCat, spel, n) {
+  const s = spelSterren();
+  s[sleutelCat] = s[sleutelCat] || {};
+  s[sleutelCat][spel] = Math.max(s[sleutelCat][spel] || 0, n);
+  localStorage.setItem("spelSterren", JSON.stringify(s));
+}
+
+const WEG_X = [18, 50, 82, 50]; // links, midden, rechts, midden, ... zo slingert de weg
+function tekenWeg(cat) {
+  const heeftGat = cat.woorden.some((x) => maakGat(cat, x));
+  const mijn = spelSterren()[sleutel(cat)] || {};
+  const stappen = [
+    { id: "uitleg", emoji: "🎬", naam: "Uitleg", klaar: !!mijn.uitleg },
+    ...["gaatjes", "ballonnen", "eikels", "bouwen", "dictee"]
+      .map((id) => SPELLETJES.find((g) => g.id === id))
+      .filter((g) => heeftGat || !g.gat)
+      .map((g) => ({ ...g, sterren: mijn[g.id] || 0, klaar: (mijn[g.id] || 0) > 0 })),
+  ];
+  const beker = stappen.every((s) => s.klaar);
+  const hier = stappen.findIndex((s) => !s.klaar);
+  const alle = [...stappen, { id: "beker", emoji: beker ? "🏆" : "🏁", naam: beker ? "Beker!" : "Finish" }];
+  const H = 120; // hoogte per stap
+  const punten = alle.map((_, i) => [WEG_X[i % WEG_X.length], i * H + H / 2]);
+  const hoogte = alle.length * H;
+  return `
+    <div class="weg" style="height:${hoogte}px">
+      <svg class="weg-lijn" viewBox="0 0 100 ${hoogte}" preserveAspectRatio="none">
+        <polyline points="${punten.map(([x, y]) => `${x},${y}`).join(" ")}" />
+      </svg>
+      ${alle.map((s, i) => {
+        const [x, y] = punten[i];
+        const isBeker = s.id === "beker";
+        const tag = isBeker ? "div" : "a";
+        return `
+        <${tag} class="steen ${s.klaar ? "klaar" : ""} ${i === hier ? "hier" : ""} ${isBeker && beker ? "gewonnen" : ""}"
+          ${isBeker ? "" : `href="#${s.id}/${sleutel(cat)}"`}
+          style="left:${x}%;top:${y}px;${s.klaar || (isBeker && beker) ? `background:${cat.kleur}` : ""}">
+          <span class="steen-emoji">${s.emoji}</span>
+          <span class="steen-naam">${s.naam}</span>
+          ${s.sterren !== undefined ? `<span class="steen-sterren">${sterTekst(s.sterren)}</span>` : ""}
+          ${i === hier ? `<span class="eva-hier">🐿️</span>` : ""}
+        </${tag}>`;
+      }).join("")}
+    </div>`;
 }

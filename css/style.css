@@ -200,3 +200,56 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
   display: table; margin: .8rem auto 0; padding: .5rem 1rem;
   background: #fff8e1; border: 3px dashed #ffb300; border-radius: 1rem; font-size: 1.3rem; font-weight: bold;
 }
+
+/* ---------- 🗺️ de weg ---------- */
+.weg { position: relative; margin: 1rem auto 0; max-width: 560px; }
+.weg-lijn { position: absolute; inset: 0; width: 100%; height: 100%; }
+.weg-lijn polyline {
+  fill: none; stroke: #d7ccc8; stroke-width: 22; stroke-linejoin: round; stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.steen {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 104px; height: 104px; border-radius: 50%;
+  background: #fff; border: 5px solid #bcaaa4; box-shadow: 0 5px 0 rgba(0,0,0,.18);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #333; font-weight: bold;
+}
+.steen:active { transform: translate(-50%, -46%); }
+.steen-emoji { font-size: 2.4rem; line-height: 1; }
+.steen-naam { font-size: .85rem; line-height: 1.1; text-align: center; }
+.steen-sterren { font-size: .85rem; color: #ffb300; letter-spacing: 1px; }
+.steen.klaar { border-color: #fff; color: #fff; }
+.steen.klaar .steen-naam { text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.steen.klaar .steen-sterren { color: #fff7c2; }
+.steen.hier { border-color: #ffb300; animation: gloei 1.2s ease-in-out infinite; }
+@keyframes gloei { 50% { box-shadow: 0 0 0 10px rgba(255,179,0,.35), 0 5px 0 rgba(0,0,0,.18); } }
+.eva-hier { position: absolute; left: -2.6rem; top: -1.2rem; font-size: 2.8rem; animation: dans 1.6s ease-in-out infinite; }
+.steen.gewonnen { border-color: #ffd54f; }
+.steen.gewonnen .steen-emoji { font-size: 3rem; animation: dans 1.6s ease-in-out infinite; }
+
+/* ---------- 🌰 eikels sparen ---------- */
+header { position: relative; }
+.eikel-teller {
+  position: absolute; top: 1rem; right: 1.2rem;
+  background: #fff; border: 3px solid #8d6e63; border-radius: 2rem;
+  padding: .3rem .9rem; font-size: 1.6rem; box-shadow: 0 4px 0 #8d6e63;
+}
+.eikel-teller.pop { animation: pop .4s ease-out; }
+.mascot { position: relative; display: inline-block; }
+.mascot.spring { animation: spring .6s ease-out; }
+@keyframes spring { 30% { transform: translateY(-24px) rotate(-8deg); } 60% { transform: translateY(0) rotate(4deg); } }
+.mascot .prijs { position: absolute; right: -.6rem; top: -.4rem; font-size: 2.2rem; }
+.eikel-vlieg {
+  position: fixed; left: 50%; top: 50%; font-size: 3rem; pointer-events: none; z-index: 10;
+  animation: vlieg .8s ease-in forwards;
+}
+@keyframes vlieg { to { left: calc(100% - 4rem); top: 1.5rem; transform: scale(.5); } }
+.groot-eikels { font-size: 3rem; font-weight: bold; margin: .5rem 0 1rem; }
+.prijzenkast { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); margin-bottom: 1.2rem; }
+.prijsvak {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .8rem;
+  background: #fff8e1; border: 4px solid #ffca28; border-radius: 1rem; font-weight: bold;
+}
+.prijsvak span { font-size: 3rem; }
+.prijsvak.dicht { background: #f3f3f3; border-color: #ddd; color: #999; }

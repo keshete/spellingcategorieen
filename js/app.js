@@ -11,7 +11,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 18; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 19; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -115,6 +115,7 @@ function geefSterren(nr, aantal) {
   const s = sterren();
   s[nr] = Math.max(s[nr] || 0, aantal);
   localStorage.setItem("sterren", JSON.stringify(s));
+  bewaarSpelSterren(nr, location.hash.slice(1).split("/")[0], aantal); // voor de weg
 }
 const sterTekst = (n) => "★".repeat(n) + "☆".repeat(3 - n);
 
@@ -148,6 +149,7 @@ function gekleurd(cat, x) {
 
 // ---------- feestje ----------
 function feest() {
+  geluid("feest");
   for (let i = 0; i < 18; i++) {
     const s = el(`<span class="confetti">${schud(["⭐", "🎉", "✨", "🌟"])[0]}</span>`);
     s.style.left = Math.random() * 100 + "vw";
@@ -177,8 +179,7 @@ function thuis() {
 }
 
 function categorie(cat) {
-  zegEekhoorn(`Dit is ${cat.figuurNaam}. Wat wil je doen?`);
-  const heeftGat = cat.woorden.some((x) => maakGat(cat, x));
+  zegEekhoorn(`Dit is ${cat.figuurNaam}. Loop met mij over de weg naar de beker!`);
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="kop" style="background:${cat.kleur}">
@@ -186,14 +187,7 @@ function categorie(cat) {
         <div><div class="nr">${cat.nr}</div><h2>${cat.naam}</h2></div>
       </div>
       <p class="regel">${cat.regel}</p>
-      <div class="knoppen">
-        <a class="grote-knop" href="#uitleg/${sleutel(cat)}">🎬 Uitleg</a>
-      </div>
-      <h3 class="spel-kop">🎮 Spelletjes</h3>
-      <div class="spel-lijst">
-        ${SPELLETJES.filter((g) => heeftGat || !g.gat).map((g) => `
-          <a class="spel-tegel" href="#${g.id}/${sleutel(cat)}"><span>${g.emoji}</span>${g.naam}</a>`).join("")}
-      </div>
+      ${tekenWeg(cat)}
       <a class="terug" href="#">← Terug</a>
     </div>`;
 }
@@ -217,6 +211,7 @@ async function uitleg(cat) {
   ballon.textContent = cat.uitleg;
   const huidig = location.hash;
   scherm.querySelector("#start").onclick = async () => {
+    bewaarSpelSterren(sleutel(cat), "uitleg", 1);
     vb.innerHTML = "";
     ballon.textContent = cat.uitleg;
     await zeg(cat.uitleg);
@@ -244,8 +239,8 @@ function speelRonde({ titel, cat, maakVraag, terug }) {
         <a class="terug" href="${terug}">← Stoppen</a>
       </div>`;
     maakVraag(scherm.querySelector("#vraag"), async (isGoed, uitlegFout) => {
-      if (isGoed) { goed++; zegEekhoorn(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!"); }
-      else { zegEekhoorn(uitlegFout); }
+      if (isGoed) { goed++; geluid("goed"); geefEikel(); zegEekhoorn(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!"); }
+      else { geluid("fout"); zegEekhoorn(uitlegFout); }
       i++;
       await wacht(isGoed ? 900 : 2200);
       if (location.hash === hier) volgende(); // niet doorgaan als het kind al weg is
@@ -411,6 +406,7 @@ function route() {
   if (cat && naam === "uitleg") return uitleg(cat);
   if (cat && naam === "gaatjes") return gaatjes(cat);
   if (cat && naam === "dictee") return dictee(cat);
+  if (naam === "prijzen") return prijzen();
   if (cat && naam === "ballonnen") return ballonnen(cat);
   if (cat && naam === "eikels") return eikels(cat);
   if (cat && naam === "bouwen") return bouwen(cat);
