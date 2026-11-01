@@ -5,13 +5,15 @@ const RONDE = 5; // vragen per spelletje
 
 const zegEekhoorn = (t) => { eekhoorn.textContent = t; };
 const schud = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// Voor het dictee: hoofdletters, spaties en de soort komma (' of ’) maken niet uit.
+const netjes = (t) => t.trim().toLowerCase().replace(/[‘’`´]/g, "'").replace(/\s+/g, " ");
 const woord = (x) => (typeof x === "string" ? x : x.w);
 const vindCat = (nr) => CATEGORIEEN.find((c) => c.nr === Number(nr));
 const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstElementChild; };
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 12; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 15; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -141,6 +143,11 @@ function thuis() {
     <ul class="grid"></ul>`;
   const lijst = scherm.querySelector(".grid");
   for (const c of CATEGORIEEN) {
+    // Een kopje boven de eerste categorie van elke groep.
+    const groep = GROEPEN.find((g) => g.nr === c.groep);
+    if (groep && c === CATEGORIEEN.find((d) => d.groep === c.groep)) {
+      lijst.appendChild(el(`<li class="groep-kop">${groep.naam}</li>`));
+    }
     lijst.appendChild(el(`
       <li><a class="tegel" href="#cat/${c.nr}" style="background:${c.kleur}">
         <span class="figuur">${c.figuur}</span>
@@ -291,7 +298,7 @@ function dictee(cat) {
         e.preventDefault();
         if (!veld.value.trim()) return;
         veld.disabled = true;
-        const isGoed = veld.value.trim().toLowerCase() === w;
+        const isGoed = netjes(veld.value) === netjes(w);
         veld.classList.add(isGoed ? "goed" : "fout");
         if (!isGoed) doos.querySelector(".uitkomst").innerHTML = `Het is: <b>${gekleurd(cat, x)}</b>`;
         antwoord(isGoed, `Kijk goed: ${w}. ${cat.regel}`);

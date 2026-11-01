@@ -117,3 +117,12 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .grote-knop.gekozen { background: #81c784; box-shadow: 0 5px 0 #388e3c; }
 .tip { background: #fff3cd; border-radius: 1rem; padding: .8rem 1rem; font-size: 1.05rem; text-align: left; }
 .versie { color: #999; font-size: .9rem; margin-top: 1rem; }
+
+/* ---------- kopjes per groep op het beginscherm ---------- */
+.grid .groep-kop {
+  grid-column: 1 / -1;
+  font-size: 1.5rem; font-weight: bold;
+  margin: 1rem 0 0; padding: .3rem .8rem;
+  border-bottom: 4px dashed #ffca28;
+}
+.grid .groep-kop:first-child { margin-top: 0; }
