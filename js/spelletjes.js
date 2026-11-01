@@ -469,7 +469,9 @@ function tekenMeerSpellen(cat) {
       <span>${WERELDEN[s.wereld].emoji}</span>${s.naam}</a>`;
   return `
     <h3 class="spel-kop">🎮 Nog meer spelletjes</h3>
-    <div class="spel-lijst">${KANT_EN_KLAAR.map((s) => tegel(s)).join("")}</div>
+    <div class="spel-lijst">
+      <a class="spel-tegel bordspel-tegel" href="#bordspel"><span>🎲</span>Eva's bordspel</a>
+      ${KANT_EN_KLAAR.map((s) => tegel(s)).join("")}</div>
     <h3 class="spel-kop">⭐ Mijn eigen spelletjes</h3>
     <div class="spel-lijst">
       ${mijnSpellen().map((s) => tegel(s, true)).join("")}
@@ -609,4 +611,121 @@ function stickerboek() {
     stickerboek();
     zegEekhoorn("Geplakt! Wat staat die mooi!");
   };
+}
+
+// ---------- 🎲 Eva's bordspel ----------
+// Een bord met vakjes; Eva is de pion. Bij elke beurt is er een zinnetje met twee
+// weggetjes (bv. ligt of licht). Kies het goede weggetje, gooi de dobbelsteen en loop vooruit.
+// Vooral voor de lastige, speciale woorden.
+const BORD_VRAGEN = [
+  { cat: "3", zin: "Hij … in zijn bed.", plaatje: "🛏️", goed: "ligt", fout: "licht", uitz: true },
+  { cat: "3", zin: "Het … is aan.", plaatje: "💡", goed: "licht", fout: "ligt" },
+  { cat: "3", zin: "De kip … een ei.", plaatje: "🥚", goed: "legt", fout: "lecht", uitz: true },
+  { cat: "3", zin: "Hij … hallo.", plaatje: "👋", goed: "zegt", fout: "zecht", uitz: true },
+  { cat: "3", zin: "Het is … buiten.", plaatje: "🌙", goed: "nacht", fout: "nagt" },
+  { cat: "1s", zin: "Ik drink een glas … .", plaatje: "🥛", goed: "melk", fout: "meluk" },
+  { cat: "1s", zin: "We kijken een … .", plaatje: "🎬", goed: "film", fout: "filum" },
+  { cat: "1s", zin: "Papa gaat naar zijn … .", plaatje: "💼", goed: "werk", fout: "weruk" },
+  { cat: "1s", zin: "Er is een … in de lucht.", plaatje: "☁️", goed: "wolk", fout: "woluk" },
+  { cat: "1s", zin: "Het is … in de zon.", plaatje: "☀️", goed: "warm", fout: "warum" },
+  { cat: "1s", zin: "Ik heb … nodig!", plaatje: "🆘", goed: "hulp", fout: "hulup" },
+  { cat: "1s", zin: "De bel van de … luidt.", plaatje: "⛪", goed: "kerk", fout: "keruk" },
+  { cat: "8", zin: "De … blaft.", plaatje: "🐶", goed: "hond", fout: "hont" },
+  { cat: "8", zin: "Ik slaap in mijn … .", plaatje: "🛏️", goed: "bed", fout: "bet" },
+  { cat: "8", zin: "Het … rent in de wei.", plaatje: "🐴", goed: "paard", fout: "paart" },
+  { cat: "8", zin: "… eens wat ik heb!", plaatje: "❓", goed: "Raad", fout: "Raat" },
+  { cat: "2", zin: "De … sist.", plaatje: "🐍", goed: "slang", fout: "slank" },
+  { cat: "4", zin: "Ik zit op de … .", plaatje: "🛋️", goed: "bank", fout: "bangk" },
+];
+const BORD = 20; // vakjes
+// Alleen vragen van categorieën die al open zijn (als de slotjes er zijn).
+function bordVragen() {
+  return BORD_VRAGEN.filter((v) => {
+    const c = CATEGORIEEN.find((c) => String(catSleutel(c)) === v.cat);
+    if (!c) return true; // categorie (nog) niet apart, zoals speciaal hakwoord: gewoon meedoen
+    return typeof isOpen !== "function" || isOpen(c);
+  });
+}
+const DOBBEL = ["", "⚀", "⚁", "⚂"];
+
+function bordspel() {
+  const hier = location.hash;
+  let plek = 0, levens = LEVENS, goed = 0, fout = 0, bezig = false;
+  let stapel = schud(bordVragen());
+  zegEekhoorn("Help mij naar mijn boom! Kies steeds het goede weggetje.");
+  zeg("Help mij naar mijn boom!");
+  scherm.innerHTML = `
+    <div class="kaart bordkaart">
+      <div class="voortgang">🎲 Eva's bordspel</div>
+      <div class="levens-balk"><span class="levens">${hartjes(levens)}</span><span class="pot">🌰 0</span></div>
+      <div class="bord"></div>
+      <div id="beurt"></div>
+      <a class="terug" href="#">← Stoppen</a>
+    </div>`;
+  const bord = scherm.querySelector(".bord");
+  const tekenBord = () => {
+    // slangetje: rij 1 links→rechts, rij 2 rechts→links, ...
+    const vakjes = [];
+    for (let i = 0; i < BORD; i++) {
+      const rij = Math.floor(i / 5), kol = rij % 2 ? 4 - (i % 5) : i % 5;
+      const soort = i === 0 ? "🏠" : i === BORD - 1 ? "🌳" : i % 4 === 3 ? "⭐" : "";
+      vakjes.push(`<div class="vak ${i < plek ? "gelopen" : ""} ${soort === "⭐" ? "ster" : ""}" style="grid-row:${4 - rij};grid-column:${kol + 1}">
+        <span class="vak-nr">${i === 0 ? "" : i}</span><span class="vak-teken">${soort}</span>
+        ${i === plek ? `<span class="pion">🐿️</span>` : ""}</div>`);
+    }
+    bord.innerHTML = vakjes.join("");
+  };
+  const loop = async (stappen) => {
+    for (let s = 0; s < stappen && plek < BORD - 1; s++) {
+      plek++; tekenBord(); geluid("eikel"); await wacht(350);
+    }
+    if (plek < BORD - 1 && plek % 4 === 3) { // op een ster: nog een stapje extra
+      zegEekhoorn("Een ster! Nog een stapje extra! ⭐"); await wacht(500); plek++; tekenBord(); geluid("goed"); await wacht(400);
+    }
+  };
+  const beurt = () => {
+    if (location.hash !== hier) return;
+    if (plek >= BORD - 1) return klaar();
+    if (!stapel.length) stapel = schud(bordVragen());
+    const v = stapel.pop();
+    const opties = schud([v.goed, v.fout]);
+    const doos = scherm.querySelector("#beurt");
+    doos.innerHTML = `
+      <div class="betekenis"><span>${v.plaatje}</span> ${v.zin}</div>
+      <div class="weggetjes">${opties.map((o, i) => `
+        <button class="weggetje ${i ? "rechts" : "links"}" data-o="${o}"><span class="bordje">${o}</span></button>`).join("")}</div>`;
+    const hoor = v.zin.replace("…", v.goed);
+    zeg(hoor);
+    bezig = false;
+    doos.querySelectorAll(".weggetje").forEach((b) => (b.onclick = async () => {
+      if (bezig) return; bezig = true;
+      doos.querySelectorAll(".weggetje").forEach((x) => (x.disabled = true));
+      if (b.dataset.o === v.goed) {
+        goed++; b.classList.add("goed"); geluid("goed"); eikelVlieg();
+        scherm.querySelector(".pot").textContent = `🌰 ${goed}`;
+        const worp = 1 + Math.floor(Math.random() * 3);
+        zegEekhoorn(`${v.uitz ? "Goed! Dat is een uitzondering. " : "Goed zo! "}Je gooit ${worp}!`);
+        doos.insertAdjacentHTML("beforeend", `<div class="dobbel">${DOBBEL[worp]}</div>`);
+        await wacht(700);
+        await loop(worp);
+      } else {
+        fout++; levens--; b.classList.add("fout"); geluid("fout");
+        const l = scherm.querySelector(".levens");
+        l.textContent = hartjes(levens); l.classList.remove("au"); void l.offsetWidth; l.classList.add("au");
+        zegEekhoorn(`Oei, dat weggetje is dicht! 🚧 Het is: ${v.goed}.`);
+        doos.querySelector(`[data-o="${v.goed}"]`).classList.add("goed");
+        await wacht(2200);
+        if (levens === 0) return location.hash === hier && levensOp({ cat: null, opnieuw: bordspel, terug: "#" });
+      }
+      await wacht(400);
+      beurt();
+    }));
+  };
+  const klaar = () => {
+    zeg("Hoera! We zijn bij mijn boom!");
+    const n = fout === 0 ? 3 : fout === 1 ? 2 : 1;
+    eindScherm({ cat: null, n, tekst: `🌳 Eva is thuis! Je had ${goed} goed en ${fout} fout.`, verdiend: goed, opnieuw: bordspel, terug: "#" });
+  };
+  tekenBord();
+  setTimeout(beurt, 1200);
 }

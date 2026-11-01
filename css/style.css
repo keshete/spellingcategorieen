@@ -340,3 +340,39 @@ header { position: relative; }
 .sticker { position: absolute; font-size: 4rem; filter: drop-shadow(0 3px 0 #fff) drop-shadow(0 0 2px rgba(0,0,0,.3)); pointer-events: none; }
 .nieuwe-sticker { font-size: 1.4rem; font-weight: bold; }
 .nieuwe-sticker span { font-size: 4rem; display: inline-block; animation: dans 1.6s ease-in-out infinite; vertical-align: middle; }
+
+/* ---------- 🎲 bordspel ---------- */
+.spel-tegel.bordspel-tegel { background: #fce4ec; border-color: #f06292; box-shadow: 0 5px 0 #ec407a; }
+.bord {
+  display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr); gap: .45rem;
+  background: #c5e1a5; padding: .7rem; border-radius: 1.2rem; margin: .4rem 0 .8rem;
+}
+.vak {
+  position: relative; aspect-ratio: 1.5; border-radius: .9rem; background: #fffde7; border: 3px solid #a1887f;
+  display: flex; align-items: center; justify-content: center; max-height: 66px;
+}
+.vak.gelopen { background: #ffe082; }
+.vak.ster { background: #fff59d; }
+.vak-nr { position: absolute; left: .35rem; top: .1rem; font-size: .8rem; color: #8d6e63; }
+.vak-teken { font-size: 1.8rem; }
+.pion { position: absolute; font-size: 2.6rem; animation: pop .3s ease-out; filter: drop-shadow(0 3px 2px rgba(0,0,0,.3)); }
+.weggetjes { display: flex; justify-content: center; gap: 1.5rem; margin: .8rem 0; }
+.weggetje {
+  font: inherit; cursor: pointer; border: none; padding: 0; background: none; touch-action: manipulation;
+  display: flex; flex-direction: column; align-items: center;
+}
+.weggetje::after { /* het paadje */
+  content: ""; width: 5rem; height: 2.4rem; margin-top: -.2rem;
+  background: #bcaaa4; clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+}
+.weggetje.links::after { transform: skewX(18deg); }
+.weggetje.rechts::after { transform: skewX(-18deg); }
+.bordje {
+  font-size: 2.4rem; font-weight: bold; padding: .4rem 1.2rem; min-width: 8rem;
+  background: #fff; border: 5px solid #8d6e63; border-radius: .8rem; box-shadow: 0 5px 0 #6d4c41;
+}
+.weggetje.goed .bordje { background: #c8e6c9; border-color: #2e7d32; }
+.weggetje.fout .bordje { background: #ffcdd2; border-color: #c62828; animation: schud .4s; }
+.dobbel { font-size: 4rem; animation: rol .6s ease-out; }
+@keyframes rol { from { transform: rotate(-540deg) scale(.3); } to { transform: rotate(0) scale(1); } }
+.weggetje:disabled, .woordkaart:disabled { color: #333; opacity: 1; }
