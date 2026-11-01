@@ -98,10 +98,21 @@ function maakGat(cat, x) {
     const i = w.indexOf(x.deel);
     return { voor: w.slice(0, i), deel: x.deel, na: w.slice(i + x.deel.length), fout: x.fout };
   }
-  if (!cat.gat) return null;
-  const m = w.match(cat.gat.re);
+  const gat = cat.gat || KLINKER_GAT; // geen eigen gat (zoals hakwoord): dan de klinker
+  const m = w.match(gat.re);
   if (!m) return null;
-  return { voor: w.slice(0, m.index), deel: m[0], na: w.slice(m.index + m[0].length), fout: cat.gat.alts[m[0]] };
+  return { voor: w.slice(0, m.index), deel: m[0], na: w.slice(m.index + m[0].length), fout: gat.alts[m[0]] };
+}
+// Voor woorden zonder eigen lastig stukje: de klinkerklank, met een veelgemaakte fout.
+const KLINKER_GAT = {
+  re: /aa|ee|oo|uu|ie|oe|ui|eu|ou|ei|ij|[aeiou]/,
+  alts: { a: ["aa"], aa: ["a"], e: ["ee"], ee: ["e"], o: ["oo"], oo: ["o"], u: ["uu"], uu: ["u"],
+          i: ["ie"], ie: ["i"], oe: ["oo"], ui: ["ou"], eu: ["u"], ou: ["au"], ei: ["ij"], ij: ["ei"] },
+};
+// Een woord met een spelfout erin (voor de ballonnen).
+function foutWoord(cat, x) {
+  const g = maakGat(cat, x);
+  return g ? g.voor + schud(g.fout)[0] + g.na : null;
 }
 function gekleurd(cat, x) {
   const g = maakGat(cat, x);
@@ -150,8 +161,11 @@ function categorie(cat) {
       <p class="regel">${cat.regel}</p>
       <div class="knoppen">
         <a class="grote-knop" href="#uitleg/${cat.nr}">🎬 Uitleg</a>
-        ${heeftGat ? `<a class="grote-knop" href="#gaatjes/${cat.nr}">🧩 Gaatjes</a>` : ""}
-        <a class="grote-knop" href="#dictee/${cat.nr}">🎧 Dictee</a>
+      </div>
+      <h3 class="spel-kop">🎮 Spelletjes</h3>
+      <div class="spel-lijst">
+        ${SPELLETJES.filter((g) => heeftGat || !g.gat).map((g) => `
+          <a class="spel-tegel" href="#${g.id}/${cat.nr}"><span>${g.emoji}</span>${g.naam}</a>`).join("")}
       </div>
       <a class="terug" href="#">← Terug</a>
     </div>`;
@@ -326,6 +340,9 @@ function route() {
   if (cat && naam === "uitleg") return uitleg(cat);
   if (cat && naam === "gaatjes") return gaatjes(cat);
   if (cat && naam === "dictee") return dictee(cat);
+  if (cat && naam === "ballonnen") return ballonnen(cat);
+  if (cat && naam === "eikels") return eikels(cat);
+  if (cat && naam === "bouwen") return bouwen(cat);
   thuis();
 }
 window.addEventListener("hashchange", route);
