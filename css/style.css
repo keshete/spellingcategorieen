@@ -387,3 +387,20 @@ header { position: relative; }
 .thuis-knop span { font-size: 2.2rem; }
 .thuis-knop:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
 .thuis-uitleg { font-size: 1.3rem; font-weight: bold; text-align: center; margin: .4rem 0 .8rem; }
+
+/* ---------- leeftijd en moeilijkheid ---------- */
+.niveau-knop {
+  display: inline-block; margin: 0 0 1rem; padding: .6rem 1.1rem;
+  background: #fff; border: 3px solid #333; border-radius: 2rem;
+  font-size: 1.2rem; font-weight: bold;
+}
+.niveau-knop .pen { font-size: 1rem; }
+.kieskaart h2 { margin: .8rem 0 .4rem; }
+.kieskaart .keuzes .grote-knop { display: inline-flex; flex-direction: column; align-items: center; min-width: 9rem; }
+.kieskaart small { font-size: .95rem; font-weight: normal; margin-top: .2rem; }
+.kieskaart .niveaus { display: grid; grid-template-columns: repeat(2, minmax(0, 15rem)); justify-content: center; }
+.kieskaart .niveaus .grote-knop { min-width: 0; }
+.kieskaart .icoon { font-size: 2.2rem; }
+.kieskaart .start { display: block; margin: 1.4rem auto .4rem; font-size: 1.5rem; background: #4fc3f7; box-shadow: 0 5px 0 #0288d1; }
+.kieskaart .start:disabled { opacity: .45; cursor: default; }
+.letterhulp { font-size: 2.2rem; letter-spacing: .25rem; font-family: monospace; margin: .4rem 0; color: #999; }

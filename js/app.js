@@ -1,7 +1,6 @@
 // ---------- hulpjes ----------
 const scherm = document.getElementById("scherm");
 const eekhoorn = document.getElementById("eekhoorn");
-const RONDE = 5; // vragen per spelletje
 
 const zegEekhoorn = (t) => { eekhoorn.textContent = t; };
 const schud = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -11,7 +10,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 28; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 29; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -177,9 +176,12 @@ function feest() {
 
 // ---------- schermen ----------
 function thuis() {
+  // De eerste keer kiest het kind eerst hoe oud het is en hoe moeilijk het wil.
+  if (!heeftGekozen()) return kies();
   zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. Tik op een categorie en kies een spelletje!`);
   const s = sterren();
   scherm.innerHTML = `
+    ${niveauKnop()}
     <div class="thuis-spellen">
       <a class="thuis-knop" href="#bordspel" style="background:#f06292"><span>🎲</span>Bordspel</a>
       <a class="thuis-knop" href="#sorteer" style="background:#4fc3f7"><span>🎮</span>Sorteerspel</a>
@@ -249,12 +251,13 @@ async function uitleg(cat) {
   };
 }
 
-// Een ronde van RONDE vragen. maakVraag(i) tekent een vraag en roept antwoord(goed) aan.
+// Een ronde vragen (hoeveel hangt af van de moeilijkheid). maakVraag(i) tekent een vraag en roept antwoord(goed) aan.
 // Je hebt LEVENS hartjes. Fout = een hartje kwijt. Alle hartjes op = geen punten.
 const LEVENS = 3;
 const hartjes = (n) => "❤️".repeat(n) + "🤍".repeat(LEVENS - n);
 function speelRonde({ titel, cat, maakVraag, terug }) {
   let i = 0, goed = 0, levens = LEVENS;
+  const RONDE = mijnNiveau().vragen;
   const hier = location.hash;
   const opnieuw = () => speelRonde({ titel, cat, maakVraag, terug });
   const volgende = () => {
@@ -284,14 +287,14 @@ function speelRonde({ titel, cat, maakVraag, terug }) {
     });
   };
   const einde = () => {
-    const n = goed === RONDE ? 3 : goed >= 3 ? 2 : goed >= 1 ? 1 : 0;
+    const n = sterrenVoor(goed, RONDE);
     eindScherm({ cat, n, tekst: `Je had er ${goed} van de ${RONDE} goed.`, verdiend: goed, opnieuw, terug });
   };
   volgende();
 }
 
 function gaatjes(cat) {
-  const lijst = schud(cat.woorden.filter((x) => maakGat(cat, x)));
+  const lijst = woordenVoorNiveau(cat.woorden.filter((x) => maakGat(cat, x)));
   if (!lijst.length) return categorie(cat);
   speelRonde({
     titel: "🧩 Gaatjes", cat, terug: `#cat/${cat.nr}`,
@@ -304,7 +307,7 @@ function gaatjes(cat) {
         ${tipHtml(cat)}
         ${betekenisHtml(woord(x))}
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
-        <div class="keuzes">${schud([g.deel, ...g.fout]).map((o) => `<button class="keuze">${o}</button>`).join("")}</div>`;
+        <div class="keuzes">${schud([g.deel, ...fouteKeuzes(g.fout)]).map((o) => `<button class="keuze">${o}</button>`).join("")}</div>`;
       doos.querySelector(".luister").onclick = () => zeg(metZin(woord(x)));
       zeg(metZin(woord(x)));
       doos.querySelectorAll(".keuze").forEach((k) => (k.onclick = () => {
@@ -320,14 +323,18 @@ function gaatjes(cat) {
 }
 
 function dictee(cat) {
+  const lijst = woordenVoorNiveau(cat.woorden);
   speelRonde({
     titel: "🎧 Dictee", cat, terug: `#cat/${cat.nr}`,
     maakVraag: (doos, antwoord) => {
-      const x = schud(cat.woorden)[0];
+      const x = schud(lijst)[0];
       const w = woord(x);
+      // Makkelijk: je ziet hoeveel letters het woord heeft.
+      const hulp = mijnNiveau().letterHulp ? `<div class="letterhulp" aria-label="${w.length} letters">${"_ ".repeat(w.length).trim()}</div>` : "";
       zegEekhoorn("Luister goed en schrijf het woord op.");
       doos.innerHTML = `
         <button class="luister groot" title="Luister nog een keer">🔊</button>
+        ${hulp}
         ${betekenisHtml(w)}
         ${tipHtml(cat)}
         <form class="dictee">
@@ -354,12 +361,16 @@ function dictee(cat) {
 }
 
 function sorteer() {
+  // Alleen categorieën van jouw groep en daarvoor (als dat er minstens 2 zijn).
+  const mijn = CATEGORIEEN.filter(binnenMijnGroep);
+  const cats = mijn.length >= 2 ? mijn : CATEGORIEEN;
+  const anderen = Math.min(sorteerKeuzes(), cats.length) - 1;
   speelRonde({
     titel: "🎮 Sorteerspel", cat: null, terug: "#",
     maakVraag: (doos, antwoord) => {
-      const cat = schud(CATEGORIEEN)[0];
-      const x = schud(cat.woorden)[0];
-      const keuzes = schud([cat, ...schud(CATEGORIEEN.filter((c) => c !== cat)).slice(0, 2)]);
+      const cat = schud(cats)[0];
+      const x = schud(woordenVoorNiveau(cat.woorden))[0];
+      const keuzes = schud([cat, ...schud(cats.filter((c) => c !== cat)).slice(0, anderen)]);
       zegEekhoorn("Bij welke categorie hoort dit woord?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
@@ -434,6 +445,13 @@ function stemScherm() {
   }));
 }
 
+// ---------- leeftijd en moeilijkheid ----------
+function kies() {
+  kiesScherm({ zegEekhoorn, zeg, naam, klaar: () => {
+    if (location.hash === "" || location.hash === "#") thuis(); else location.hash = "#";
+  } });
+}
+
 // ---------- router ----------
 function route() {
   spreekBeurt++; stopOpname();
@@ -443,6 +461,7 @@ function route() {
   window.scrollTo(0, 0);
   if (naam === "sorteer") return sorteer();
   if (naam === "stem") return stemScherm();
+  if (naam === "kies") return kies();
   if (naam === "opnemen") return opnameScherm();
   if (cat && naam === "cat") return categorie(cat);
   if (cat && naam === "uitleg") return uitleg(cat);

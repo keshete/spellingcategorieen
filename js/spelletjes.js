@@ -47,7 +47,8 @@ const betekenisHtml = (w) => {
 };
 // Wat Eva zegt: het woord, en bij een klinkt-hetzelfde-woord ook het zinnetje.
 const metZin = (w) => (BETEKENIS[w] ? `${w}. ${BETEKENIS[w].zin}` : w);
-const tipHtml = (cat) => `<div class="tip-dictee">💡 ${tip(cat)}</div>`;
+// De tip zie je alleen bij (extra) makkelijk, anders wordt het te makkelijk.
+const tipHtml = (cat) => (toonTip() ? `<div class="tip-dictee">💡 ${tip(cat)}</div>` : "");
 
 const BALLON_KLEUREN = ["#ef5350", "#42a5f5", "#66bb6a", "#ffa726", "#ab47bc", "#ec407a", "#26c6da"];
 
@@ -118,8 +119,8 @@ function levensOp({ cat, opnieuw, terug }) {
 // Ballonnen zweven omhoog. Tik alleen de ballonnen waarop het woord goed geschreven is.
 function ballonnen(cat) {
   const hier = location.hash;
-  const AANTAL = 12;
-  const lijst = cat.woorden.filter((x) => foutWoord(cat, x, true));
+  const AANTAL = mijnNiveau().ballonnen;
+  const lijst = woordenVoorNiveau(cat.woorden.filter((x) => foutWoord(cat, x, true)));
   let gemaakt = 0, weg = 0, geknald = 0, goedeBallonnen = 0, foutjes = 0;
 
   zegEekhoorn("Knal alleen de goed geschreven woorden!");
@@ -156,7 +157,7 @@ function ballonnen(cat) {
     const b = el(`<button class="ballon-spel"><span>${tekst}</span></button>`);
     b.style.left = 5 + Math.random() * 65 + "%";
     b.style.setProperty("--kleur", schud(BALLON_KLEUREN)[0]);
-    b.style.animationDuration = 7 + Math.random() * 2 + "s";
+    b.style.animationDuration = (7 + Math.random() * 2) * mijnNiveau().traag + "s";
     b.onclick = () => {
       if (b.classList.contains("knal")) return;
       if (isGoed) {
@@ -185,7 +186,7 @@ function ballonnen(cat) {
     });
     lucht.appendChild(b);
     gemaakt++;
-    if (gemaakt < AANTAL && !over) setTimeout(maakBallon, 1700);
+    if (gemaakt < AANTAL && !over) setTimeout(maakBallon, 1700 * mijnNiveau().traag);
   };
   setTimeout(maakBallon, 1200);
 }
@@ -193,13 +194,13 @@ function ballonnen(cat) {
 // ---------- 🌰 Eikels vangen ----------
 // Eikels met stukjes vallen uit de boom. Vang de eikel die in het gaatje past, voordat hij op de grond valt.
 function eikels(cat) {
-  const lijst = schud(cat.woorden.filter((x) => maakGat(cat, x)));
+  const lijst = woordenVoorNiveau(cat.woorden.filter((x) => maakGat(cat, x)));
   speelRonde({
     titel: "🌰 Eikels vangen", cat, terug: `#cat/${catSleutel(cat)}`,
     maakVraag: (doos, antwoord) => {
       const x = lijst[Math.floor(Math.random() * lijst.length)];
       const g = maakGat(cat, x);
-      const opties = schud([g.deel, ...g.fout.slice(0, 2)]);
+      const opties = schud([g.deel, ...fouteKeuzes(g.fout).slice(0, 2)]);
       let klaar = false;
       zegEekhoorn("Help mij! Vang de eikel die in het gaatje past.");
       doos.innerHTML = `
@@ -210,7 +211,7 @@ function eikels(cat) {
         <div class="boom">
           ${opties.map((o, i) => `
             <button class="eikel" data-deel="${o}"
-              style="left:${10 + i * (75 / opties.length) + Math.random() * 8}%;animation-duration:${7 + Math.random() * 2.5}s;animation-delay:${0.8 + i * 0.4}s">
+              style="left:${10 + i * (75 / opties.length) + Math.random() * 8}%;animation-duration:${(7 + Math.random() * 2.5) * mijnNiveau().traag}s;animation-delay:${0.8 + i * 0.4}s">
               <span class="eikel-plaatje">🌰</span><span class="eikel-tekst">${o}</span></button>`).join("")}
           <div class="grond">🐿️</div>
         </div>`;
@@ -248,7 +249,7 @@ const UITZONDERINGEN = {
   ],
 };
 function kiezen(cat) {
-  const lijst = cat.woorden.filter((x) => foutWoord(cat, x));
+  const lijst = woordenVoorNiveau(cat.woorden.filter((x) => foutWoord(cat, x)));
   const uitz = UITZONDERINGEN[catSleutel(cat)] || [];
   speelRonde({
     titel: "⚖️ Welke is goed?", cat, terug: `#cat/${catSleutel(cat)}`,
@@ -486,7 +487,7 @@ function wereldSpel(cat, spelId) {
   const spel = alleWereldSpellen().find((s) => s.id === spelId);
   if (!spel) return categorie(cat);
   const W = WERELDEN[spel.wereld];
-  const lijst = cat.woorden.filter((x) => foutWoord(cat, x));
+  const lijst = woordenVoorNiveau(cat.woorden.filter((x) => foutWoord(cat, x)));
   speelRonde({
     titel: `${W.emoji} ${spel.naam}`, cat, terug: `#cat/${catSleutel(cat)}`,
     maakVraag: (doos, antwoord) => {
