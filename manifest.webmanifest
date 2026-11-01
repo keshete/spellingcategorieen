@@ -1,6 +1,6 @@
 {
-  "name": "Libby Spelt",
-  "short_name": "Libby Spelt",
+  "name": "Spelpret",
+  "short_name": "Spelpret",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
