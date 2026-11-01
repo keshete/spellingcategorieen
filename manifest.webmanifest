@@ -1,6 +1,6 @@
 {
-  "name": "Libby app – Spellingcategorieën",
-  "short_name": "Libby app",
+  "name": "Libby Spelt",
+  "short_name": "Libby Spelt",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
