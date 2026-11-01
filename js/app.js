@@ -50,7 +50,7 @@ let spreekBeurt = 0; // telt op bij elke nieuwe zeg(), zodat een oude zin stopt
 // Rustig praten; losse dicteewoorden nog iets langzamer, zodat je ze goed hoort.
 function snelheid(t) {
   const losWoord = !/\s/.test(t.trim());
-  return losWoord ? 0.7 : 0.85;
+  return losWoord ? 0.6 : 0.8;
 }
 
 function spreekStukje(t) {
