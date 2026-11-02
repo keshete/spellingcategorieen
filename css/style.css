@@ -327,21 +327,8 @@ header { position: relative; }
 .nieuwe-sticker { font-size: 1.4rem; font-weight: bold; }
 .nieuwe-sticker span { font-size: 4rem; display: inline-block; animation: dans 1.6s ease-in-out infinite; vertical-align: middle; }
 
-/* ---------- 🎲 bordspel ---------- */
+/* ---------- 🧭 doolhof ---------- */
 .spel-tegel.bordspel-tegel { background: #fce4ec; border-color: #f06292; box-shadow: 0 5px 0 #ec407a; }
-.bord {
-  display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr); gap: .45rem;
-  background: #c5e1a5; padding: .7rem; border-radius: 1.2rem; margin: .4rem 0 .8rem;
-}
-.vak {
-  position: relative; aspect-ratio: 1.5; border-radius: .9rem; background: #fffde7; border: 3px solid #a1887f;
-  display: flex; align-items: center; justify-content: center; max-height: 66px;
-}
-.vak.gelopen { background: #ffe082; }
-.vak.ster { background: #fff59d; }
-.vak-nr { position: absolute; left: .35rem; top: .1rem; font-size: .8rem; color: #8d6e63; }
-.vak-teken { font-size: 1.8rem; }
-.mijn-figuur.pion { position: absolute; font-size: 2.4rem; animation: pop .3s ease-out; filter: drop-shadow(0 3px 2px rgba(0,0,0,.3)); }
 .weggetjes { display: flex; justify-content: center; gap: 1.5rem; margin: .8rem 0; }
 .weggetje {
   font: inherit; cursor: pointer; border: none; padding: 0; background: none; touch-action: manipulation;
@@ -408,30 +395,63 @@ header { position: relative; }
 .winkel-vak.foto-kiezen { border-color: #ff8a65; background: #fbe9e7; }
 .winkel-uitleg { color: #666; margin: 0 0 .5rem; }
 
-/* ---------- 🎲 bordspel: de splitsing ---------- */
-.splitsing { position: relative; height: 270px; max-width: 520px; margin: .4rem auto 0; }
-.splitsing-pad { position: absolute; inset: 0; width: 100%; height: 100%; }
-.splitsing-pad polyline { fill: none; stroke: #d7ccc8; stroke-width: 26; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.steen-keuze {
-  position: absolute; top: 4%; transform: translateX(-50%);
-  font: inherit; font-size: 2.2rem; font-weight: bold; min-width: 8.5rem; padding: .7rem 1rem; cursor: pointer;
-  background: #efebe9; border: 5px solid #8d6e63; border-radius: 50% / 45%; box-shadow: 0 6px 0 #6d4c41;
-  touch-action: manipulation; color: #333;
-}
-.steen-keuze.links { left: 22%; }
-.steen-keuze.rechts { left: 78%; }
-.steen-keuze:disabled { color: #333; opacity: 1; }
-.steen-keuze.goed { background: #c8e6c9; border-color: #2e7d32; box-shadow: 0 6px 0 #1b5e20; }
-.steen-keuze.fout { background: #ffcdd2; border-color: #c62828; animation: wiebel .5s 2; }
-@keyframes wiebel { 25% { transform: translateX(-50%) rotate(-8deg); } 75% { transform: translateX(-50%) rotate(8deg); } }
-.steen-hier {
-  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-  width: 7rem; height: 3.6rem; border-radius: 50%; background: #bcaaa4; box-shadow: 0 6px 0 #8d6e63;
-  display: flex; justify-content: center;
-}
-.mijn-figuur.springer { font-size: 3.4rem; margin-top: -2.4rem; transition: transform .45s cubic-bezier(.3,-.6,.6,1); }
-.splitsing-luister { position: absolute; left: 0; bottom: .2rem; }
-.betekenis.splitsing-plaatje { position: absolute; right: 0; bottom: 0; margin: 0; font-size: 3rem; }
 .winkel-foto { width: 2.8rem; height: 2.8rem; border-radius: 50%; object-fit: cover; }
 .winkel-rij { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
 .winkel-rij.groot .winkel-vak { border-color: #ffca28; background: #fffde7; }
+
+/* ---------- 🧭 doolhof ---------- */
+.doolhof {
+  display: grid; gap: 0; max-width: 640px; margin: .4rem auto .6rem; padding: .5rem;
+  background: #2e7d32; border-radius: 1rem; box-shadow: inset 0 0 0 4px #1b5e20;
+}
+.dh { position: relative; display: flex; align-items: center; justify-content: center; min-height: 14px; }
+.dh.heg { background: #388e3c; }
+.dh.gang { background: #fff3c4; font-size: clamp(1.1rem, 4vw, 2rem); }
+.dh:nth-child(odd).heg { background: #43a047; }
+.dh.cel { aspect-ratio: 1; }
+.dh.gang.cel { border-radius: .5rem; }
+.dh.tussen { border-radius: 0; }
+.dh.uitgang { background: #ffe082; animation: gloei 1.4s ease-in-out infinite; }
+.dh.dood { background: #d7ccc8; }
+.gang-woord {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2;
+  background: #fff; border: 3px solid #5c6bc0; border-radius: .6rem; padding: 0 .3rem;
+  font-size: clamp(.75rem, 2.4vw, 1.15rem); font-weight: bold; white-space: nowrap; color: #333;
+}
+.gang-woord.goed { border-color: #2e7d32; background: #c8e6c9; }
+.gang-woord.fout { border-color: #c62828; background: #ffcdd2; text-decoration: line-through; opacity: .85; }
+.dh .mijn-figuur.pion { position: absolute; filter: drop-shadow(0 3px 2px rgba(0,0,0,.3)); animation: pop .3s ease-out; font-size: clamp(1.4rem, 5vw, 2.6rem); z-index: 3; }
+.klok { font-size: 1.5rem; font-weight: bold; }
+.klok.bijna { color: #c62828; animation: pop .5s ease-out infinite alternate; }
+.klok.au { animation: schud .4s; }
+.grote-knop.gooi { font-size: 2rem; min-width: 10rem; }
+.splits-vraag { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .8rem; }
+.betekenis.klein { margin: 0; font-size: 3rem; }
+.splits-knoppen { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+.splits-knop {
+  font: inherit; font-size: 2rem; font-weight: bold; min-width: 9rem; padding: .5rem 1rem; cursor: pointer;
+  display: flex; align-items: center; gap: .5rem; justify-content: center; color: #333;
+  background: #fff; border: 5px solid #5c6bc0; border-radius: 1.2rem; box-shadow: 0 6px 0 #3949ab; touch-action: manipulation;
+}
+.splits-knop span { font-size: 1.6rem; }
+.splits-knop:disabled { opacity: 1; color: #333; }
+.splits-knop.goed { background: #c8e6c9; border-color: #2e7d32; box-shadow: 0 6px 0 #1b5e20; }
+.splits-knop.fout { background: #ffcdd2; border-color: #c62828; box-shadow: 0 6px 0 #b71c1c; animation: schud .4s 2; }
+
+/* ---------- 🛠️ maker: verhaal, thema-spelletjes ---------- */
+.spel-verhaal {
+  font: inherit; font-size: 1.3rem; width: 100%; max-width: 34rem; padding: .6rem .8rem;
+  border: 4px solid #b39ddb; border-radius: 1rem; resize: vertical;
+}
+.grote-knop.eva-maak { display: block; margin: .6rem auto 0; }
+.eva-plan { background: #fff8e1; border: 3px dashed #ffb300; border-radius: 1rem; padding: .6rem .9rem; font-size: 1.2rem; max-width: 34rem; margin: 1rem auto; }
+.spel-intro h2 { font-size: 2rem; margin: .3rem 0; }
+.intro-plaatje { font-size: 5rem; line-height: 1.1; animation: dans 1.6s ease-in-out infinite; }
+.verhaal { font-size: 1.3rem; font-style: italic; background: #fff; border-radius: 1rem; padding: .6rem .9rem; max-width: 34rem; margin: .6rem auto; }
+.weggooien { font: inherit; margin-top: 1rem; background: none; border: none; color: #8d6e63; font-size: 1rem; cursor: pointer; padding: .6rem; }
+.weggooien.zeker { color: #c62828; font-weight: bold; }
+.ballon-spel.thema span { flex-direction: column; background: none; box-shadow: none; text-shadow: none; color: #333; }
+.ballon-spel.thema em { font-style: normal; font-size: 5.5rem; line-height: 1; }
+.ballon-spel.thema b { background: #fff; border: 4px solid #333; border-radius: .8rem; padding: 0 .5rem; font-size: 1.5rem; white-space: nowrap; }
+.ballon-spel.thema::after { display: none; }
+.ballon-spel.thema.mis b { background: #ffcdd2; border-color: #c62828; }
