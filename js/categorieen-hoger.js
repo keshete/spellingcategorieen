@@ -196,7 +196,10 @@ CATEGORIEEN.push(
 );
 
 // Wie geen groep heeft, hoort bij groep 4.
-for (const c of CATEGORIEEN) c.groep = c.groep || 4;
+for (const c of CATEGORIEEN) {
+  c.groep = c.groep || 4;
+  c.id = c.id || String(c.nr); // unieke sleutel voor links en sterren (speciaal hakwoord: "1s")
+}
 const GROEPEN = [
   { nr: 4, naam: "Groep 4" },
   { nr: 5, naam: "Groep 5" },
