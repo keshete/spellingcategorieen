@@ -455,3 +455,28 @@ header { position: relative; }
 .ballon-spel.thema b { background: #fff; border: 4px solid #333; border-radius: .8rem; padding: 0 .5rem; font-size: 1.5rem; white-space: nowrap; }
 .ballon-spel.thema::after { display: none; }
 .ballon-spel.thema.mis b { background: #ffcdd2; border-color: #c62828; }
+
+/* ---------- verder leren, groepen, vorige/volgende ---------- */
+.verder-knop {
+  display: flex; align-items: center; justify-content: center; gap: .6rem; flex-wrap: wrap;
+  margin: .4rem 0 .8rem; padding: .9rem 1rem; border-radius: 1.2rem;
+  color: #fff; font-size: 1.4rem; text-align: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35); box-shadow: 0 5px 0 rgba(0,0,0,.2);
+}
+.verder-knop span:first-child { font-size: 2rem; }
+.groep-sprong { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .6rem; margin-bottom: .4rem; }
+.groep-knop {
+  font: inherit; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+  background: #fff; border: 4px solid #ffca28; border-radius: 1rem; padding: .5rem;
+  box-shadow: 0 4px 0 #c49000; display: flex; flex-direction: column; align-items: center;
+}
+.groep-knop small { font-size: .95rem; font-weight: normal; }
+.groep-knop:active { transform: translateY(3px); box-shadow: 0 1px 0 #c49000; }
+.grid .groep-kop { scroll-margin-top: 1rem; }
+.buren { display: flex; justify-content: space-between; gap: .6rem; margin: 1.2rem 0 .4rem; flex-wrap: wrap; }
+.buur {
+  flex: 1 1 200px; padding: .8rem 1rem; border-radius: 1rem; font-size: 1.2rem; font-weight: bold;
+  background: #eee; box-shadow: 0 4px 0 rgba(0,0,0,.15);
+}
+.buur.volgende { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); text-align: right; }
+.buur.klaar { background: #fff3cd; text-align: center; }
