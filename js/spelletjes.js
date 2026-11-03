@@ -57,19 +57,20 @@ function eindScherm({ cat, n, tekst, verdiend, opnieuw, terug }) {
   let nieuw = null;
   if (cat) {
     // gaat er een nieuwe categorie open? (alleen als de slotjes er zijn)
-    const telOpen = typeof aantalOpen === "function" ? aantalOpen : () => 0;
-    const openVoor = telOpen();
+    // Krijg je nu een 🔑 voor de volgende categorie? (2 sterren of meer)
+    const sleutel = typeof sleutelVoor === "function" ? sleutelVoor : () => null;
+    const voor = sleutel();
     geefSterren(catSleutel(cat), n);
-    nieuw = telOpen() > openVoor ? CATEGORIEEN[telOpen() - 1] : null;
+    nieuw = !voor ? sleutel() : null;
   }
   if (n >= 2) feest();
   zegEekhoorn(n === 3 ? "Wauw! Wat ben jij goed!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend!");
-  if (nieuw) { zegEekhoorn(`Hoera! ${nieuw.naam} is nu open! 🔓`); zeg(`Hoera! ${nieuw.naam} is nu open!`); }
+  if (nieuw) { zegEekhoorn(`Hoera! Je krijgt een sleutel! 🔑 Maak ${nieuw.naam} open.`); zeg(`Hoera! Je krijgt een sleutel! Maak ${nieuw.naam} open.`); }
   scherm.innerHTML = `
     <div class="kaart eind" ${cat ? `style="border-color:${cat.kleur}"` : ""}>
       <div class="groot-sterren">${sterTekst(n)}</div>
       <p>${tekst}</p>
-      ${nieuw ? `<a class="nieuw-open" href="#cat/${catSleutel(nieuw)}" style="background:${nieuw.kleur}">🔓 ${nieuw.figuur} ${nieuw.naam} is open!</a>` : ""}
+      ${nieuw ? `<a class="nieuw-open sleutel-wiebel" href="#open/${catSleutel(nieuw)}" style="background:${nieuw.kleur}">🔑 Je hebt een sleutel! Maak ${nieuw.figuur} ${nieuw.naam} open</a>` : ""}
       ${verdiend > 0 ? `
         <div class="beloning">
           <h3>🎁 Kies je beloning!</h3>

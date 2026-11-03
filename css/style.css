@@ -480,3 +480,41 @@ header { position: relative; }
 }
 .buur.volgende { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); text-align: right; }
 .buur.klaar { background: #fff3cd; text-align: center; }
+
+/* ---------- slotjes en sleutels ---------- */
+.tegel.dicht { background: #bdbdbd; color: #fff; }
+.tegel.dicht .figuur { opacity: .9; }
+.tegel.sleutel-klaar {
+  background: repeating-linear-gradient(45deg, var(--kleur), var(--kleur) 14px, #ffd54f 14px, #ffd54f 28px);
+  border: 4px solid #ffb300; animation: gloei 1.2s ease-in-out infinite;
+}
+.tegel.sleutel-klaar .figuur { animation: wiebel 1s ease-in-out infinite; }
+.tegel.sleutel-klaar .sterren { font-size: 1rem; font-weight: bold; background: rgba(0,0,0,.35); border-radius: .6rem; padding: 0 .4rem; }
+@keyframes wiebel { 25% { transform: rotate(-15deg); } 75% { transform: rotate(15deg); } }
+.nieuw-open {
+  display: block; margin: .8rem auto; padding: .9rem 1rem; border-radius: 1.2rem; max-width: 520px;
+  color: #fff; font-size: 1.4rem; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  box-shadow: 0 5px 0 rgba(0,0,0,.2); animation: gloei 1.2s ease-in-out infinite;
+}
+.buur.dicht { background: #e0e0e0; color: #666; }
+.ouder { text-align: center; margin-top: 1.5rem; }
+.klein-knop {
+  font: inherit; font-size: 1rem; cursor: pointer; background: #fff; color: #666;
+  border: 2px solid #ccc; border-radius: .8rem; padding: .4rem .8rem; margin: .2rem;
+}
+.ouder-vraag input { font: inherit; font-size: 1.2rem; width: 4rem; }
+.open-kaart h2 { margin: .2rem 0; }
+.slot-deur {
+  position: relative; margin: 1rem auto; max-width: 340px; padding: 1rem; border-radius: 1.5rem;
+  color: #fff; filter: grayscale(.7); transition: filter .6s, transform .6s;
+}
+.slot-deur.open { filter: none; transform: scale(1.05); }
+.groot-slot { position: absolute; right: -.6rem; top: -1rem; font-size: 4rem; }
+.slot-deur.open .groot-slot { animation: spring .6s ease-out; }
+.sleutel-knop {
+  font-size: 5rem; background: #fff8e1; border: 5px solid #ffb300; border-radius: 50%;
+  width: 8rem; height: 8rem; cursor: pointer; box-shadow: 0 6px 0 #c49000;
+  animation: wiebel 1.2s ease-in-out infinite; touch-action: manipulation;
+}
+.sleutel-knop.draai { animation: draai-sleutel .9s ease-in forwards; }
+@keyframes draai-sleutel { 40% { transform: translateY(-110px) rotate(0); } 100% { transform: translateY(-110px) rotate(90deg) scale(.6); opacity: 0; } }
