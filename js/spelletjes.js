@@ -29,7 +29,8 @@ const TIPS = {
   11: "Denk aan je, tje of pje aan het eind!",
   12: "Denk aan ig of lijk aan het eind!",
 };
-const tip = (cat) => TIPS[catSleutel(cat)] || cat.tip || cat.regel; // cat.tip: groep 5-8, zie categorieen-hoger.js
+// In een andere taal heeft elke categorie een vertaalde cat.tip (zie vertalingen.js).
+const tip = (cat) => (TAAL !== "nl" && cat.tip) || TIPS[catSleutel(cat)] || cat.tip || cat.regel; // cat.tip: groep 5-8, zie categorieen-hoger.js
 // Woorden die hetzelfde klinken (licht / ligt): een plaatje en een zinnetje
 // laten zien welk woord we bedoelen. In het zinnetje staat … op de plek van het woord.
 const BETEKENIS = {
@@ -43,7 +44,7 @@ const betekenisHtml = (w) => {
   const b = BETEKENIS[w];
   if (!b) return "";
   // alleen een plaatje, het zinnetje zegt Eva (tik erop om het nog eens te horen)
-  return `<button class="betekenis" onclick="zeg('${b.zin}')" aria-label="Plaatje, tik om het zinnetje te horen">${b.plaatje}</button>`;
+  return `<button class="betekenis" onclick="zeg('${b.zin}')" aria-label="${t("Plaatje, tik om het zinnetje te horen")}">${b.plaatje}</button>`;
 };
 // Wat Eva zegt: het woord, en bij een klinkt-hetzelfde-woord ook het zinnetje.
 const metZin = (w) => (BETEKENIS[w] ? `${w}. ${BETEKENIS[w].zin}` : w);
@@ -64,29 +65,32 @@ function eindScherm({ cat, n, tekst, verdiend, opnieuw, terug }) {
     nieuw = !voor ? sleutel() : null;
   }
   if (n >= 2) feest();
-  zegEekhoorn(n === 3 ? "Wauw! Wat ben jij goed!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend!");
-  if (nieuw) { zegEekhoorn(`Hoera! Je krijgt een sleutel! 🔑 Maak ${nieuw.naam} open.`); zeg(`Hoera! Je krijgt een sleutel! Maak ${nieuw.naam} open.`); }
+  zegEekhoorn(t(n === 3 ? "Wauw! Wat ben jij goed!" : n === 2 ? "Heel goed gedaan!" : "Goed geoefend!"));
+  if (nieuw) {
+    const zin = t("Hoera! Je krijgt een sleutel! Maak {cat} open.", { cat: nieuw.naam });
+    zegEekhoorn(zin + " 🔑"); praat(zin);
+  }
   scherm.innerHTML = `
     <div class="kaart eind" ${cat ? `style="border-color:${cat.kleur}"` : ""}>
       <div class="groot-sterren">${sterTekst(n)}</div>
       <p>${tekst}</p>
-      ${nieuw ? `<a class="nieuw-open sleutel-wiebel" href="#open/${catSleutel(nieuw)}" style="background:${nieuw.kleur}">🔑 Je hebt een sleutel! Maak ${nieuw.figuur} ${nieuw.naam} open</a>` : ""}
+      ${nieuw ? `<a class="nieuw-open sleutel-wiebel" href="#open/${catSleutel(nieuw)}" style="background:${nieuw.kleur}">🔑 ${t("Je hebt een sleutel! Maak <b>{nr} {cat}</b> open", { nr: nieuw.figuur, cat: nieuw.naam })}</a>` : ""}
       ${verdiend > 0 ? `
         <div class="beloning">
-          <h3>🎁 Kies je beloning!</h3>
-          <button class="beloning-knop" id="kies-eikels"><span>🌰 × ${verdiend}</span>Eikels voor de winkel</button>
-          <button class="beloning-knop" id="kies-sticker"><span>🌟</span>Een sticker voor je stickerboek</button>
+          <h3>🎁 ${t("Kies je beloning!")}</h3>
+          <button class="beloning-knop" id="kies-eikels"><span>🌰 × ${verdiend}</span>${t("Eikels voor de winkel")}</button>
+          <button class="beloning-knop" id="kies-sticker"><span>🌟</span>${t("Een sticker voor je stickerboek")}</button>
         </div>` : ""}
       <div class="knoppen">
-        <button class="grote-knop" id="nog">🔁 Nog een keer</button>
-        <a class="grote-knop" href="${terug}">Klaar</a>
+        <button class="grote-knop" id="nog">🔁 ${t("Nog een keer")}</button>
+        <a class="grote-knop" href="${terug}">${t("Klaar")}</a>
       </div>
     </div>`;
   scherm.querySelector("#nog").onclick = opnieuw;
   if (verdiend > 0) {
-    if (!nieuw) zeg("Kies je beloning!");
+    if (!nieuw) praat(t("Kies je beloning!"));
     scherm.querySelector("#kies-eikels").onclick = () => {
-      scherm.querySelector(".beloning").innerHTML = `<h3>🌰 +${verdiend} eikels!</h3>`;
+      scherm.querySelector(".beloning").innerHTML = `<h3>🌰 ${t("+{n} eikels!", { n: verdiend })}</h3>`;
       spaarEikels(verdiend);
     };
     scherm.querySelector("#kies-sticker").onclick = () => {
@@ -100,16 +104,16 @@ function eindScherm({ cat, n, tekst, verdiend, opnieuw, terug }) {
 // Alle levens op: geen punten deze keer.
 function levensOp({ cat, opnieuw, terug }) {
   geluid("fout");
-  zegEekhoorn("Oei, je hartjes zijn op! Geen punten deze keer. Probeer het nog een keer!");
-  zeg("Oei, je hartjes zijn op! Probeer het nog een keer!");
+  zegEekhoorn(t("Oei, je hartjes zijn op! Geen punten deze keer. Probeer het nog een keer!"));
+  praat(t("Oei, je hartjes zijn op! Probeer het nog een keer!"));
   scherm.innerHTML = `
     <div class="kaart eind" ${cat ? `style="border-color:${cat.kleur}"` : ""}>
       <div class="groot-sterren">💔</div>
-      <p>Je hartjes zijn op. Deze keer geen punten.</p>
-      <p class="regel">${cat ? tip(cat) : "Kijk goed en luister goed!"}</p>
+      <p>${t("Je hartjes zijn op. Deze keer geen punten.")}</p>
+      <p class="regel">${cat ? tip(cat) : t("Kijk goed en luister goed!")}</p>
       <div class="knoppen">
-        <button class="grote-knop" id="nog">🔁 Nog een keer</button>
-        <a class="grote-knop" href="${terug}">Terug</a>
+        <button class="grote-knop" id="nog">🔁 ${t("Nog een keer")}</button>
+        <a class="grote-knop" href="${terug}">${t("Terug")}</a>
       </div>
     </div>`;
   scherm.querySelector("#nog").onclick = opnieuw;
@@ -125,15 +129,15 @@ function ballonnen(cat, T, titel) {
   const lijst = cat.woorden.filter((x) => foutWoord(cat, x, true));
   let gemaakt = 0, weg = 0, geknald = 0, goedeBallonnen = 0, foutjes = 0;
 
-  zegEekhoorn(T ? `Tik alleen op de ${T.ding} met een goed geschreven woord!` : "Knal alleen de goed geschreven woorden!");
-  zeg("Knal de ballonnen met een goed geschreven woord.");
+  zegEekhoorn(T ? t("Tik alleen op de {ding} met een goed geschreven woord!", { ding: t(T.ding) }) : t("Knal alleen de goed geschreven woorden!"));
+  praat(t("Knal de ballonnen met een goed geschreven woord."));
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
-      <div class="voortgang">${titel || "🎈 Ballonnen knallen"}</div>
+      <div class="voortgang">${titel || "🎈 " + t("Ballonnen knallen")}</div>
       <div class="levens-balk"><span class="levens">${hartjes(LEVENS)}</span><span class="pot" id="score">🌰 0</span></div>
       ${tipHtml(cat)}
       <div class="lucht" id="lucht" ${T ? `style="background:linear-gradient(${T.lucht} 70%, ${T.vloer})"` : ""}></div>
-      <a class="terug" href="#cat/${catSleutel(cat)}">← Stoppen</a>
+      <a class="terug" href="#cat/${catSleutel(cat)}">${t("← Stoppen")}</a>
     </div>`;
   const lucht = scherm.querySelector("#lucht");
   const score = scherm.querySelector("#score");
@@ -146,7 +150,8 @@ function ballonnen(cat, T, titel) {
     over = true;
     const punten = Math.max(0, geknald - foutjes);
     const n = punten >= goedeBallonnen ? 3 : punten >= goedeBallonnen * 0.6 ? 2 : punten > 0 ? 1 : 0;
-    eindScherm({ cat, n, tekst: `Je knalde ${geknald} goede ${T ? T.ding : "ballonnen"}${foutjes ? ` en ${foutjes} foute` : ""}.`, verdiend: geknald, opnieuw });
+    const ding = t(T ? T.ding : "ballonnen");
+    eindScherm({ cat, n, tekst: foutjes ? t("Je knalde {goed} goede {ding} en {fout} foute.", { goed: geknald, ding, fout: foutjes }) : t("Je knalde {goed} goede {ding}.", { goed: geknald, ding }), verdiend: geknald, opnieuw });
   };
 
   const maakBallon = () => {
@@ -167,13 +172,13 @@ function ballonnen(cat, T, titel) {
         geknald++;
         b.classList.add("knal");
         geluid("knal"); eikelVlieg();
-        zegEekhoorn(schud(["Knal! Goed zo!", "Pang! Super!", "Ja! Goed geschreven!"])[0]);
+        zegEekhoorn(t(schud(["Knal! Goed zo!", "Pang! Super!", "Ja! Goed geschreven!"])[0]));
         zeg(woord(x));
       } else {
         foutjes++;
         b.classList.add("knal", "mis");
         geluid("fout");
-        zegEekhoorn(`Oeps! Zo schrijf je het: ${woord(x)}.`);
+        zegEekhoorn(t("Oeps! Zo schrijf je het: {woord}.", { woord: woord(x) }));
       }
       score.textContent = `🌰 ${geknald}`;
       const l = scherm.querySelector(".levens");
@@ -184,7 +189,7 @@ function ballonnen(cat, T, titel) {
     };
     b.addEventListener("animationend", (e) => {
       if (e.animationName !== "stijg" || b.classList.contains("knal")) return;
-      if (isGoed) zegEekhoorn(`Oei, ${woord(x)} vloog weg! Dat was een goede.`);
+      if (isGoed) zegEekhoorn(t("Oei, {woord} vloog weg! Dat was een goede.", { woord: woord(x) }));
       b.remove(); weg++; klaar();
     });
     lucht.appendChild(b);
@@ -199,15 +204,15 @@ function ballonnen(cat, T, titel) {
 function eikels(cat, T, titel) {
   const lijst = schud(cat.woorden.filter((x) => maakGat(cat, x)));
   speelRonde({
-    titel: titel || "🌰 Eikels vangen", cat, terug: `#cat/${catSleutel(cat)}`,
+    titel: titel || "🌰 " + t("Eikels vangen"), cat, terug: `#cat/${catSleutel(cat)}`,
     maakVraag: (doos, antwoord) => {
       const x = lijst[Math.floor(Math.random() * lijst.length)];
       const g = maakGat(cat, x);
       const opties = schud([g.deel, ...g.fout.slice(0, 2)]);
       let klaar = false;
-      zegEekhoorn(T ? `Vang de ${T.ding} die in het gaatje past!` : "Help mij! Vang de eikel die in het gaatje past.");
+      zegEekhoorn(T ? t("Vang de {ding} die in het gaatje past!", { ding: t(T.ding) }) : t("Help mij! Vang de eikel die in het gaatje past."));
       doos.innerHTML = `
-        <button class="luister" title="Luister">🔊</button>
+        <button class="luister" title="${t("Luister")}">🔊</button>
         ${tipHtml(cat)}
         ${betekenisHtml(woord(x))}
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
@@ -229,12 +234,12 @@ function eikels(cat, T, titel) {
           const isGoed = e.dataset.deel === g.deel;
           e.classList.add(isGoed ? "gevangen" : "mis");
           vul();
-          antwoord(isGoed, `Bijna! Het is ${woord(x)}. ${cat.regel}`);
+          antwoord(isGoed, t("Bijna! Het is {woord}.", { woord: woord(x) }) + " " + cat.regel);
         };
         e.addEventListener("animationend", (ev) => {
           if (ev.animationName !== "val-eikel" || klaar || e.dataset.deel !== g.deel) return;
           stop(); vul();
-          antwoord(false, `Te laat! Het is ${woord(x)}. Probeer de volgende sneller te vangen!`);
+          antwoord(false, t("Te laat! Het is {woord}. Probeer de volgende sneller te vangen!", { woord: woord(x) }));
         });
       });
     },
@@ -255,7 +260,7 @@ function kiezen(cat) {
   const lijst = cat.woorden.filter((x) => foutWoord(cat, x));
   const uitz = UITZONDERINGEN[catSleutel(cat)] || [];
   speelRonde({
-    titel: "⚖️ Welke is goed?", cat, terug: `#cat/${catSleutel(cat)}`,
+    titel: "⚖️ " + t("Welke is goed?"), cat, terug: `#cat/${catSleutel(cat)}`,
     maakVraag: (doos, antwoord) => {
       // ongeveer 1 op de 3 vragen een uitzondering, als die er zijn
       const u = uitz.length && Math.random() < 0.35 ? schud(uitz)[0] : null;
@@ -263,9 +268,9 @@ function kiezen(cat) {
       const goedW = u ? u.w : woord(x);
       const foutW = u ? u.fout : foutWoord(cat, x);
       const hoor = metZin(goedW);
-      zegEekhoorn("Luister goed. Welk woord is goed geschreven?");
+      zegEekhoorn(t("Luister goed. Welk woord is goed geschreven?"));
       doos.innerHTML = `
-        <button class="luister groot" title="Luister nog een keer">🔊</button>
+        <button class="luister groot" title="${t("Luister nog een keer")}">🔊</button>
         ${tipHtml(cat)}
         ${betekenisHtml(goedW)}
         <div class="twee-keuzes">${schud([goedW, foutW]).map((o) => `
@@ -279,11 +284,11 @@ function kiezen(cat) {
         k.classList.add(isGoed ? "goed" : "fout");
         [...doos.querySelectorAll(".woordkaart")].find((b) => b.textContent.trim() === goedW).classList.add("goed");
         const uitkomst = doos.querySelector(".uitkomst");
-        if (u) uitkomst.innerHTML = `<span class="uitzondering">⚠️ Uitzondering!</span> ${u.w} schrijf je met een g.`;
+        if (u) uitkomst.innerHTML = `<span class="uitzondering">⚠️ ${t("Uitzondering!")}</span> ${t("{woord} schrijf je met een g.", { woord: u.w })}`;
         else uitkomst.innerHTML = `${gekleurd(cat, x)}`;
         antwoord(isGoed, u
-          ? `Dit is een uitzondering! ${u.w} schrijf je met een g.`
-          : `Kijk goed: ${goedW}. ${tip(cat)}`);
+          ? t("Dit is een uitzondering! {woord} schrijf je met een g.", { woord: u.w })
+          : t("Kijk goed: {woord}.", { woord: goedW }) + " " + tip(cat));
       }));
     },
   });
@@ -389,7 +394,7 @@ function figuurHtml(klasse = "") {
   const foto = f.dier === "foto" && localStorage.getItem("figuurFoto");
   const spul = f.spul !== "geen" ? winkelItem(f.spul) : null;
   return `<span class="mijn-figuur ${klasse}">
-    ${foto ? `<img src="${foto}" alt="Mijn figuur">` : `<span class="figuur-dier">${(winkelItem(f.dier) || WINKEL[0]).emoji}</span>`}
+    ${foto ? `<img src="${foto}" alt="${t("Mijn figuur")}">` : `<span class="figuur-dier">${(winkelItem(f.dier) || WINKEL[0]).emoji}</span>`}
     ${spul ? `<span class="figuur-spul">${spul.emoji}</span>` : ""}</span>`;
 }
 
@@ -398,9 +403,9 @@ function figuurHtml(klasse = "") {
 let teller = null;
 document.addEventListener("DOMContentLoaded", () => {
   const balk = el(`<div class="beloning-balk">
-    <a class="figuur-knop" href="#prijzen" aria-label="Mijn figuur en de winkel"></a>
-    <a class="stickerboek-knop" href="#stickers" aria-label="Mijn stickerboek">📒</a>
-    <a class="eikel-teller" href="#prijzen" aria-label="Mijn eikels en de winkel">🌰 <b>0</b></a></div>`);
+    <a class="figuur-knop" href="#prijzen" aria-label="${t("Mijn figuur en de winkel")}"></a>
+    <a class="stickerboek-knop" href="#stickers" aria-label="${t("Mijn stickerboek")}">📒</a>
+    <a class="eikel-teller" href="#prijzen" aria-label="${t("Mijn eikels en de winkel")}">🌰 <b>0</b></a></div>`);
   document.querySelector("header").appendChild(balk);
   teller = balk.querySelector(".eikel-teller");
   toonEikels();
@@ -427,7 +432,7 @@ function spaarEikels(n) {
   geluid("eikel");
   toonEikels();
   if (teller) { teller.classList.remove("pop"); void teller.offsetWidth; teller.classList.add("pop"); }
-  zegEekhoorn(`Nu heb je ${aantalEikels()} eikels! Kijk eens in de winkel. 🛒`);
+  zegEekhoorn(t("Nu heb je {n} eikels! Kijk eens in de winkel.", { n: aantalEikels() }) + " 🛒");
 }
 
 // Foto kleiner maken (vierkant, 200 pixels), zodat hij in de browser past.
@@ -450,41 +455,41 @@ function maakFotoKlein(bestand) {
 function prijzen() {
   const n = aantalEikels(), heb = gekocht(), f = mijnFiguur();
   const fotoGekocht = heb.includes("foto");
-  zegEekhoorn(`Welkom in de winkel! Je hebt ${n} eikels. Wat wil je kopen?`);
+  zegEekhoorn(t("Welkom in de winkel! Je hebt {n} eikels. Wat wil je kopen?", { n }));
   const vak = (w) => {
     const bezit = heb.includes(w.id);
     const aan = (w.soort === "spul" ? f.spul : f.dier) === w.id;
     return `<button class="winkel-vak ${bezit ? "bezit" : ""} ${aan ? "aan" : ""}" data-id="${w.id}">
-      <span class="winkel-emoji">${w.emoji}</span>${w.naam}
-      <span class="winkel-prijs">${aan ? "✅ Aan" : bezit ? "Kiezen" : `🌰 ${w.prijs}`}</span></button>`;
+      <span class="winkel-emoji">${w.emoji}</span>${t(w.naam)}
+      <span class="winkel-prijs">${aan ? "✅ " + t("Aan") : bezit ? t("Kiezen") : `🌰 ${w.prijs}`}</span></button>`;
   };
   scherm.innerHTML = `
     <div class="kaart">
-      <h2>🛒 Het eikel-winkeltje</h2>
+      <h2>🛒 ${t("Het eikel-winkeltje")}</h2>
       <div class="winkel-kop">
         <div class="groot-figuur">${figuurHtml("groot")}</div>
         <div class="groot-eikels">🌰 ${n}</div>
       </div>
-      <p class="regel">Jij kiest! Koop wat je wilt, wanneer je wilt. Als je iets koopt, gaan die eikels eraf.</p>
-      <h3 class="spel-kop">📷 Maak een foto van je eigen dier</h3>
-      <p class="winkel-uitleg">Van je kat, poes, vogel of elk dier dat je wilt! Dan ben jij dat dier. De foto blijft alleen op dit apparaat.</p>
+      <p class="regel">${t("Jij kiest! Koop wat je wilt, wanneer je wilt. Als je iets koopt, gaan die eikels eraf.")}</p>
+      <h3 class="spel-kop">📷 ${t("Maak een foto van je eigen dier")}</h3>
+      <p class="winkel-uitleg">${t("Van je kat, poes, vogel of elk dier dat je wilt! Dan ben jij dat dier. De foto blijft alleen op dit apparaat.")}</p>
       <div class="winkel-rij">
-        <label class="winkel-vak foto-kiezen"><span class="winkel-emoji">📸</span>Foto maken
+        <label class="winkel-vak foto-kiezen"><span class="winkel-emoji">📸</span>${t("Foto maken")}
           <input type="file" accept="image/*" capture="environment" hidden></label>
-        <label class="winkel-vak foto-kiezen"><span class="winkel-emoji">🖼️</span>Foto kiezen
+        <label class="winkel-vak foto-kiezen"><span class="winkel-emoji">🖼️</span>${t("Foto kiezen")}
           <input type="file" accept="image/*" hidden></label>
         ${localStorage.getItem("figuurFoto") ? `<button class="winkel-vak ${f.dier === "foto" ? "aan" : "bezit"}" data-id="foto">
-          <span class="winkel-emoji"><img class="winkel-foto" src="${localStorage.getItem("figuurFoto")}" alt=""></span>Mijn foto
-          <span class="winkel-prijs">${f.dier === "foto" ? "✅ Aan" : "Kiezen"}</span></button>` : ""}
+          <span class="winkel-emoji"><img class="winkel-foto" src="${localStorage.getItem("figuurFoto")}" alt=""></span>${t("Mijn foto")}
+          <span class="winkel-prijs">${f.dier === "foto" ? "✅ " + t("Aan") : t("Kiezen")}</span></button>` : ""}
       </div>
-      <h3 class="spel-kop">🐾 Kies je dier</h3>
+      <h3 class="spel-kop">🐾 ${t("Kies je dier")}</h3>
       <div class="winkel-rij">${WINKEL.filter((w) => w.soort === "dier" && w.prijs < 20).map(vak).join("")}</div>
-      <h3 class="spel-kop">🎀 Spulletjes</h3>
+      <h3 class="spel-kop">🎀 ${t("Spulletjes")}</h3>
       <div class="winkel-rij">${WINKEL.filter((w) => w.soort === "spul" && w.prijs < 20).map(vak).join("")}</div>
-      <h3 class="spel-kop">🌟 Grote prijzen (🌰 20)</h3>
-      <p class="winkel-uitleg">Spaar je eikels voor iets heel bijzonders!</p>
+      <h3 class="spel-kop">🌟 ${t("Grote prijzen")} (🌰 20)</h3>
+      <p class="winkel-uitleg">${t("Spaar je eikels voor iets heel bijzonders!")}</p>
       <div class="winkel-rij groot">${WINKEL.filter((w) => w.prijs >= 20).map(vak).join("")}</div>
-      <a class="grote-knop" href="#">Verder spelen</a>
+      <a class="grote-knop" href="#">${t("Verder spelen")}</a>
     </div>`;
   scherm.querySelectorAll(".winkel-vak[data-id]").forEach((b) => (b.onclick = () => {
     const w = winkelItem(b.dataset.id);
@@ -492,13 +497,13 @@ function prijzen() {
     if (!gekocht().includes(w.id)) {
       if (aantalEikels() < w.prijs) {
         geluid("fout");
-        zegEekhoorn(`Je hebt nog ${w.prijs - aantalEikels()} eikels nodig voor ${w.naam.toLowerCase()}. Speel nog een spelletje!`);
+        zegEekhoorn(t("Je hebt nog {n} eikels nodig voor {ding}. Speel nog een spelletje!", { n: w.prijs - aantalEikels(), ding: t(w.naam).toLowerCase() }));
         return;
       }
       localStorage.setItem("eikels", aantalEikels() - w.prijs);
       localStorage.setItem("gekocht", JSON.stringify([...gekocht(), w.id]));
       feest();
-      zeg(`Gekocht! ${w.naam}!`);
+      praat(t("Gekocht! {ding}!", { ding: t(w.naam) }));
     } else geluid("eikel");
     if (w.soort === "spul") fig.spul = w.id;
     else if (w.soort === "dier") fig.dier = w.id;
@@ -513,9 +518,9 @@ function prijzen() {
       localStorage.setItem("figuurFoto", await maakFotoKlein(kies.files[0]));
       localStorage.setItem("figuur", JSON.stringify({ ...mijnFiguur(), dier: "foto" }));
       feest(); toonEikels(); prijzen();
-      zegEekhoorn("Wauw, wat een mooie foto! Dat ben jij nu!");
+      zegEekhoorn(t("Wauw, wat een mooie foto! Dat ben jij nu!"));
     } catch (e) {
-      zegEekhoorn("Oei, die foto lukt niet. Probeer een andere!");
+      zegEekhoorn(t("Oei, die foto lukt niet. Probeer een andere!"));
     }
   }));
 }
@@ -535,15 +540,15 @@ function tekenWeg(cat) {
   const heeftGat = cat.woorden.some((x) => maakGat(cat, x));
   const mijn = spelSterren()[catSleutel(cat)] || {};
   const stappen = [
-    { id: "uitleg", emoji: "🎬", naam: "Uitleg", klaar: !!mijn.uitleg },
+    { id: "uitleg", emoji: "🎬", naam: t("Uitleg"), klaar: !!mijn.uitleg },
     ...["gaatjes", "ballonnen", "eikels", "kiezen", "dictee"]
       .map((id) => SPELLETJES.find((g) => g.id === id))
       .filter((g) => heeftGat || !g.gat)
-      .map((g) => ({ ...g, sterren: mijn[g.id] || 0, klaar: (mijn[g.id] || 0) > 0 })),
+      .map((g) => ({ ...g, naam: t(g.naam), sterren: mijn[g.id] || 0, klaar: (mijn[g.id] || 0) > 0 })),
   ];
   const beker = stappen.every((s) => s.klaar);
   const hier = stappen.findIndex((s) => !s.klaar);
-  const alle = [...stappen, { id: "beker", emoji: beker ? "🏆" : "🏁", naam: beker ? "Beker!" : "Finish" }];
+  const alle = [...stappen, { id: "beker", emoji: beker ? "🏆" : "🏁", naam: t(beker ? "Beker!" : "Finish") }];
   const H = 120; // hoogte per stap
   const punten = alle.map((_, i) => [WEG_X[i % WEG_X.length], i * H + H / 2]);
   const hoogte = alle.length * H;
@@ -610,20 +615,24 @@ const SOORTEN = {
 // Zo wordt het spel: dit zegt Eva in de spelletjesmaker en voor het spelen.
 function spelPlan(s) {
   const W = WERELDEN[s.wereld];
+  const ding = t(W.ding);
   const wat = {
-    doel: `${W.zin} Kies ${s.op === "woord" ? "het goed geschreven woord" : "het goede stukje voor het gaatje"}.`,
-    vangen: `Er vallen ${W.ding} naar beneden. Vang de ${W.ding} met het stukje dat in het gaatje past!`,
-    knallen: `Er vliegen ${W.ding} omhoog. Tik alleen op de goed geschreven woorden!`,
-    doolhof: `Gooi de dobbelsteen en loop door het doolhof naar de uitgang. Kies bij elke splitsing het goede woord!`,
+    doel: t(W.zin) + " " + t(s.op === "woord" ? "Kies het goed geschreven woord." : "Kies het goede stukje voor het gaatje."),
+    vangen: t("Er vallen {ding} naar beneden. Vang de {ding} met het stukje dat in het gaatje past!", { ding }),
+    knallen: t("Er vliegen {ding} omhoog. Tik alleen op de goed geschreven woorden!", { ding }),
+    doolhof: t("Gooi de dobbelsteen en loop door het doolhof naar de uitgang. Kies bij elke splitsing het goede woord!"),
   }[s.soort || "doel"];
-  return `${wat} Zo oefen je ook spelling!`;
+  return `${wat} ${t("Zo oefen je ook spelling!")}`;
 }
 // Lees wat het kind over het spel schrijft en zoek een thema en een soort spel.
 function leesVerhaal(tekst) {
-  const woorden = tekst.toLowerCase().replace(/[^a-zà-ÿ'\s-]/g, " ").split(/[\s-]+/).filter(Boolean);
-  const past = (lijst) => lijst.some((t) => woorden.some((w) => w === t || (t.length >= 4 && w.startsWith(t))));
-  const wereld = Object.keys(WERELDEN).find((id) => past(WERELDEN[id].woorden));
-  const soort = ["doolhof", "vangen", "knallen", "doel"].find((id) => past(SOORTEN[id].woorden));
+  // Ook Hebreeuwse letters (\u05d0-\u05ea). In het Hebreeuws plak je soms een letter vooraan (ה, ב, ל, ו).
+  const woorden = tekst.toLowerCase().replace(/[^a-zà-ÿ\u05d0-\u05ea'\s-]/g, " ").split(/[\s-]+/).filter(Boolean);
+  const lijkt = (w, t) => w === t || (t.length >= 3 && w.startsWith(t));
+  const past = (lijst) => lijst.some((t) => woorden.some((w) => lijkt(w, t) || (/^[הבלוש]/.test(w) && lijkt(w.slice(1), t))));
+  const extra = (soort, id) => (WOORDEN_TALEN[soort][id] || []);
+  const wereld = Object.keys(WERELDEN).find((id) => past([...WERELDEN[id].woorden, ...extra("wereld", id)]));
+  const soort = ["doolhof", "vangen", "knallen", "doel"].find((id) => past([...SOORTEN[id].woorden, ...extra("soort", id)]));
   return { wereld, soort };
 }
 // Spelletjes die er al zijn (bedacht door Eva). Eigen spelletjes komen erbij.
@@ -643,16 +652,16 @@ function tekenMeerSpellen(cat) {
   const k = catSleutel(cat);
   const tegel = (s, eigen) => `
     <a class="spel-tegel ${eigen ? "eigen" : ""}" href="#wereld/${k}/${s.id}">
-      <span>${spelEmoji(s)}</span>${s.naam}</a>`;
+      <span>${spelEmoji(s)}</span>${eigen ? s.naam : t(s.naam)}</a>`;
   return `
-    <h3 class="spel-kop">🎮 Nog meer spelletjes</h3>
+    <h3 class="spel-kop">🎮 ${t("Nog meer spelletjes")}</h3>
     <div class="spel-lijst">
-      <a class="spel-tegel bordspel-tegel" href="#doolhof/${k}"><span>🧭</span>Doolhof</a>
+      <a class="spel-tegel bordspel-tegel" href="#doolhof/${k}"><span>🧭</span>${t("Doolhof")}</a>
       ${KANT_EN_KLAAR.map((s) => tegel(s)).join("")}</div>
-    <h3 class="spel-kop">⭐ Mijn eigen spelletjes</h3>
+    <h3 class="spel-kop">⭐ ${t("Mijn eigen spelletjes")}</h3>
     <div class="spel-lijst">
       ${mijnSpellen().map((s) => tegel(s, true)).join("")}
-      <a class="spel-tegel maak" href="#maak/${k}"><span>🛠️</span>Maak je eigen spel!</a>
+      <a class="spel-tegel maak" href="#maak/${k}"><span>🛠️</span>${t("Maak je eigen spel!")}</a>
     </div>`;
 }
 
@@ -660,7 +669,8 @@ function wereldSpel(cat, spelId) {
   const spel = alleWereldSpellen().find((s) => s.id === spelId);
   if (!spel) return categorie(cat);
   const W = WERELDEN[spel.wereld];
-  const titel = `${spelEmoji(spel)} ${spel.naam}`;
+  const spelNaam = spel.id.startsWith("m-") ? spel.naam : t(spel.naam);
+  const titel = `${spelEmoji(spel)} ${spelNaam}`;
   const speel = () => {
     const soort = spel.soort || "doel";
     if (soort === "doolhof") return doolhof(cat, spel);
@@ -673,7 +683,7 @@ function wereldSpel(cat, spelId) {
   // Een eigen spel: eerst het verhaal en Eva's plan, dan spelen.
   const plan = spelPlan(spel);
   zegEekhoorn(plan);
-  zeg(`${spel.naam}! ${plan}`);
+  praat(`${spel.naam}! ${plan}`);
   scherm.innerHTML = `
     <div class="kaart maker spel-intro" style="background:${W.lucht === "#283593" ? "#e8eaf6" : W.lucht}">
       <div class="intro-plaatje">${spelEmoji(spel)}${W.doel}</div>
@@ -681,15 +691,15 @@ function wereldSpel(cat, spelId) {
       ${spel.verhaal ? `<p class="verhaal">📖 ${spel.verhaal.replace(/</g, "&lt;")}</p>` : ""}
       <p class="eva-plan">🐿️ ${plan}</p>
       <div class="knoppen">
-        <button class="grote-knop" id="speel">▶️ Spelen!</button>
-        <a class="grote-knop grijs" href="#cat/${catSleutel(cat)}">Terug</a>
+        <button class="grote-knop" id="speel">▶️ ${t("Spelen!")}</button>
+        <a class="grote-knop grijs" href="#cat/${catSleutel(cat)}">${t("Terug")}</a>
       </div>
-      <button class="weggooien" id="weg">🗑️ Spel weggooien</button>
+      <button class="weggooien" id="weg">🗑️ ${t("Spel weggooien")}</button>
     </div>`;
   scherm.querySelector("#speel").onclick = speel;
   const weg = scherm.querySelector("#weg");
   weg.onclick = () => {
-    if (!weg.classList.contains("zeker")) { weg.classList.add("zeker"); weg.textContent = "🗑️ Zeker weten? Tik nog een keer"; return; }
+    if (!weg.classList.contains("zeker")) { weg.classList.add("zeker"); weg.textContent = "🗑️ " + t("Zeker weten? Tik nog een keer"); return; }
     const alle = JSON.parse(localStorage.getItem("mijnSpellen") || "[]");
     localStorage.setItem("mijnSpellen", JSON.stringify(alle.filter((s) => s.id !== spel.id)));
     location.hash = `#cat/${catSleutel(cat)}`;
@@ -709,9 +719,9 @@ function wereldDoel(cat, spel, titel) {
       const fouten = schud([...new Set(g.fout)]).slice(0, spel.aantal - 1);
       const goed = spel.op === "woord" ? w : g.deel;
       const opties = schud([goed, ...fouten.map((f) => (spel.op === "woord" ? g.voor + f + g.na : f))]);
-      zegEekhoorn(W.zin);
+      zegEekhoorn(t(W.zin));
       doos.innerHTML = `
-        <button class="luister" title="Luister">🔊</button>
+        <button class="luister" title="${t("Luister")}">🔊</button>
         ${tipHtml(cat)}
         ${betekenisHtml(w)}
         ${spel.op === "stukje" ? `<div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>` : ""}
@@ -735,11 +745,11 @@ function wereldDoel(cat, spel, titel) {
           const a = b.getBoundingClientRect(), d = doel.getBoundingClientRect();
           b.style.transform = `translate(${d.left + d.width / 2 - (a.left + a.width / 2)}px, ${d.top + d.height / 2 - (a.top + a.height / 2)}px) scale(.6) rotate(360deg)`;
           b.classList.add("vlieg");
-          setTimeout(() => { doel.classList.add("raak"); zegEekhoorn(schud(W.hoera)[0]); }, 550);
+          setTimeout(() => { doel.classList.add("raak"); zegEekhoorn(t(schud(W.hoera)[0])); }, 550);
         } else {
           b.classList.add("mis");
         }
-        antwoord(isGoed, `Bijna! Het is ${w}. ${tip(cat)}`);
+        antwoord(isGoed, t("Bijna! Het is {woord}.", { woord: w }) + " " + tip(cat));
       }));
     },
   });
@@ -749,31 +759,31 @@ function wereldDoel(cat, spel, titel) {
 function maakSpel(cat) {
   const k = catSleutel(cat);
   const keuze = { soort: "doel", wereld: "basketbal", op: "stukje", aantal: 2 };
-  zegEekhoorn("Jij bent de baas! Vertel over je spel, of kies zelf wat je doet en welk thema.");
-  zeg("Jij bent de baas! Vertel over je spel.");
-  const knop = (id, span, naam) => `<button class="kies-knop" data-w="${id}"><span>${span}</span>${naam}</button>`;
+  zegEekhoorn(t("Jij bent de baas! Vertel over je spel, of kies zelf wat je doet en welk thema."));
+  praat(t("Jij bent de baas! Vertel over je spel."));
+  const knop = (id, span, naam) => `<button class="kies-knop" data-w="${id}"><span>${span}</span>${t(naam)}</button>`;
   scherm.innerHTML = `
     <div class="kaart maker">
-      <h2>🛠️ Maak je eigen spel</h2>
-      <h3>✏️ Vertel over je spel</h3>
-      <textarea class="spel-verhaal" maxlength="200" rows="3" placeholder="Ik wil een spel waarin een poes bolletjes wol vangt..."></textarea>
-      <button class="grote-knop eva-maak" id="eva-maak">🐿️ Eva, maak het!</button>
-      <h3>1. Wat doe je in het spel?</h3>
+      <h2>🛠️ ${t("Maak je eigen spel")}</h2>
+      <h3>✏️ ${t("Vertel over je spel")}</h3>
+      <textarea class="spel-verhaal" maxlength="200" rows="3" placeholder="${t("Ik wil een spel waarin een poes bolletjes wol vangt...")}"></textarea>
+      <button class="grote-knop eva-maak" id="eva-maak">🐿️ ${t("{naam}, maak het!")}</button>
+      <h3>1. ${t("Wat doe je in het spel?")}</h3>
       <div class="kies-rij" data-veld="soort">${Object.entries(SOORTEN).map(([id, S]) => knop(id, S.emoji, S.naam)).join("")}</div>
-      <h3>2. Kies een thema</h3>
+      <h3>2. ${t("Kies een thema")}</h3>
       <div class="kies-rij" data-veld="wereld">${Object.entries(WERELDEN).map(([id, W]) => knop(id, W.emoji + W.doel, W.naam)).join("")}</div>
       <div class="alleen-doel">
-        <h3>3. Wat staat erop?</h3>
+        <h3>3. ${t("Wat staat erop?")}</h3>
         <div class="kies-rij" data-veld="op">${knop("stukje", "b · p", "Een stukje")}${knop("woord", "krab · krap", "Een heel woord")}</div>
-        <h3>4. Hoeveel om uit te kiezen?</h3>
+        <h3>4. ${t("Hoeveel om uit te kiezen?")}</h3>
         <div class="kies-rij" data-veld="aantal">${knop("2", "⚪⚪", "2")}${knop("3", "⚪⚪⚪", "3")}</div>
       </div>
-      <h3 class="naam-kop">3. Hoe heet jouw spel?</h3>
+      <h3 class="naam-kop">3. ${t("Hoe heet jouw spel?")}</h3>
       <input class="spel-naam" maxlength="24" autocomplete="off">
       <p class="eva-plan"></p>
       <div class="knoppen">
-        <button class="grote-knop" id="bewaar">✅ Klaar, spelen!</button>
-        <a class="grote-knop grijs" href="#cat/${k}">Terug</a>
+        <button class="grote-knop" id="bewaar">✅ ${t("Klaar, spelen!")}</button>
+        <a class="grote-knop grijs" href="#cat/${k}">${t("Terug")}</a>
       </div>
     </div>`;
   const naamVeld = scherm.querySelector(".spel-naam");
@@ -784,9 +794,9 @@ function maakSpel(cat) {
       b.classList.toggle("gekozen", String(keuze[rij.dataset.veld]) === b.dataset.w)));
     const doel = keuze.soort === "doel";
     scherm.querySelector(".alleen-doel").hidden = !doel;
-    scherm.querySelector(".naam-kop").textContent = `${doel ? 5 : 3}. Hoe heet jouw spel?`;
-    naamVeld.placeholder = `Mijn ${WERELDEN[keuze.wereld].naam.toLowerCase()}spel`;
-    plan.textContent = `🐿️ Zo wordt jouw spel: ${spelPlan(keuze)}`;
+    scherm.querySelector(".naam-kop").textContent = `${doel ? 5 : 3}. ${t("Hoe heet jouw spel?")}`;
+    naamVeld.placeholder = TAAL === "nl" ? `Mijn ${WERELDEN[keuze.wereld].naam.toLowerCase()}spel` : t("Mijn {thema}-spel", { thema: t(WERELDEN[keuze.wereld].naam) });
+    plan.textContent = `🐿️ ${t("Zo wordt jouw spel:")} ${spelPlan(keuze)}`;
   };
   scherm.querySelectorAll(".kies-rij").forEach((rij) => rij.querySelectorAll(".kies-knop").forEach((b) => (b.onclick = () => {
     const v = rij.dataset.veld;
@@ -796,15 +806,15 @@ function maakSpel(cat) {
   // Eva leest wat je schreef en kiest een thema en wat je doet. Ze maakt het altijd een spellingspel.
   scherm.querySelector("#eva-maak").onclick = () => {
     const tekst = verhaalVeld.value.trim();
-    if (!tekst) { zegEekhoorn("Schrijf eerst wat voor spel je wilt. Bijvoorbeeld: Ik wil een spel met een dino!"); return zeg("Schrijf eerst wat voor spel je wilt."); }
+    if (!tekst) { zegEekhoorn(t("Schrijf eerst wat voor spel je wilt. Bijvoorbeeld: Ik wil een spel met een dino!")); return praat(t("Schrijf eerst wat voor spel je wilt.")); }
     const { wereld, soort } = leesVerhaal(tekst);
     if (wereld) keuze.wereld = wereld;
     if (soort) keuze.soort = soort;
     toon(); geluid("feest");
     const zin = wereld || soort
-      ? `Leuk idee! Ik maak er een spellingspel van. ${spelPlan(keuze)}`
-      : `Leuk idee! Kies hieronder nog een thema en wat je doet. ${spelPlan(keuze)}`;
-    zegEekhoorn(zin); zeg(zin);
+      ? `${t("Leuk idee! Ik maak er een spellingspel van.")} ${spelPlan(keuze)}`
+      : `${t("Leuk idee! Kies hieronder nog een thema en wat je doet.")} ${spelPlan(keuze)}`;
+    zegEekhoorn(zin); praat(zin);
     plan.scrollIntoView({ behavior: "smooth", block: "center" });
   };
   toon();
@@ -828,17 +838,17 @@ function nieuweSticker() {
 function stickerboek() {
   const plakken = localStorage.getItem("stickerPlakken");
   zegEekhoorn(plakken
-    ? "Je krijgt een sticker! Tik in je boek waar je hem wilt plakken."
-    : geplakt().length ? `Je hebt al ${geplakt().length} stickers!` : "Je stickerboek is nog leeg. Kies een sticker na een spelletje!");
-  if (plakken) zeg("Tik waar je je sticker wilt plakken!");
+    ? t("Je krijgt een sticker! Tik in je boek waar je hem wilt plakken.")
+    : geplakt().length ? t("Je hebt al {n} stickers!", { n: geplakt().length }) : t("Je stickerboek is nog leeg. Kies een sticker na een spelletje!"));
+  if (plakken) praat(t("Tik waar je je sticker wilt plakken!"));
   scherm.innerHTML = `
     <div class="kaart">
-      <h2>📒 Mijn stickerboek</h2>
-      ${plakken ? `<div class="nieuwe-sticker">Jouw nieuwe sticker: <span>${plakken}</span></div>` : ""}
+      <h2>📒 ${t("Mijn stickerboek")}</h2>
+      ${plakken ? `<div class="nieuwe-sticker">${t("Jouw nieuwe sticker:")} <span>${plakken}</span></div>` : ""}
       <div class="boek ${plakken ? "plak-modus" : ""}">${geplakt().map((s) => `
         <span class="sticker" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${s.r || 0}deg)">${s.e}</span>`).join("")}
       </div>
-      <a class="grote-knop" href="#">Verder spelen</a>
+      <a class="grote-knop" href="#">${t("Verder spelen")}</a>
     </div>`;
   if (!plakken) return;
   const boek = scherm.querySelector(".boek");
@@ -848,9 +858,8 @@ function stickerboek() {
     localStorage.setItem("stickers", JSON.stringify([...geplakt(), s]));
     localStorage.removeItem("stickerPlakken");
     geluid("knal"); feest();
-    zegEekhoorn("Geplakt! Wat staat die mooi!");
     stickerboek();
-    zegEekhoorn("Geplakt! Wat staat die mooi!");
+    zegEekhoorn(t("Geplakt! Wat staat die mooi!"));
   };
 }
 
@@ -975,7 +984,7 @@ function doolhof(cat, spel) {
   const hier = location.hash;
   const W = spel ? WERELDEN[spel.wereld] : null;
   const uitgang = W ? W.doel : "🚪";
-  const titel = spel ? `🧭 ${spel.naam}` : "🧭 Doolhof";
+  const titel = spel ? `🧭 ${spel.naam}` : "🧭 " + t("Doolhof");
   const terug = cat ? `#cat/${catSleutel(cat)}` : "#";
   const opnieuw = () => doolhof(cat, spel);
   const volgendWoord = doolhofWoorden(cat);
@@ -987,15 +996,15 @@ function doolhof(cat, spel) {
   const opgelost = {}; // splitsing i → "goed" of "fout"
   const woordOp = {}; // "x,y" → { tekst, soort }
 
-  zegEekhoorn(`Kom jij het doolhof uit? Gooi de dobbelsteen! Bij een splitsing kies je het goede woord. Je hebt 3 minuten.`);
-  zeg("Kom jij het doolhof uit? Gooi de dobbelsteen!");
+  zegEekhoorn(t("Kom jij het doolhof uit? Gooi de dobbelsteen! Bij een splitsing kies je het goede woord. Je hebt 3 minuten."));
+  praat(t("Kom jij het doolhof uit? Gooi de dobbelsteen!"));
   scherm.innerHTML = `
     <div class="kaart doolhof-kaart" ${cat ? `style="border-color:${cat.kleur}"` : ""}>
       <div class="voortgang">${titel}</div>
       <div class="levens-balk"><span class="klok">⏱️ ${tijdTekst(tijd)}</span><span class="pot">🌰 0</span></div>
       <div class="doolhof" style="grid-template-columns:repeat(${DOOLHOF_B - 1}, 1fr .28fr) 1fr"></div>
       <div id="beurt"></div>
-      <a class="terug" href="${terug}">← Stoppen</a>
+      <a class="terug" href="${terug}">${t("← Stoppen")}</a>
     </div>`;
   const veld = scherm.querySelector(".doolhof");
   const beurtDoos = scherm.querySelector("#beurt");
@@ -1062,7 +1071,7 @@ function doolhof(cat, spel) {
 
   const gooiKnop = () => {
     vraag = null;
-    beurtDoos.innerHTML = `<button class="grote-knop gooi">🎲 Gooi!</button>`;
+    beurtDoos.innerHTML = `<button class="grote-knop gooi">🎲 ${t("Gooi!")}</button>`;
     beurtDoos.querySelector(".gooi").onclick = gooi;
   };
   const gooi = async () => {
@@ -1073,7 +1082,7 @@ function doolhof(cat, spel) {
     const worp = 1 + Math.floor(Math.random() * 6);
     for (let r = 0; r < 6; r++) { knop.textContent = DOBBEL6[Math.floor(Math.random() * 6)]; await wacht(80); }
     beurtDoos.innerHTML = `<div class="dobbel">${DOBBEL6[worp - 1]}</div>`;
-    zegEekhoorn(`Je gooit ${worp}!`);
+    zegEekhoorn(t("Je gooit {n}!", { n: worp }));
     geluid("eikel");
     await wacht(600);
     loop(worp);
@@ -1104,12 +1113,12 @@ function doolhof(cat, spel) {
     const opties = schud([{ c: echt, w: v.goed, goed: true }, { c: nep, w: v.fout, goed: false }]);
     beurtDoos.innerHTML = `
       <div class="splits-vraag">
-        <button class="luister" title="Luister">🔊</button>
-        ${v.plaatje ? `<button class="betekenis klein" aria-label="Plaatje">${v.plaatje}</button>` : ""}
+        <button class="luister" title="${t("Luister")}">🔊</button>
+        ${v.plaatje ? `<button class="betekenis klein" aria-label="${t("Plaatje")}">${v.plaatje}</button>` : ""}
         <div class="splits-knoppen">${opties.map((o, n) => `
           <button class="splits-knop" data-n="${n}"><span>${pijl(o.c)}</span>${o.w}</button>`).join("")}</div>
       </div>`;
-    zegEekhoorn("Een splitsing! Welke kant is goed geschreven?");
+    zegEekhoorn(t("Een splitsing! Welke kant is goed geschreven?"));
     zeg(v.hoor);
     beurtDoos.querySelectorAll(".luister, .betekenis").forEach((b) => (b.onclick = () => zeg(v.hoor)));
     beurtDoos.querySelectorAll(".splits-knop").forEach((b) => (b.onclick = () => kies(opties[b.dataset.n], b)));
@@ -1123,7 +1132,7 @@ function doolhof(cat, spel) {
     if (o.goed) {
       goed++; knop.classList.add("goed"); geluid("goed"); eikelVlieg();
       scherm.querySelector(".pot").textContent = `🌰 ${goed}`;
-      zegEekhoorn(schud(["Goed zo! Die kant op!", "Super! Goed geschreven!", "Ja! Verder maar!"])[0]);
+      zegEekhoorn(t(schud(["Goed zo! Die kant op!", "Super! Goed geschreven!", "Ja! Verder maar!"])[0]));
       opgelost[plek] = "goed";
       woordOp[k(pad[plek + 1])].soort = "goed";
       delete woordOp[k(zij[plek])];
@@ -1142,8 +1151,8 @@ function doolhof(cat, spel) {
       woordOp[k(zij[plek])].soort = "fout";
       woordOp[k(pad[plek + 1])].soort = "goed";
       teken();
-      zegEekhoorn(`Oei, doodlopend! Zo schrijf je het: ${v.goed}. Dat kost ${DOOLHOF_STRAF} seconden.`);
-      zeg(`Oei, doodlopend! Kijk goed, zo schrijf je het.`);
+      zegEekhoorn(t("Oei, doodlopend! Zo schrijf je het: {woord}. Dat kost {n} seconden.", { woord: v.goed, n: DOOLHOF_STRAF }));
+      praat(t("Oei, doodlopend! Kijk goed, zo schrijf je het."));
       beurtDoos.querySelector(`.splits-knop:not(.fout)`).classList.add("goed");
       await wacht(2000);
       if (over || location.hash !== hier) return;
@@ -1158,16 +1167,16 @@ function doolhof(cat, spel) {
     if (over) return;
     over = true; clearInterval(klok);
     geluid("fout");
-    zegEekhoorn("Oei, de tijd is op! Geen punten deze keer. Probeer het nog een keer!");
-    zeg("Oei, de tijd is op! Probeer het nog een keer!");
+    zegEekhoorn(t("Oei, de tijd is op! Geen punten deze keer. Probeer het nog een keer!"));
+    praat(t("Oei, de tijd is op! Probeer het nog een keer!"));
     scherm.innerHTML = `
       <div class="kaart eind">
         <div class="groot-sterren">⏰</div>
-        <p>De tijd is op. Deze keer geen punten.</p>
-        <p class="regel">${cat ? tip(cat) : "Kijk goed naar elk woord!"}</p>
+        <p>${t("De tijd is op. Deze keer geen punten.")}</p>
+        <p class="regel">${cat ? tip(cat) : t("Kijk goed naar elk woord!")}</p>
         <div class="knoppen">
-          <button class="grote-knop" id="nog">🔁 Nog een keer</button>
-          <a class="grote-knop" href="${terug}">Terug</a>
+          <button class="grote-knop" id="nog">🔁 ${t("Nog een keer")}</button>
+          <a class="grote-knop" href="${terug}">${t("Terug")}</a>
         </div>
       </div>`;
     scherm.querySelector("#nog").onclick = opnieuw;
@@ -1175,11 +1184,11 @@ function doolhof(cat, spel) {
   const uit = async () => {
     over = true; clearInterval(klok);
     geluid("feest");
-    zeg("Hoera! Je bent het doolhof uit!");
+    praat(t("Hoera! Je bent het doolhof uit!"));
     await wacht(900);
     if (location.hash !== hier) return;
     const n = fout === 0 && tijd >= 60 ? 3 : fout <= 2 ? 2 : 1;
-    eindScherm({ cat, n, tekst: `${uitgang} Je bent eruit, met nog ${tijdTekst(tijd)} op de klok! Je had ${goed} goed en ${fout} fout.`, verdiend: goed, opnieuw, terug });
+    eindScherm({ cat, n, tekst: `${uitgang} ${t("Je bent eruit, met nog {tijd} op de klok! Je had {goed} goed en {fout} fout.", { tijd: tijdTekst(tijd), goed, fout })}`, verdiend: goed, opnieuw, terug });
   };
 
   teken();
