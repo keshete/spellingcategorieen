@@ -1,6 +1,4 @@
 // Staal-categorieën voor groep 4 (nummers, namen en regels volgens Staal).
-// De volgorde hier is ook de volgorde waarin ze opengaan in de app.
-// id: unieke sleutel (voor links en sterren); standaard het nummer.
 // Woorden en figuren zijn eigen werk. Zie INHOUD.md.
 //
 // gat: welk stukje van het woord het "lastige stukje" is (voor het gaatjesspel
@@ -104,4 +102,3 @@ const CATEGORIEEN = [
     gat: { re: /(lijk|ig)$/, alts: { ig: ["ug", "ich"], lijk: ["luk", "lek"] } },
   },
 ];
-for (const c of CATEGORIEEN) c.id = c.id || String(c.nr);

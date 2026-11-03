@@ -120,20 +120,6 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .schuif { max-width: 520px; margin: .5rem auto 0; }
 .schuif input[type=range] { width: 100%; height: 3rem; accent-color: #ff9800; }
 .schuif-labels { display: flex; justify-content: space-between; font-size: 1.05rem; font-weight: bold; }
-
-/* ---------- zelf inspreken ---------- */
-.opnamekaart { text-align: left; }
-.opnamekaart h2, .opnamekaart > p { text-align: center; }
-.terug { display: inline-block; font-weight: bold; font-size: 1.1rem; margin-bottom: .5rem; }
-.opnamelijst { list-style: none; padding: 0; margin: 0 0 1rem; }
-.opnamelijst li { display: flex; align-items: center; gap: .5rem; padding: .4rem .6rem; border-radius: .8rem; }
-.opnamelijst li:nth-child(odd) { background: #fff8e7; }
-.opnamelijst li.heeft .ow::after { content: " ✅"; }
-.ow { flex: 1; font-size: 1.4rem; font-weight: bold; }
-.rond { width: 3.2rem; height: 3.2rem; border-radius: 50%; border: 3px solid #333; background: #fff; font-size: 1.4rem; cursor: pointer; }
-.rond:disabled { opacity: .3; }
-.rond.bezig { background: #ef5350; animation: knipper 1s infinite; }
-@keyframes knipper { 50% { opacity: .5; } }
 /* ---------- spelletjes-menu ---------- */
 .spel-kop { font-size: 1.5rem; margin: 1.4rem 0 .6rem; }
 .spel-lijst { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
@@ -309,10 +295,10 @@ header { position: relative; }
 .spel-naam { font: inherit; font-size: 1.6rem; padding: .5rem .8rem; width: min(100%, 22ch); text-align: center; border: 4px solid #ccc; border-radius: 1rem; }
 .grote-knop.grijs { background: #e0e0e0; box-shadow: 0 5px 0 #9e9e9e; }
 .betekenis {
-  display: table; margin: .8rem auto 0; padding: .4rem 1.1rem; font-size: 1.7rem;
-  background: #e3f2fd; border: 3px solid #64b5f6; border-radius: 1rem;
+  display: block; margin: .6rem auto 0; padding: .3rem 1.4rem; font: inherit; font-size: 4.5rem; line-height: 1.2;
+  background: #e3f2fd; border: 4px solid #64b5f6; border-radius: 1.4rem; cursor: pointer;
+  box-shadow: 0 5px 0 #64b5f6; animation: pop .4s ease-out;
 }
-.betekenis span { font-size: 2.6rem; vertical-align: middle; }
 
 /* ---------- ❤️ levens ---------- */
 .levens-balk { display: flex; justify-content: space-between; align-items: center; font-size: 1.8rem; margin-bottom: .3rem; }
@@ -341,21 +327,8 @@ header { position: relative; }
 .nieuwe-sticker { font-size: 1.4rem; font-weight: bold; }
 .nieuwe-sticker span { font-size: 4rem; display: inline-block; animation: dans 1.6s ease-in-out infinite; vertical-align: middle; }
 
-/* ---------- 🎲 bordspel ---------- */
+/* ---------- 🧭 doolhof ---------- */
 .spel-tegel.bordspel-tegel { background: #fce4ec; border-color: #f06292; box-shadow: 0 5px 0 #ec407a; }
-.bord {
-  display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr); gap: .45rem;
-  background: #c5e1a5; padding: .7rem; border-radius: 1.2rem; margin: .4rem 0 .8rem;
-}
-.vak {
-  position: relative; aspect-ratio: 1.5; border-radius: .9rem; background: #fffde7; border: 3px solid #a1887f;
-  display: flex; align-items: center; justify-content: center; max-height: 66px;
-}
-.vak.gelopen { background: #ffe082; }
-.vak.ster { background: #fff59d; }
-.vak-nr { position: absolute; left: .35rem; top: .1rem; font-size: .8rem; color: #8d6e63; }
-.vak-teken { font-size: 1.8rem; }
-.pion { position: absolute; font-size: 2.6rem; animation: pop .3s ease-out; filter: drop-shadow(0 3px 2px rgba(0,0,0,.3)); }
 .weggetjes { display: flex; justify-content: center; gap: 1.5rem; margin: .8rem 0; }
 .weggetje {
   font: inherit; cursor: pointer; border: none; padding: 0; background: none; touch-action: manipulation;
@@ -377,17 +350,171 @@ header { position: relative; }
 @keyframes rol { from { transform: rotate(-540deg) scale(.3); } to { transform: rotate(0) scale(1); } }
 .weggetje:disabled, .woordkaart:disabled { color: #333; opacity: 1; }
 
-/* ---------- slotjes ---------- */
-.tegel.dicht { background: #cfcfcf; color: #777; box-shadow: 0 5px 0 rgba(0,0,0,.12); }
-.tegel.dicht .naam { text-shadow: none; }
-.tegel.dicht .slot { font-size: 2.6rem; line-height: 1; }
-.grote-knop.sorteer.dicht { width: 100%; background: #cfcfcf; color: #777; box-shadow: 0 5px 0 #aaa; }
-.nieuw-open {
-  display: inline-block; margin: .5rem 0 1rem; padding: .8rem 1.4rem; border-radius: 1rem;
-  color: #fff; font-size: 1.4rem; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,.3);
-  box-shadow: 0 5px 0 rgba(0,0,0,.2); animation: pop .5s ease-out;
+/* ---------- kopjes per groep op het beginscherm ---------- */
+.grid .groep-kop {
+  grid-column: 1 / -1;
+  font-size: 1.5rem; font-weight: bold;
+  margin: 1rem 0 0; padding: .3rem .8rem;
+  border-bottom: 4px dashed #ffca28;
 }
-.ouder { text-align: center; margin-top: 2rem; }
-.klein-knop { font: inherit; font-size: 1rem; padding: .6rem 1rem; border-radius: .8rem; border: 2px solid #ccc; background: #fff; color: #777; cursor: pointer; }
-.ouder-vraag { font-size: 1.1rem; color: #555; }
-.ouder-vraag input { font: inherit; font-size: 1.2rem; width: 4em; text-align: center; padding: .3rem; border: 2px solid #ccc; border-radius: .6rem; margin: 0 .4rem; }
+.grid .groep-kop:first-child { margin-top: 0; }
+
+/* ---------- spelletjes op het beginscherm ---------- */
+.thuis-spellen { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: .6rem; }
+.thuis-knop {
+  display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 72px;
+  color: #fff; font-size: 1.35rem; font-weight: bold; border-radius: 1.2rem;
+  text-shadow: 0 1px 2px rgba(0,0,0,.3); box-shadow: 0 5px 0 rgba(0,0,0,.2);
+}
+.thuis-knop span { font-size: 2.2rem; }
+.thuis-knop:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.thuis-uitleg { font-size: 1.3rem; font-weight: bold; text-align: center; margin: .4rem 0 .8rem; }
+
+/* ---------- 🛒 winkel en jouw figuur ---------- */
+.mijn-figuur { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 1.3em; height: 1.3em; line-height: 1; }
+.mijn-figuur img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 0 0 2px #8d6e63; }
+.figuur-spul { position: absolute; top: -.45em; right: -.35em; font-size: .6em; }
+.figuur-knop {
+  font-size: 1.9rem; background: #fff; border: 3px solid #ff8a65; border-radius: 50%;
+  width: 3.2rem; height: 3.2rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #ff8a65;
+}
+.figuur-knop .mijn-figuur { width: 1.25em; height: 1.25em; }
+.winkel-kop { display: flex; justify-content: center; align-items: center; gap: 2rem; }
+.mijn-figuur.groot { font-size: 6rem; animation: dans 1.6s ease-in-out infinite; }
+.winkel-rij { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); margin-bottom: .6rem; }
+.winkel-vak {
+  font: inherit; font-weight: bold; font-size: 1rem; cursor: pointer; padding: .6rem .4rem;
+  display: flex; flex-direction: column; align-items: center; gap: .2rem;
+  background: #fff; border: 4px solid #ddd; border-radius: 1rem; box-shadow: 0 4px 0 #ccc;
+}
+.winkel-vak:active { transform: translateY(3px); box-shadow: 0 1px 0 #ccc; }
+.winkel-emoji { font-size: 2.8rem; line-height: 1; }
+.winkel-prijs { font-size: .95rem; color: #6d4c41; background: #fff8e1; border-radius: .6rem; padding: 0 .5rem; }
+.winkel-vak.bezit { border-color: #a5d6a7; }
+.winkel-vak.aan { border-color: #2e7d32; background: #e8f5e9; }
+.winkel-vak.foto-kiezen { border-color: #ff8a65; background: #fbe9e7; }
+.winkel-uitleg { color: #666; margin: 0 0 .5rem; }
+
+.winkel-foto { width: 2.8rem; height: 2.8rem; border-radius: 50%; object-fit: cover; }
+.winkel-rij { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+.winkel-rij.groot .winkel-vak { border-color: #ffca28; background: #fffde7; }
+
+/* ---------- 🧭 doolhof ---------- */
+.doolhof {
+  display: grid; gap: 0; max-width: 640px; margin: .4rem auto .6rem; padding: .5rem;
+  background: #2e7d32; border-radius: 1rem; box-shadow: inset 0 0 0 4px #1b5e20;
+}
+.dh { position: relative; display: flex; align-items: center; justify-content: center; min-height: 14px; }
+.dh.heg { background: #388e3c; }
+.dh.gang { background: #fff3c4; font-size: clamp(1.1rem, 4vw, 2rem); }
+.dh:nth-child(odd).heg { background: #43a047; }
+.dh.cel { aspect-ratio: 1; }
+.dh.gang.cel { border-radius: .5rem; }
+.dh.tussen { border-radius: 0; }
+.dh.uitgang { background: #ffe082; animation: gloei 1.4s ease-in-out infinite; }
+.dh.dood { background: #d7ccc8; }
+.gang-woord {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2;
+  background: #fff; border: 3px solid #5c6bc0; border-radius: .6rem; padding: 0 .3rem;
+  font-size: clamp(.75rem, 2.4vw, 1.15rem); font-weight: bold; white-space: nowrap; color: #333;
+}
+.gang-woord.goed { border-color: #2e7d32; background: #c8e6c9; }
+.gang-woord.fout { border-color: #c62828; background: #ffcdd2; text-decoration: line-through; opacity: .85; }
+.dh .mijn-figuur.pion { position: absolute; filter: drop-shadow(0 3px 2px rgba(0,0,0,.3)); animation: pop .3s ease-out; font-size: clamp(1.4rem, 5vw, 2.6rem); z-index: 3; }
+.klok { font-size: 1.5rem; font-weight: bold; }
+.klok.bijna { color: #c62828; animation: pop .5s ease-out infinite alternate; }
+.klok.au { animation: schud .4s; }
+.grote-knop.gooi { font-size: 2rem; min-width: 10rem; }
+.splits-vraag { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .8rem; }
+.betekenis.klein { margin: 0; font-size: 3rem; }
+.splits-knoppen { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+.splits-knop {
+  font: inherit; font-size: 2rem; font-weight: bold; min-width: 9rem; padding: .5rem 1rem; cursor: pointer;
+  display: flex; align-items: center; gap: .5rem; justify-content: center; color: #333;
+  background: #fff; border: 5px solid #5c6bc0; border-radius: 1.2rem; box-shadow: 0 6px 0 #3949ab; touch-action: manipulation;
+}
+.splits-knop span { font-size: 1.6rem; }
+.splits-knop:disabled { opacity: 1; color: #333; }
+.splits-knop.goed { background: #c8e6c9; border-color: #2e7d32; box-shadow: 0 6px 0 #1b5e20; }
+.splits-knop.fout { background: #ffcdd2; border-color: #c62828; box-shadow: 0 6px 0 #b71c1c; animation: schud .4s 2; }
+
+/* ---------- 🛠️ maker: verhaal, thema-spelletjes ---------- */
+.spel-verhaal {
+  font: inherit; font-size: 1.3rem; width: 100%; max-width: 34rem; padding: .6rem .8rem;
+  border: 4px solid #b39ddb; border-radius: 1rem; resize: vertical;
+}
+.grote-knop.eva-maak { display: block; margin: .6rem auto 0; }
+.eva-plan { background: #fff8e1; border: 3px dashed #ffb300; border-radius: 1rem; padding: .6rem .9rem; font-size: 1.2rem; max-width: 34rem; margin: 1rem auto; }
+.spel-intro h2 { font-size: 2rem; margin: .3rem 0; }
+.intro-plaatje { font-size: 5rem; line-height: 1.1; animation: dans 1.6s ease-in-out infinite; }
+.verhaal { font-size: 1.3rem; font-style: italic; background: #fff; border-radius: 1rem; padding: .6rem .9rem; max-width: 34rem; margin: .6rem auto; }
+.weggooien { font: inherit; margin-top: 1rem; background: none; border: none; color: #8d6e63; font-size: 1rem; cursor: pointer; padding: .6rem; }
+.weggooien.zeker { color: #c62828; font-weight: bold; }
+.ballon-spel.thema span { flex-direction: column; background: none; box-shadow: none; text-shadow: none; color: #333; }
+.ballon-spel.thema em { font-style: normal; font-size: 5.5rem; line-height: 1; }
+.ballon-spel.thema b { background: #fff; border: 4px solid #333; border-radius: .8rem; padding: 0 .5rem; font-size: 1.5rem; white-space: nowrap; }
+.ballon-spel.thema::after { display: none; }
+.ballon-spel.thema.mis b { background: #ffcdd2; border-color: #c62828; }
+
+/* ---------- verder leren, groepen, vorige/volgende ---------- */
+.verder-knop {
+  display: flex; align-items: center; justify-content: center; gap: .6rem; flex-wrap: wrap;
+  margin: .4rem 0 .8rem; padding: .9rem 1rem; border-radius: 1.2rem;
+  color: #fff; font-size: 1.4rem; text-align: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35); box-shadow: 0 5px 0 rgba(0,0,0,.2);
+}
+.verder-knop span:first-child { font-size: 2rem; }
+.groep-sprong { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .6rem; margin-bottom: .4rem; }
+.groep-knop {
+  font: inherit; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+  background: #fff; border: 4px solid #ffca28; border-radius: 1rem; padding: .5rem;
+  box-shadow: 0 4px 0 #c49000; display: flex; flex-direction: column; align-items: center;
+}
+.groep-knop small { font-size: .95rem; font-weight: normal; }
+.groep-knop:active { transform: translateY(3px); box-shadow: 0 1px 0 #c49000; }
+.grid .groep-kop { scroll-margin-top: 1rem; }
+.buren { display: flex; justify-content: space-between; gap: .6rem; margin: 1.2rem 0 .4rem; flex-wrap: wrap; }
+.buur {
+  flex: 1 1 200px; padding: .8rem 1rem; border-radius: 1rem; font-size: 1.2rem; font-weight: bold;
+  background: #eee; box-shadow: 0 4px 0 rgba(0,0,0,.15);
+}
+.buur.volgende { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); text-align: right; }
+.buur.klaar { background: #fff3cd; text-align: center; }
+
+/* ---------- slotjes en sleutels ---------- */
+.tegel.dicht { background: #bdbdbd; color: #fff; }
+.tegel.dicht .figuur { opacity: .9; }
+.tegel.sleutel-klaar {
+  background: repeating-linear-gradient(45deg, var(--kleur), var(--kleur) 14px, #ffd54f 14px, #ffd54f 28px);
+  border: 4px solid #ffb300; animation: gloei 1.2s ease-in-out infinite;
+}
+.tegel.sleutel-klaar .figuur { animation: wiebel 1s ease-in-out infinite; }
+.tegel.sleutel-klaar .sterren { font-size: 1rem; font-weight: bold; background: rgba(0,0,0,.35); border-radius: .6rem; padding: 0 .4rem; }
+@keyframes wiebel { 25% { transform: rotate(-15deg); } 75% { transform: rotate(15deg); } }
+.nieuw-open {
+  display: block; margin: .8rem auto; padding: .9rem 1rem; border-radius: 1.2rem; max-width: 520px;
+  color: #fff; font-size: 1.4rem; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  box-shadow: 0 5px 0 rgba(0,0,0,.2); animation: gloei 1.2s ease-in-out infinite;
+}
+.buur.dicht { background: #e0e0e0; color: #666; }
+.ouder { text-align: center; margin-top: 1.5rem; }
+.klein-knop {
+  font: inherit; font-size: 1rem; cursor: pointer; background: #fff; color: #666;
+  border: 2px solid #ccc; border-radius: .8rem; padding: .4rem .8rem; margin: .2rem;
+}
+.ouder-vraag input { font: inherit; font-size: 1.2rem; width: 4rem; }
+.open-kaart h2 { margin: .2rem 0; }
+.slot-deur {
+  position: relative; margin: 1rem auto; max-width: 340px; padding: 1rem; border-radius: 1.5rem;
+  color: #fff; filter: grayscale(.7); transition: filter .6s, transform .6s;
+}
+.slot-deur.open { filter: none; transform: scale(1.05); }
+.groot-slot { position: absolute; right: -.6rem; top: -1rem; font-size: 4rem; }
+.slot-deur.open .groot-slot { animation: spring .6s ease-out; }
+.sleutel-knop {
+  font-size: 5rem; background: #fff8e1; border: 5px solid #ffb300; border-radius: 50%;
+  width: 8rem; height: 8rem; cursor: pointer; box-shadow: 0 6px 0 #c49000;
+  animation: wiebel 1.2s ease-in-out infinite; touch-action: manipulation;
+}
+.sleutel-knop.draai { animation: draai-sleutel .9s ease-in forwards; }
+@keyframes draai-sleutel { 40% { transform: translateY(-110px) rotate(0); } 100% { transform: translateY(-110px) rotate(90deg) scale(.6); opacity: 0; } }
