@@ -518,3 +518,31 @@ header { position: relative; }
 }
 .sleutel-knop.draai { animation: draai-sleutel .9s ease-in forwards; }
 @keyframes draai-sleutel { 40% { transform: translateY(-110px) rotate(0); } 100% { transform: translateY(-110px) rotate(90deg) scale(.6); opacity: 0; } }
+
+/* ---------- 🎨 eigen stickers en walnoten ---------- */
+.walnoot { width: 1em; height: 1em; vertical-align: -.14em; }
+.eikel-teller .wn { margin-left: .3rem; }
+.groot-walnoten { margin-left: 1rem; }
+.walnoot-bonus { font-size: 1.4rem; font-weight: bold; color: #6d4421; background: #efebe9; border-radius: 1rem; padding: .4rem .8rem; display: inline-block; animation: pop .5s ease-out; }
+.winkel-sticker { width: 3rem; height: 3rem; object-fit: contain; filter: drop-shadow(0 2px 0 #fff) drop-shadow(0 0 2px rgba(0,0,0,.35)); }
+.ruil-vak { border-color: #bcaaa4; background: #efebe9; }
+.ruil-vak .winkel-emoji { font-size: 1.8rem; white-space: nowrap; }
+.sticker img { width: 7.5rem; height: 7.5rem; display: block; }
+.nieuwe-sticker img { width: 4.5rem; height: 4.5rem; vertical-align: middle; }
+.grote-knop.teken-knop { margin: .8rem .4rem 0; background: #ce93d8; box-shadow: 0 5px 0 #8e24aa; }
+.teken-vel {
+  display: block; margin: .4rem auto .6rem; width: min(100%, 420px); aspect-ratio: 1; touch-action: none; cursor: crosshair;
+  border: 5px dashed #ba68c8; border-radius: 1.2rem;
+  background: repeating-conic-gradient(#f3e5f5 0 25%, #fff 0 50%) 0 0 / 32px 32px;
+}
+.teken-rij { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin: .5rem 0; }
+.kleur-knop { width: 3rem; height: 3rem; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 0 2px #bbb; cursor: pointer; }
+.kleur-knop.gekozen { box-shadow: 0 0 0 4px #7e57c2; transform: scale(1.12); }
+.dikte-knop, .stempel-knop {
+  font: inherit; font-weight: bold; min-width: 3.2rem; height: 3.2rem; padding: 0 .7rem; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border: 4px solid #ddd; border-radius: 1rem; box-shadow: 0 3px 0 #ccc;
+}
+.dikte-knop span { display: block; background: #333; border-radius: 50%; }
+.stempel-knop { font-size: 1.7rem; padding: 0 .3rem; }
+.dikte-knop.gekozen, .stempel-knop.gekozen { border-color: #7e57c2; background: #ede7f6; }

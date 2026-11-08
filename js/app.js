@@ -13,7 +13,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 36; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 38; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -617,6 +617,7 @@ function route() {
   if (naam === "prijzen") return prijzen();
   if (naam === "bordspel" || naam === "doolhof") return doolhof(cat || null);
   if (naam === "stickers") return stickerboek();
+  if (naam === "stickermaker") return stickermaker();
   if (cat && naam === "ballonnen") return ballonnen(cat);
   if (cat && naam === "eikels") return eikels(cat);
   if (cat && naam === "kiezen") return kiezen(cat);
