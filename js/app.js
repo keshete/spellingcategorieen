@@ -13,7 +13,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 39; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 40; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -199,7 +199,8 @@ function gekleurd(cat, x) {
 function feest() {
   geluid("feest");
   for (let i = 0; i < 18; i++) {
-    const s = el(`<span class="confetti">${schud(["⭐", "🎉", "✨", "🌟"])[0]}</span>`);
+    const f = actiefFeest();
+    const s = el(`<span class="confetti">${schud(f ? [...f.versiering, "✨"] : ["⭐", "🎉", "✨", "🌟"])[0]}</span>`);
     s.style.left = Math.random() * 100 + "vw";
     s.style.animationDelay = Math.random() * 0.5 + "s";
     document.body.appendChild(s);
@@ -209,7 +210,8 @@ function feest() {
 
 // ---------- schermen ----------
 function thuis() {
-  zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. Tik op een categorie en kies een spelletje!`);
+  const f = actiefFeest();
+  zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. ${f ? f.groet + " " : ""}Tik op een categorie en kies een spelletje!`);
   const s = sterren();
   scherm.innerHTML = `
     <div class="thuis-spellen">
@@ -217,6 +219,7 @@ function thuis() {
       <a class="thuis-knop" href="#sorteer" style="background:#4fc3f7"><span>🎮</span>Sorteerspel</a>
       <a class="thuis-knop" href="#stickers" style="background:#9575cd"><span>📒</span>Stickerboek</a>
       <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🛒</span>Winkel</a>
+      <a class="thuis-knop" href="#feesten" style="background:#ffb300"><span>${f ? f.emoji : "🎉"}</span>Feesten</a>
     </div>
     ${verderKnop(s)}
     <div class="groep-sprong">${GROEPEN.map((g) => {
@@ -613,11 +616,12 @@ function route() {
   if (cat && naam === "gaatjes") return gaatjes(cat);
   if (cat && naam === "dictee") return dictee(cat);
   if (naam === "prijzen") return prijzen();
-  if (naam === "bordspel" || naam === "doolhof") return doolhof(cat || null);
+  if (naam === "bordspel" || naam === "doolhof") return doolhof(cat || null, feestDoolhof());
+  if (naam === "feesten") return feestenScherm();
   if (naam === "stickers") return stickerboek();
   if (naam === "stickermaker") return stickermaker();
-  if (cat && naam === "ballonnen") return ballonnen(cat);
-  if (cat && naam === "eikels") return eikels(cat);
+  if (cat && naam === "ballonnen") return ballonnen(cat, ...feestThema("ballonnen"));
+  if (cat && naam === "eikels") return eikels(cat, ...feestThema("eikels"));
   if (cat && naam === "kiezen") return kiezen(cat);
   if (cat && naam === "wereld") return wereldSpel(cat, location.hash.split("/")[2]);
   if (cat && naam === "maak") return maakSpel(cat);
