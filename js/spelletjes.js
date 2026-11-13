@@ -880,40 +880,55 @@ function stickerInhoud(e) {
 }
 
 function stickermaker() {
-  zegEekhoorn("Teken je eigen sticker! Kies een kleur of een stempel.");
+  zegEekhoorn("Teken je eigen sticker! Niet goed gelukt? Tik op 🧽 Gum of op ↩️ Oeps, terug.");
   zeg("Teken je eigen sticker!");
   scherm.innerHTML = `
     <div class="kaart sticker-maker">
       <h2>🎨 Maak je eigen sticker</h2>
+      <div class="teken-rij gereedschap">
+        <button class="dikte-knop pen">✏️ Tekenen</button>
+        <button class="dikte-knop gum" data-gum="1">🧽 Gum</button>
+        <button class="dikte-knop" id="terug">↩️ Oeps, terug</button>
+        <button class="dikte-knop" id="leeg">🗑️ Alles weg</button>
+      </div>
       <canvas class="teken-vel" width="480" height="480"></canvas>
       <div class="teken-rij kleuren">${KLEUREN.map((k) => `<button class="kleur-knop" data-k="${k}" style="background:${k}" aria-label="Kleur"></button>`).join("")}</div>
       <div class="teken-rij">
         <button class="dikte-knop" data-d="10" aria-label="Dun"><span style="width:.5rem;height:.5rem"></span></button>
         <button class="dikte-knop" data-d="22" aria-label="Middel"><span style="width:1rem;height:1rem"></span></button>
         <button class="dikte-knop" data-d="44" aria-label="Dik"><span style="width:1.7rem;height:1.7rem"></span></button>
-        <button class="dikte-knop gum" data-gum="1">🧽 Gum</button>
-        <button class="dikte-knop" id="leeg">🗑️ Opnieuw</button>
       </div>
       <div class="teken-rij stempels">${STEMPELS.map((s) => `<button class="stempel-knop" data-s="${s}">${s}</button>`).join("")}</div>
       <div class="knoppen">
         <button class="grote-knop" id="klaar">✅ Klaar!</button>
-        <a class="grote-knop grijs" href="#prijzen">Terug</a>
+        <a class="grote-knop grijs" href="#prijzen">🛒 Naar de winkel</a>
       </div>
     </div>`;
   const vel = scherm.querySelector(".teken-vel");
-  const ctx = vel.getContext("2d");
+  const ctx = vel.getContext("2d", { willReadFrequently: true });
+  // Terug-knop: we bewaren hoe het vel eruitzag vóór elke streep of stempel.
+  const vorigeVellen = [];
+  const bewaarVel = () => { vorigeVellen.push(ctx.getImageData(0, 0, vel.width, vel.height)); if (vorigeVellen.length > 25) vorigeVellen.shift(); };
   const pen = { kleur: KLEUREN[4], dikte: 22, gum: false, stempel: null };
   const toon = () => {
     scherm.querySelectorAll(".kleur-knop").forEach((b) => b.classList.toggle("gekozen", !pen.gum && !pen.stempel && b.dataset.k === pen.kleur));
     scherm.querySelectorAll(".dikte-knop[data-d]").forEach((b) => b.classList.toggle("gekozen", !pen.stempel && Number(b.dataset.d) === pen.dikte));
     scherm.querySelector(".gum").classList.toggle("gekozen", pen.gum);
+    scherm.querySelector(".pen").classList.toggle("gekozen", !pen.gum && !pen.stempel);
+    vel.classList.toggle("gummen", pen.gum);
     scherm.querySelectorAll(".stempel-knop").forEach((b) => b.classList.toggle("gekozen", b.dataset.s === pen.stempel));
   };
   scherm.querySelectorAll(".kleur-knop").forEach((b) => (b.onclick = () => { pen.kleur = b.dataset.k; pen.gum = false; pen.stempel = null; toon(); }));
   scherm.querySelectorAll(".dikte-knop[data-d]").forEach((b) => (b.onclick = () => { pen.dikte = Number(b.dataset.d); pen.stempel = null; toon(); }));
-  scherm.querySelector(".gum").onclick = () => { pen.gum = !pen.gum; pen.stempel = null; toon(); };
+  scherm.querySelector(".gum").onclick = () => { pen.gum = true; pen.stempel = null; toon(); zegEekhoorn("Gum! Veeg over wat je weg wilt halen."); };
+  scherm.querySelector(".pen").onclick = () => { pen.gum = false; pen.stempel = null; toon(); };
   scherm.querySelectorAll(".stempel-knop").forEach((b) => (b.onclick = () => { pen.stempel = b.dataset.s; pen.gum = false; toon(); zegEekhoorn("Tik op je tekening om te stempelen!"); }));
-  scherm.querySelector("#leeg").onclick = () => { ctx.clearRect(0, 0, vel.width, vel.height); geluid("knal"); };
+  scherm.querySelector("#leeg").onclick = () => { bewaarVel(); ctx.clearRect(0, 0, vel.width, vel.height); geluid("knal"); };
+  scherm.querySelector("#terug").onclick = () => {
+    if (!vorigeVellen.length) return zegEekhoorn("Er is niets meer om terug te doen.");
+    ctx.putImageData(vorigeVellen.pop(), 0, 0);
+    geluid("eikel");
+  };
   toon();
 
   const punt = (e) => {
@@ -923,6 +938,7 @@ function stickermaker() {
   let vorige = null;
   vel.onpointerdown = (e) => {
     e.preventDefault();
+    bewaarVel();
     const [x, y] = punt(e);
     if (pen.stempel) {
       ctx.globalCompositeOperation = "source-over";
