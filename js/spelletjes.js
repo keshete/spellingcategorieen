@@ -670,7 +670,7 @@ function spelPlan(s) {
 function leesVerhaal(tekst) {
   const woorden = tekst.toLowerCase().replace(/[^a-zà-ÿ'\s-]/g, " ").split(/[\s-]+/).filter(Boolean);
   const past = (lijst) => lijst.some((t) => woorden.some((w) => w === t || (t.length >= 4 && w.startsWith(t))));
-  const wereld = Object.keys(WERELDEN).find((id) => past(WERELDEN[id].woorden));
+  const wereld = Object.keys(WERELDEN).find((id) => WERELDEN[id].woorden && past(WERELDEN[id].woorden));
   const soort = ["doolhof", "vangen", "knallen", "doel"].find((id) => past(SOORTEN[id].woorden));
   return { wereld, soort };
 }
@@ -696,7 +696,7 @@ function tekenMeerSpellen(cat) {
     <h3 class="spel-kop">🎮 Nog meer spelletjes</h3>
     <div class="spel-lijst">
       <a class="spel-tegel bordspel-tegel" href="#doolhof/${k}"><span>🧭</span>Doolhof</a>
-      ${KANT_EN_KLAAR.map((s) => tegel(s)).join("")}</div>
+      ${KANT_EN_KLAAR.map((s, i) => tegel(metFeest(s, i))).join("")}</div>
     <h3 class="spel-kop">⭐ Mijn eigen spelletjes</h3>
     <div class="spel-lijst">
       ${mijnSpellen().map((s) => tegel(s, true)).join("")}
@@ -705,7 +705,8 @@ function tekenMeerSpellen(cat) {
 }
 
 function wereldSpel(cat, spelId) {
-  const spel = alleWereldSpellen().find((s) => s.id === spelId);
+  const i = KANT_EN_KLAAR.findIndex((s) => s.id === spelId);
+  const spel = i >= 0 ? metFeest(KANT_EN_KLAAR[i], i) : mijnSpellen().find((s) => s.id === spelId);
   if (!spel) return categorie(cat);
   const W = WERELDEN[spel.wereld];
   const titel = `${spelEmoji(spel)} ${spel.naam}`;
@@ -809,7 +810,7 @@ function maakSpel(cat) {
       <h3>1. Wat doe je in het spel?</h3>
       <div class="kies-rij" data-veld="soort">${Object.entries(SOORTEN).map(([id, S]) => knop(id, S.emoji, S.naam)).join("")}</div>
       <h3>2. Kies een thema</h3>
-      <div class="kies-rij" data-veld="wereld">${Object.entries(WERELDEN).map(([id, W]) => knop(id, W.emoji + W.doel, W.naam)).join("")}</div>
+      <div class="kies-rij" data-veld="wereld">${Object.entries(WERELDEN).filter(([, W]) => !W.feest).map(([id, W]) => knop(id, W.emoji + W.doel, W.naam)).join("")}</div>
       <div class="alleen-doel">
         <h3>3. Wat staat erop?</h3>
         <div class="kies-rij" data-veld="op">${knop("stukje", "b · p", "Een stukje")}${knop("woord", "krab · krap", "Een heel woord")}</div>
