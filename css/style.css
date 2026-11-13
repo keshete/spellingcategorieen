@@ -546,3 +546,37 @@ header { position: relative; }
 .dikte-knop span { display: block; background: #333; border-radius: 50%; }
 .stempel-knop { font-size: 1.7rem; padding: 0 .3rem; }
 .dikte-knop.gekozen, .stempel-knop.gekozen { border-color: #7e57c2; background: #ede7f6; }
+
+/* ---------- 🎉 feesten: mutsen, slinger, feesten-scherm ---------- */
+.feest-aan .tegel:not(.dicht):not(.sleutel-klaar) .figuur,
+.feest-aan .figuur.groot, .feest-aan .figuur.reus, .feest-aan .keuze .figuur,
+.feest-aan .mascot, .feest-aan .figuur-dier { position: relative; display: inline-block; }
+.feest-aan .tegel:not(.dicht):not(.sleutel-klaar) .figuur::after,
+.feest-aan .figuur.groot::after, .feest-aan .figuur.reus::after, .feest-aan .keuze .figuur::after,
+.feest-aan .mascot::after, .feest-aan .figuur-dier::after {
+  content: ""; position: absolute; left: 50%; top: -.42em; width: .72em; height: .62em; pointer-events: none;
+  transform: translateX(-50%) rotate(-10deg); background: var(--hoed) center bottom / contain no-repeat;
+}
+.feest-aan .grid li:nth-child(even) .tegel .figuur::after,
+.feest-aan .mascot::after { background-image: var(--hoed2, var(--hoed)); transform: translateX(-46%) rotate(8deg); }
+.slinger {
+  display: block; width: 100%; overflow: hidden; white-space: nowrap; text-align: center; text-decoration: none;
+  font-size: 1.5rem; letter-spacing: .4rem; padding: .1rem 0 .3rem; border-bottom: 3px dashed rgba(0,0,0,.08);
+  animation: slinger 3s ease-in-out infinite alternate;
+}
+@keyframes slinger { from { transform: translateY(-2px); } to { transform: translateY(2px); } }
+.feest-lijst { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin: 1rem 0; }
+.feest-vak {
+  position: relative; font: inherit; cursor: pointer; padding: .8rem .5rem; display: flex; flex-direction: column; align-items: center; gap: .2rem;
+  background: #fff; border: 4px solid #a5d6a7; border-radius: 1.2rem; box-shadow: 0 4px 0 #81c784;
+}
+.feest-vak b { font-size: 1.2rem; }
+.feest-vak small { color: #777; font-size: .85rem; }
+.feest-vak.niet { border-color: #e0e0e0; box-shadow: 0 4px 0 #bdbdbd; opacity: .65; }
+.feest-vak.nu { border-color: #ffb300; background: #fff8e1; }
+.feest-emoji { position: relative; font-size: 3rem; line-height: 1; margin-top: .8rem; }
+.feest-hoed { position: absolute; left: 50%; top: -.45em; width: .72em; transform: translateX(-50%) rotate(-10deg); }
+.feest-mee { font-weight: bold; font-size: .95rem; }
+.feest-nu { position: absolute; top: -.7rem; right: -.4rem; background: #ffb300; color: #fff; font-weight: bold; border-radius: 1rem; padding: .1rem .5rem; }
+.feest-nu-rij .kies-knop { min-width: 6.5rem; }
+.feest-aan .mascot::after { top: .06em; left: 46%; }
