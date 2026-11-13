@@ -580,3 +580,7 @@ header { position: relative; }
 .feest-nu { position: absolute; top: -.7rem; right: -.4rem; background: #ffb300; color: #fff; font-weight: bold; border-radius: 1rem; padding: .1rem .5rem; }
 .feest-nu-rij .kies-knop { min-width: 6.5rem; }
 .feest-aan .mascot::after { top: .06em; left: 46%; }
+.gereedschap .dikte-knop { font-size: 1.15rem; height: 3.6rem; padding: 0 1rem; }
+.gereedschap .gum { border-color: #f48fb1; }
+.dikte-knop.gum.gekozen { border-color: #e91e63; background: #fce4ec; }
+.teken-vel.gummen { border-color: #e91e63; }
