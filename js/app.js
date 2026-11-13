@@ -12,7 +12,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 32; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 39; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -130,6 +130,36 @@ function geefSterren(nr, aantal) {
 }
 const sterTekst = (n) => "★".repeat(n) + "☆".repeat(3 - n);
 
+// ---------- slotjes en sleutels ----------
+// Je leert de categorieën op volgorde, 1 tot en met 34. In het begin is alleen 1 open.
+// Haal je bij de laatste open categorie 2 sterren of meer, dan krijg je een 🔑.
+// Met die sleutel maak je zelf de volgende categorie open (scherm #open/nr).
+const NODIG = 2;
+const allesOpen = () => localStorage.getItem("allesOpen") === "ja";
+// Hoeveel categorieën op een rij (vanaf 1) hebben al 2 sterren?
+function opEenRij() {
+  const s = sterren();
+  let n = alGehad(); // wat je al op school had, telt als geleerd
+  while (n < CATEGORIEEN.length && (s[CATEGORIEEN[n].nr] || 0) >= NODIG) n++;
+  return n;
+}
+function aantalOpen() {
+  if (allesOpen()) return CATEGORIEEN.length;
+  let n = parseInt(localStorage.getItem("geopend"), 10);
+  if (!(n >= 1)) { // eerste keer: wat je al had, blijft open
+    n = Math.min(opEenRij() + 1, CATEGORIEEN.length);
+    localStorage.setItem("geopend", n);
+  }
+  return Math.min(Math.max(n, alGehad() + 1), CATEGORIEEN.length);
+}
+const isOpen = (cat) => CATEGORIEEN.indexOf(cat) < aantalOpen();
+const openCats = () => CATEGORIEEN.slice(0, aantalOpen());
+// De categorie die je met je sleutel open mag maken (of null als je nog geen sleutel hebt).
+function sleutelVoor() {
+  const n = aantalOpen();
+  return n < CATEGORIEEN.length && opEenRij() >= n ? CATEGORIEEN[n] : null;
+}
+
 // ---------- het lastige stukje ----------
 function maakGat(cat, x) {
   const w = woord(x);
@@ -185,28 +215,156 @@ function thuis() {
   scherm.innerHTML = `
     ${niveauKnop()}
     <div class="thuis-spellen">
-      <a class="thuis-knop" href="#bordspel" style="background:#f06292"><span>🎲</span>Bordspel</a>
+      <a class="thuis-knop" href="#doolhof" style="background:#f06292"><span>🧭</span>Doolhof</a>
       <a class="thuis-knop" href="#sorteer" style="background:#4fc3f7"><span>🎮</span>Sorteerspel</a>
       <a class="thuis-knop" href="#stickers" style="background:#9575cd"><span>📒</span>Stickerboek</a>
       <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🛒</span>Winkel</a>
     </div>
-    <p class="thuis-uitleg">👇 Tik op een categorie. Daar vind je alle spelletjes!</p>
-    <ul class="grid"></ul>`;
+    ${verderKnop(s)}
+    <div class="groep-sprong">${GROEPEN.map((g) => {
+      const cats = CATEGORIEEN.filter((c) => c.groep === g.nr);
+      return `<button class="groep-knop" data-groep="${g.nr}">${g.naam}<small>${cats[0].nr} t/m ${cats[cats.length - 1].nr}</small></button>`;
+    }).join("")}</div>
+    <p class="thuis-uitleg">👇 Tik op een categorie. Je leert ze op volgorde: 2 sterren geeft een 🔑 voor de volgende.</p>
+    <ul class="grid"></ul>
+    <div class="ouder"></div>`;
+  scherm.querySelectorAll(".groep-knop").forEach((b) => (b.onclick = () => {
+    const kop = scherm.querySelector(`.groep-kop[data-groep="${b.dataset.groep}"]`);
+    if (kop) kop.scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
   const lijst = scherm.querySelector(".grid");
   for (const c of CATEGORIEEN) {
     // Een kopje boven de eerste categorie van elke groep.
     const groep = GROEPEN.find((g) => g.nr === c.groep);
     if (groep && c === CATEGORIEEN.find((d) => d.groep === c.groep)) {
-      lijst.appendChild(el(`<li class="groep-kop">${groep.naam}</li>`));
+      lijst.appendChild(el(`<li class="groep-kop" data-groep="${groep.nr}">${groep.naam}</li>`));
     }
-    lijst.appendChild(el(`
+    lijst.appendChild(tegel(c, s));
+  }
+  ouderKnop(scherm.querySelector(".ouder"));
+}
+
+// Een tegel op het beginscherm: open, klaar voor je sleutel, of op slot.
+function tegel(c, s) {
+  if (isOpen(c)) return el(`
       <li><a class="tegel" href="#cat/${c.nr}" style="background:${c.kleur}">
         <span class="figuur">${c.figuur}</span>
         <span class="nr">${c.nr}</span>
         <span class="naam">${c.naam}</span>
         <span class="sterren">${sterTekst(s[c.nr] || 0)}</span>
-      </a></li>`));
+      </a></li>`);
+  if (sleutelVoor() === c) return el(`
+      <li><a class="tegel sleutel-klaar" href="#open/${c.nr}" style="--kleur:${c.kleur}">
+        <span class="figuur">🔑</span>
+        <span class="nr">${c.nr}</span>
+        <span class="naam">${c.naam}</span>
+        <span class="sterren">Tik en maak open!</span>
+      </a></li>`);
+  const li = el(`
+      <li><button class="tegel dicht" aria-label="${c.naam} (op slot)">
+        <span class="figuur">🔒</span>
+        <span class="nr">${c.nr}</span>
+        <span class="naam">${c.naam}</span>
+      </button></li>`);
+  li.querySelector("button").onclick = () => {
+    const i = CATEGORIEEN.indexOf(c), n = aantalOpen();
+    const t = i === n
+      ? `Haal 2 sterren bij ${CATEGORIEEN[n - 1].naam}. Dan krijg je de sleutel voor ${c.naam}!`
+      : `${c.naam} zit nog op slot. Leer eerst ${CATEGORIEEN[n - 1].naam}!`;
+    zegEekhoorn(t); zeg(t);
+  };
+  return li;
+}
+
+// Voor de juf of een ouder: alles openzetten (met een sommetje, zodat kinderen
+// het niet per ongeluk doen) of weer op volgorde zetten.
+function ouderKnop(doos) {
+  if (!doos) return;
+  if (allesOpen()) {
+    doos.innerHTML = `<button class="klein-knop">🔒 Weer op volgorde leren</button>`;
+    doos.querySelector("button").onclick = () => { localStorage.removeItem("allesOpen"); thuis(); };
+    return;
   }
+  doos.innerHTML = `<button class="klein-knop">🔑 Voor juf of ouder</button>`;
+  doos.querySelector("button").onclick = () => {
+    const a = 6 + Math.floor(Math.random() * 4), b = 6 + Math.floor(Math.random() * 4);
+    doos.innerHTML = `
+      <form class="ouder-vraag">
+        <label>Alles openzetten? Hoeveel is ${a} × ${b}?
+          <input inputmode="numeric" autocomplete="off" size="4"></label>
+        <button class="klein-knop">OK</button>
+      </form>`;
+    const veld = doos.querySelector("input");
+    veld.focus();
+    doos.querySelector("form").onsubmit = (e) => {
+      e.preventDefault();
+      if (Number(veld.value) === a * b) { localStorage.setItem("allesOpen", "ja"); thuis(); }
+      else ouderKnop(doos);
+    };
+  };
+}
+
+// 🔑 Met je sleutel maak je de volgende categorie open.
+function openMaken(cat) {
+  if (sleutelVoor() !== cat) { location.hash = isOpen(cat) ? `#cat/${cat.nr}` : "#"; return; }
+  const t = `Je hebt een sleutel! Tik op de sleutel en maak ${cat.naam} open.`;
+  zegEekhoorn(t); zeg(t);
+  scherm.innerHTML = `
+    <div class="kaart open-kaart" style="border-color:${cat.kleur}">
+      <h2>🔑 Je hebt een sleutel!</h2>
+      <div class="slot-deur" style="background:${cat.kleur}">
+        <span class="figuur reus">${cat.figuur}</span>
+        <div class="nr">${cat.nr}</div><h2>${cat.naam}</h2>
+        <span class="groot-slot">🔒</span>
+      </div>
+      <button class="sleutel-knop" aria-label="Maak open met de sleutel">🔑</button>
+      <p class="thuis-uitleg">Tik op de sleutel!</p>
+      <a class="terug" href="#">← Terug</a>
+    </div>`;
+  const knop = scherm.querySelector(".sleutel-knop");
+  knop.onclick = async () => {
+    knop.disabled = true;
+    localStorage.setItem("geopend", CATEGORIEEN.indexOf(cat) + 1);
+    knop.classList.add("draai");
+    geluid("goed");
+    await wacht(900);
+    scherm.querySelector(".groot-slot").textContent = "🔓";
+    scherm.querySelector(".slot-deur").classList.add("open");
+    scherm.querySelector(".open-kaart > h2").textContent = "🔓 Open!";
+    feest(); geluid("feest");
+    const hoera = `Hoera! ${cat.naam} is open!`;
+    zegEekhoorn(hoera + " 🔓"); zeg(hoera);
+    scherm.querySelector(".thuis-uitleg").outerHTML =
+      `<a class="verder-knop" href="#cat/${cat.nr}" style="background:${cat.kleur}"><span>▶️</span><span>Ga naar <b>${cat.nr} ${cat.naam}</b></span></a>`;
+    knop.remove();
+  };
+}
+
+// De volgende categorie om te leren: de eerste (in Staal-volgorde) die nog geen 3 sterren heeft.
+// (Een open categorie die nog geen 2 sterren heeft; anders de laatste open.)
+function volgendeTeLeren(s) {
+  const open = openCats();
+  return open.find((c) => (s[c.nr] || 0) < NODIG) || open[open.length - 1];
+}
+function verderKnop(s) {
+  const k = sleutelVoor();
+  if (k) return `<a class="verder-knop sleutel" href="#open/${k.nr}" style="background:${k.kleur}">
+    <span>🔑</span><span>Je hebt een sleutel! Maak <b>${k.nr} ${k.naam}</b> open</span></a>`;
+  const c = volgendeTeLeren(s);
+  return `<a class="verder-knop" href="#cat/${c.nr}" style="background:${c.kleur}">
+    <span>▶️</span><span>Verder leren: <b>${c.nr} ${c.naam}</b> ${c.figuur}</span></a>`;
+}
+// Knoppen onderaan een categorie: naar de vorige en de volgende, zo loop je alle 34 af.
+function buurKnoppen(cat) {
+  const i = CATEGORIEEN.indexOf(cat);
+  const vorige = CATEGORIEEN[i - 1], volgende = CATEGORIEEN[i + 1];
+  return `<div class="buren">
+    ${vorige ? `<a class="buur" href="#cat/${vorige.nr}">⬅️ ${vorige.nr} ${vorige.naam}</a>` : "<span></span>"}
+    ${!volgende ? `<span class="buur klaar">🏆 Dit is de laatste!</span>`
+      : isOpen(volgende) ? `<a class="buur volgende" href="#cat/${volgende.nr}" style="background:${volgende.kleur}">${volgende.nr} ${volgende.naam} ➡️</a>`
+      : sleutelVoor() === volgende ? `<a class="buur volgende" href="#open/${volgende.nr}" style="background:${volgende.kleur}">🔑 Maak ${volgende.nr} ${volgende.naam} open</a>`
+      : `<span class="buur dicht">🔒 ${volgende.nr} ${volgende.naam}: haal eerst 2 sterren</span>`}
+  </div>`;
 }
 
 function categorie(cat) {
@@ -220,6 +378,7 @@ function categorie(cat) {
       <p class="regel">${cat.regel}</p>
       ${tekenWeg(cat)}
       ${tekenMeerSpellen(cat)}
+      ${buurKnoppen(cat)}
       <a class="terug" href="#">← Terug</a>
     </div>`;
 }
@@ -368,16 +527,13 @@ function dictee(cat) {
 }
 
 function sorteer() {
-  // Alleen categorieën van jouw groep en daarvoor (als dat er minstens 2 zijn).
-  const mijn = CATEGORIEEN.filter(binnenMijnGroep);
-  const cats = mijn.length >= 2 ? mijn : CATEGORIEEN;
-  const anderen = Math.min(sorteerKeuzes(), cats.length) - 1;
   speelRonde({
     titel: "🎮 Sorteerspel", cat: null, terug: "#",
     maakVraag: (doos, antwoord) => {
-      const cat = schud(cats)[0];
+      const open = openCats();
+      const cat = schud(open)[0];
       const x = schud(woordenVoorNiveau(cat.woorden))[0];
-      const keuzes = schud([cat, ...schud(cats.filter((c) => c !== cat)).slice(0, anderen)]);
+      const keuzes = schud([cat, ...schud(open.filter((c) => c !== cat)).slice(0, Math.min(sorteerKeuzes(), open.length) - 1)]);
       zegEekhoorn("Bij welke categorie hoort dit woord?");
       doos.innerHTML = `
         <button class="luister" title="Luister">🔊</button>
@@ -451,8 +607,8 @@ function stemScherm() {
 }
 
 // ---------- leeftijd en moeilijkheid ----------
-function kies() {
-  kiesScherm({ zegEekhoorn, zeg, naam, klaar: () => {
+function kies(naarGehad) {
+  kiesScherm({ zegEekhoorn, zeg, naam, naarGehad, klaar: () => {
     if (location.hash === "" || location.hash === "#") thuis(); else location.hash = "#";
   } });
 }
@@ -462,18 +618,21 @@ function route() {
   spreekBeurt++; stopGeluid();
   if ("speechSynthesis" in window) speechSynthesis.cancel();
   const [naam, nr] = location.hash.slice(1).split("/");
-  const cat = vindCat(nr);
+  const gevonden = vindCat(nr);
+  const cat = gevonden && isOpen(gevonden) ? gevonden : null; // op slot: terug naar het begin
   window.scrollTo(0, 0);
-  if (naam === "sorteer") return sorteer();
+  if (naam === "open" && gevonden) return openMaken(gevonden);
+  if (naam === "sorteer" && aantalOpen() >= 2) return sorteer();
   if (naam === "stem") return stemScherm();
-  if (naam === "kies") return kies();
+  if (naam === "kies") return kies(nr === "gehad");
   if (cat && naam === "cat") return categorie(cat);
   if (cat && naam === "uitleg") return uitleg(cat);
   if (cat && naam === "gaatjes") return gaatjes(cat);
   if (cat && naam === "dictee") return dictee(cat);
   if (naam === "prijzen") return prijzen();
-  if (naam === "bordspel") return bordspel();
+  if (naam === "bordspel" || naam === "doolhof") return doolhof(cat || null);
   if (naam === "stickers") return stickerboek();
+  if (naam === "stickermaker") return stickermaker();
   if (cat && naam === "ballonnen") return ballonnen(cat);
   if (cat && naam === "eikels") return eikels(cat);
   if (cat && naam === "kiezen") return kiezen(cat);

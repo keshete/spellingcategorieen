@@ -48,7 +48,15 @@ const catGroep = (cat) => cat.groep || 4;
 // Hoort deze categorie bij jouw groep of een groep daarvoor?
 const binnenMijnGroep = (cat) => catGroep(cat) <= mijnGroep();
 // Voor slotjes: hoeveel categorieën (vooraan in de lijst) zijn al geleerd in eerdere groepen?
-const alGeleerd = (lijst) => lijst.filter((c) => catGroep(c) < mijnGroep()).length;
+const alGeleerd = (lijst, groep = mijnGroep()) => lijst.filter((c) => catGroep(c) < groep).length;
+
+// Welke categorieën heb je al gehad (op school)? Bewaard als aantal: "alGehad" = 9 betekent
+// categorie 1 t/m 9 (de eerste 9 in CATEGORIEEN). Die zijn open en tellen als geleerd,
+// dus je hoeft ze niet opnieuw te doen om de sleutel voor de volgende te krijgen.
+function alGehad() {
+  const n = parseInt(localStorage.getItem("alGehad"), 10);
+  return n >= 0 ? Math.min(n, CATEGORIEEN.length) : 0;
+}
 
 // Welke woorden passen bij de moeilijkheid? Kort = makkelijk, lang = moeilijk.
 // Er blijven altijd minstens 4 woorden over (of alle, als het er minder zijn).
@@ -80,14 +88,20 @@ function sterrenVoor(goed, totaal) {
 function niveauKnop() {
   const n = mijnNiveau();
   return `<a class="niveau-knop" href="#kies" aria-label="Leeftijd en moeilijkheid veranderen">
-    🎒 Groep ${mijnGroep()} · ${n.icoon} ${n.naam} <span class="pen">✏️</span></a>`;
+    🎒 Groep ${mijnGroep()} · ${n.icoon} ${n.naam} <span class="pen">✏️</span></a>
+    <a class="niveau-knop" href="#kies/gehad" aria-label="Zeggen welke categorieën je al hebt gehad">
+    ✅ ${alGehad() ? `Al gehad: 1 t/m ${CATEGORIEEN[alGehad() - 1].nr}` : "Welke heb je al gehad?"} <span class="pen">✏️</span></a>`;
 }
 
-// Het keuzescherm: eerst hoe oud je bent, dan hoe moeilijk.
-function kiesScherm({ zegEekhoorn, zeg, naam, klaar }) {
+// Het keuzescherm: hoe oud je bent, hoe moeilijk, en welke categorieën je al hebt gehad.
+function kiesScherm({ zegEekhoorn, zeg, naam, klaar, naarGehad }) {
   const scherm = document.getElementById("scherm");
   let groep = heeftGekozen() ? mijnGroep() : null;
   let niveau = heeftGekozen() ? mijnNiveauNaam() : null;
+  // Hoeveel categorieën al gehad? Nog nooit gekozen: volgt de groep (alles van eerdere groepen).
+  let gehad = localStorage.getItem("alGehad") !== null ? alGehad() : null;
+  const gehadNu = () => (gehad !== null ? gehad : groep ? alGeleerd(CATEGORIEEN, groep) : 0);
+  const vraag3 = "Welke categorieën heb je al gehad?";
   const vraag1 = "Hoe oud ben jij?";
   const vraag2 = "Hoe moeilijk wil je het?";
   zegEekhoorn(`${vraag1} Dan weet ik welke categorieën bij jou passen.`);
@@ -105,8 +119,16 @@ function kiesScherm({ zegEekhoorn, zeg, naam, klaar }) {
           ${Object.entries(NIVEAUS).map(([k, n]) => `<button class="grote-knop${k === niveau ? " gekozen" : ""}" data-niveau="${k}">
             <span class="icoon">${n.icoon}</span>${n.naam}<small>${n.uitleg}</small></button>`).join("")}
         </div>
+        <h2 id="gehad-kop">✅ ${vraag3}</h2>
+        <p class="gehad-uitleg">Tik op de <b>laatste</b> categorie die je al kent. Die en alles ervoor gaat open.</p>
+        <div class="gehad-lijst">
+          ${CATEGORIEEN.map((c, i) => `${i === 0 || catGroep(c) !== catGroep(CATEGORIEEN[i - 1]) ? `<h3>Groep ${catGroep(c)}${catGroep(c) === 7 ? " en 8" : ""}</h3>` : ""}
+            <button class="gehad-tegel${i < gehadNu() ? " aan" : ""}" data-gehad="${i + 1}" style="--kleur:${c.kleur}">
+              <span class="gehad-nr">${i < gehadNu() ? "✅" : c.figuur} ${c.nr}</span><small>${c.naam}</small></button>`).join("")}
+        </div>
+        ${gehadNu() ? `<button class="grote-knop grijs" id="geen">Ik heb er nog geen gehad</button>` : ""}
         <button class="grote-knop start" id="klaar" ${groep && niveau ? "" : "disabled"}>Klaar, we gaan! ▶</button>
-        <p class="tip">Je kunt dit later altijd weer veranderen met het knopje 🎒 bovenaan.</p>
+        <p class="tip">Je kunt dit later altijd weer veranderen met de knopjes 🎒 en ✅ op het beginscherm.</p>
       </div>`;
     scherm.querySelectorAll("[data-groep]").forEach((b) => (b.onclick = () => {
       groep = Number(b.dataset.groep);
@@ -121,12 +143,27 @@ function kiesScherm({ zegEekhoorn, zeg, naam, klaar }) {
       zegEekhoorn(groep ? `${n.naam}! Tik op Klaar.` : `${n.naam}! Hoe oud ben jij?`);
       zeg(`${n.naam}. ${n.uitleg}`);
     }));
+    scherm.querySelectorAll("[data-gehad]").forEach((b) => (b.onclick = () => {
+      const n = Number(b.dataset.gehad);
+      gehad = n === gehadNu() ? n - 1 : n; // nog een keer op de laatste tikken = die weer uit
+      const y = window.scrollY;
+      teken(); window.scrollTo(0, y);
+      const c = CATEGORIEEN[gehad - 1];
+      const t = gehad ? `Je hebt al ${gehad === 1 ? c.naam : `1 tot en met ${c.nr}`} gehad. Knap!` : "Je begint bij het begin.";
+      zegEekhoorn(t); zeg(t);
+    }));
+    if (scherm.querySelector("#geen")) scherm.querySelector("#geen").onclick = () => { gehad = 0; const y = window.scrollY; teken(); window.scrollTo(0, y); };
     scherm.querySelector("#klaar").onclick = () => {
       if (!groep || !niveau) return;
       localStorage.setItem("groep", groep);
       localStorage.setItem("niveau", niveau);
+      localStorage.setItem("alGehad", gehadNu());
       klaar();
     };
   };
   teken();
+  if (naarGehad) {
+    zegEekhoorn(vraag3); zeg(vraag3);
+    scherm.querySelector("#gehad-kop").scrollIntoView();
+  }
 }

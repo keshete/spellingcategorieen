@@ -327,21 +327,8 @@ header { position: relative; }
 .nieuwe-sticker { font-size: 1.4rem; font-weight: bold; }
 .nieuwe-sticker span { font-size: 4rem; display: inline-block; animation: dans 1.6s ease-in-out infinite; vertical-align: middle; }
 
-/* ---------- 🎲 bordspel ---------- */
+/* ---------- 🧭 doolhof ---------- */
 .spel-tegel.bordspel-tegel { background: #fce4ec; border-color: #f06292; box-shadow: 0 5px 0 #ec407a; }
-.bord {
-  display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr); gap: .45rem;
-  background: #c5e1a5; padding: .7rem; border-radius: 1.2rem; margin: .4rem 0 .8rem;
-}
-.vak {
-  position: relative; aspect-ratio: 1.5; border-radius: .9rem; background: #fffde7; border: 3px solid #a1887f;
-  display: flex; align-items: center; justify-content: center; max-height: 66px;
-}
-.vak.gelopen { background: #ffe082; }
-.vak.ster { background: #fff59d; }
-.vak-nr { position: absolute; left: .35rem; top: .1rem; font-size: .8rem; color: #8d6e63; }
-.vak-teken { font-size: 1.8rem; }
-.mijn-figuur.pion { position: absolute; font-size: 2.4rem; animation: pop .3s ease-out; filter: drop-shadow(0 3px 2px rgba(0,0,0,.3)); }
 .weggetjes { display: flex; justify-content: center; gap: 1.5rem; margin: .8rem 0; }
 .weggetje {
   font: inherit; cursor: pointer; border: none; padding: 0; background: none; touch-action: manipulation;
@@ -408,6 +395,158 @@ header { position: relative; }
 .winkel-vak.foto-kiezen { border-color: #ff8a65; background: #fbe9e7; }
 .winkel-uitleg { color: #666; margin: 0 0 .5rem; }
 
+.winkel-foto { width: 2.8rem; height: 2.8rem; border-radius: 50%; object-fit: cover; }
+.winkel-rij { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+.winkel-rij.groot .winkel-vak { border-color: #ffca28; background: #fffde7; }
+
+/* ---------- 🧭 doolhof ---------- */
+.doolhof {
+  display: grid; gap: 0; max-width: 640px; margin: .4rem auto .6rem; padding: .5rem;
+  background: #2e7d32; border-radius: 1rem; box-shadow: inset 0 0 0 4px #1b5e20;
+}
+.dh { position: relative; display: flex; align-items: center; justify-content: center; min-height: 14px; }
+.dh.heg { background: #388e3c; }
+.dh.gang { background: #fff3c4; font-size: clamp(1.1rem, 4vw, 2rem); }
+.dh:nth-child(odd).heg { background: #43a047; }
+.dh.cel { aspect-ratio: 1; }
+.dh.gang.cel { border-radius: .5rem; }
+.dh.tussen { border-radius: 0; }
+.dh.uitgang { background: #ffe082; animation: gloei 1.4s ease-in-out infinite; }
+.dh.dood { background: #d7ccc8; }
+.gang-woord {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2;
+  background: #fff; border: 3px solid #5c6bc0; border-radius: .6rem; padding: 0 .3rem;
+  font-size: clamp(.75rem, 2.4vw, 1.15rem); font-weight: bold; white-space: nowrap; color: #333;
+}
+.gang-woord.goed { border-color: #2e7d32; background: #c8e6c9; }
+.gang-woord.fout { border-color: #c62828; background: #ffcdd2; text-decoration: line-through; opacity: .85; }
+.dh .mijn-figuur.pion { position: absolute; filter: drop-shadow(0 3px 2px rgba(0,0,0,.3)); animation: pop .3s ease-out; font-size: clamp(1.4rem, 5vw, 2.6rem); z-index: 3; }
+.klok { font-size: 1.5rem; font-weight: bold; }
+.klok.bijna { color: #c62828; animation: pop .5s ease-out infinite alternate; }
+.klok.au { animation: schud .4s; }
+.grote-knop.gooi { font-size: 2rem; min-width: 10rem; }
+.splits-vraag { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .8rem; }
+.betekenis.klein { margin: 0; font-size: 3rem; }
+.splits-knoppen { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+.splits-knop {
+  font: inherit; font-size: 2rem; font-weight: bold; min-width: 9rem; padding: .5rem 1rem; cursor: pointer;
+  display: flex; align-items: center; gap: .5rem; justify-content: center; color: #333;
+  background: #fff; border: 5px solid #5c6bc0; border-radius: 1.2rem; box-shadow: 0 6px 0 #3949ab; touch-action: manipulation;
+}
+.splits-knop span { font-size: 1.6rem; }
+.splits-knop:disabled { opacity: 1; color: #333; }
+.splits-knop.goed { background: #c8e6c9; border-color: #2e7d32; box-shadow: 0 6px 0 #1b5e20; }
+.splits-knop.fout { background: #ffcdd2; border-color: #c62828; box-shadow: 0 6px 0 #b71c1c; animation: schud .4s 2; }
+
+/* ---------- 🛠️ maker: verhaal, thema-spelletjes ---------- */
+.spel-verhaal {
+  font: inherit; font-size: 1.3rem; width: 100%; max-width: 34rem; padding: .6rem .8rem;
+  border: 4px solid #b39ddb; border-radius: 1rem; resize: vertical;
+}
+.grote-knop.eva-maak { display: block; margin: .6rem auto 0; }
+.eva-plan { background: #fff8e1; border: 3px dashed #ffb300; border-radius: 1rem; padding: .6rem .9rem; font-size: 1.2rem; max-width: 34rem; margin: 1rem auto; }
+.spel-intro h2 { font-size: 2rem; margin: .3rem 0; }
+.intro-plaatje { font-size: 5rem; line-height: 1.1; animation: dans 1.6s ease-in-out infinite; }
+.verhaal { font-size: 1.3rem; font-style: italic; background: #fff; border-radius: 1rem; padding: .6rem .9rem; max-width: 34rem; margin: .6rem auto; }
+.weggooien { font: inherit; margin-top: 1rem; background: none; border: none; color: #8d6e63; font-size: 1rem; cursor: pointer; padding: .6rem; }
+.weggooien.zeker { color: #c62828; font-weight: bold; }
+.ballon-spel.thema span { flex-direction: column; background: none; box-shadow: none; text-shadow: none; color: #333; }
+.ballon-spel.thema em { font-style: normal; font-size: 5.5rem; line-height: 1; }
+.ballon-spel.thema b { background: #fff; border: 4px solid #333; border-radius: .8rem; padding: 0 .5rem; font-size: 1.5rem; white-space: nowrap; }
+.ballon-spel.thema::after { display: none; }
+.ballon-spel.thema.mis b { background: #ffcdd2; border-color: #c62828; }
+
+/* ---------- verder leren, groepen, vorige/volgende ---------- */
+.verder-knop {
+  display: flex; align-items: center; justify-content: center; gap: .6rem; flex-wrap: wrap;
+  margin: .4rem 0 .8rem; padding: .9rem 1rem; border-radius: 1.2rem;
+  color: #fff; font-size: 1.4rem; text-align: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35); box-shadow: 0 5px 0 rgba(0,0,0,.2);
+}
+.verder-knop span:first-child { font-size: 2rem; }
+.groep-sprong { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .6rem; margin-bottom: .4rem; }
+.groep-knop {
+  font: inherit; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+  background: #fff; border: 4px solid #ffca28; border-radius: 1rem; padding: .5rem;
+  box-shadow: 0 4px 0 #c49000; display: flex; flex-direction: column; align-items: center;
+}
+.groep-knop small { font-size: .95rem; font-weight: normal; }
+.groep-knop:active { transform: translateY(3px); box-shadow: 0 1px 0 #c49000; }
+.grid .groep-kop { scroll-margin-top: 1rem; }
+.buren { display: flex; justify-content: space-between; gap: .6rem; margin: 1.2rem 0 .4rem; flex-wrap: wrap; }
+.buur {
+  flex: 1 1 200px; padding: .8rem 1rem; border-radius: 1rem; font-size: 1.2rem; font-weight: bold;
+  background: #eee; box-shadow: 0 4px 0 rgba(0,0,0,.15);
+}
+.buur.volgende { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); text-align: right; }
+.buur.klaar { background: #fff3cd; text-align: center; }
+
+/* ---------- slotjes en sleutels ---------- */
+.tegel.dicht { background: #bdbdbd; color: #fff; }
+.tegel.dicht .figuur { opacity: .9; }
+.tegel.sleutel-klaar {
+  background: repeating-linear-gradient(45deg, var(--kleur), var(--kleur) 14px, #ffd54f 14px, #ffd54f 28px);
+  border: 4px solid #ffb300; animation: gloei 1.2s ease-in-out infinite;
+}
+.tegel.sleutel-klaar .figuur { animation: wiebel 1s ease-in-out infinite; }
+.tegel.sleutel-klaar .sterren { font-size: 1rem; font-weight: bold; background: rgba(0,0,0,.35); border-radius: .6rem; padding: 0 .4rem; }
+@keyframes wiebel { 25% { transform: rotate(-15deg); } 75% { transform: rotate(15deg); } }
+.nieuw-open {
+  display: block; margin: .8rem auto; padding: .9rem 1rem; border-radius: 1.2rem; max-width: 520px;
+  color: #fff; font-size: 1.4rem; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  box-shadow: 0 5px 0 rgba(0,0,0,.2); animation: gloei 1.2s ease-in-out infinite;
+}
+.buur.dicht { background: #e0e0e0; color: #666; }
+.ouder { text-align: center; margin-top: 1.5rem; }
+.klein-knop {
+  font: inherit; font-size: 1rem; cursor: pointer; background: #fff; color: #666;
+  border: 2px solid #ccc; border-radius: .8rem; padding: .4rem .8rem; margin: .2rem;
+}
+.ouder-vraag input { font: inherit; font-size: 1.2rem; width: 4rem; }
+.open-kaart h2 { margin: .2rem 0; }
+.slot-deur {
+  position: relative; margin: 1rem auto; max-width: 340px; padding: 1rem; border-radius: 1.5rem;
+  color: #fff; filter: grayscale(.7); transition: filter .6s, transform .6s;
+}
+.slot-deur.open { filter: none; transform: scale(1.05); }
+.groot-slot { position: absolute; right: -.6rem; top: -1rem; font-size: 4rem; }
+.slot-deur.open .groot-slot { animation: spring .6s ease-out; }
+.sleutel-knop {
+  font-size: 5rem; background: #fff8e1; border: 5px solid #ffb300; border-radius: 50%;
+  width: 8rem; height: 8rem; cursor: pointer; box-shadow: 0 6px 0 #c49000;
+  animation: wiebel 1.2s ease-in-out infinite; touch-action: manipulation;
+}
+.sleutel-knop.draai { animation: draai-sleutel .9s ease-in forwards; }
+@keyframes draai-sleutel { 40% { transform: translateY(-110px) rotate(0); } 100% { transform: translateY(-110px) rotate(90deg) scale(.6); opacity: 0; } }
+
+/* ---------- 🎨 eigen stickers en walnoten ---------- */
+.walnoot { width: 1em; height: 1em; vertical-align: -.14em; }
+.eikel-teller .wn { margin-left: .3rem; }
+.groot-walnoten { margin-left: 1rem; }
+.walnoot-bonus { font-size: 1.4rem; font-weight: bold; color: #6d4421; background: #efebe9; border-radius: 1rem; padding: .4rem .8rem; display: inline-block; animation: pop .5s ease-out; }
+.winkel-sticker { width: 3rem; height: 3rem; object-fit: contain; filter: drop-shadow(0 2px 0 #fff) drop-shadow(0 0 2px rgba(0,0,0,.35)); }
+.ruil-vak { border-color: #bcaaa4; background: #efebe9; }
+.ruil-vak .winkel-emoji { font-size: 1.8rem; white-space: nowrap; }
+.sticker img { width: 7.5rem; height: 7.5rem; display: block; }
+.nieuwe-sticker img { width: 4.5rem; height: 4.5rem; vertical-align: middle; }
+.grote-knop.teken-knop { margin: .8rem .4rem 0; background: #ce93d8; box-shadow: 0 5px 0 #8e24aa; }
+.teken-vel {
+  display: block; margin: .4rem auto .6rem; width: min(100%, 420px); aspect-ratio: 1; touch-action: none; cursor: crosshair;
+  border: 5px dashed #ba68c8; border-radius: 1.2rem;
+  background: repeating-conic-gradient(#f3e5f5 0 25%, #fff 0 50%) 0 0 / 32px 32px;
+}
+.teken-rij { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin: .5rem 0; }
+.kleur-knop { width: 3rem; height: 3rem; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 0 2px #bbb; cursor: pointer; }
+.kleur-knop.gekozen { box-shadow: 0 0 0 4px #7e57c2; transform: scale(1.12); }
+.dikte-knop, .stempel-knop {
+  font: inherit; font-weight: bold; min-width: 3.2rem; height: 3.2rem; padding: 0 .7rem; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border: 4px solid #ddd; border-radius: 1rem; box-shadow: 0 3px 0 #ccc;
+}
+.dikte-knop span { display: block; background: #333; border-radius: 50%; }
+.stempel-knop { font-size: 1.7rem; padding: 0 .3rem; }
+.dikte-knop.gekozen, .stempel-knop.gekozen { border-color: #7e57c2; background: #ede7f6; }
+
 /* ---------- leeftijd en moeilijkheid ---------- */
 .niveau-knop {
   display: inline-block; margin: 0 0 1rem; padding: .6rem 1.1rem;
@@ -424,3 +563,16 @@ header { position: relative; }
 .kieskaart .start { display: block; margin: 1.4rem auto .4rem; font-size: 1.5rem; background: #4fc3f7; box-shadow: 0 5px 0 #0288d1; }
 .kieskaart .start:disabled { opacity: .45; cursor: default; }
 .letterhulp { font-size: 2.2rem; letter-spacing: .25rem; font-family: monospace; margin: .4rem 0; color: #999; }
+
+/* ---------- ✅ al gehad ---------- */
+.gehad-uitleg { font-size: 1.15rem; margin: 0 0 .6rem; }
+.gehad-lijst { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); margin-bottom: .8rem; }
+.gehad-lijst h3 { grid-column: 1 / -1; margin: .6rem 0 0; text-align: left; }
+.gehad-tegel {
+  font: inherit; cursor: pointer; padding: .5rem .3rem; min-height: 72px; touch-action: manipulation;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .15rem;
+  background: #fff; border: 4px solid var(--kleur); border-radius: 1rem; color: #333;
+}
+.gehad-tegel .gehad-nr { font-size: 1.3rem; font-weight: bold; }
+.gehad-tegel small { font-size: .85rem; line-height: 1.1; }
+.gehad-tegel.aan { background: var(--kleur); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
