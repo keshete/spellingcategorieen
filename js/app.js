@@ -13,7 +13,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 39; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 40; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -23,7 +23,7 @@ const nlStemmen = () => speechSynthesis.getVoices().filter((v) => taal(v).starts
 const isVrouw = (v) => VROUW.test(v.name) && !/\bmale\b/i.test(v.name);
 const isMan = (v) => MAN.test(v.name);
 // Met een jongensstem heet de eekhoorn Erik, met een meisjesstem Eva.
-const naam = () => (nlStem && isMan(nlStem) ? "Erik" : "Eva");
+const naam = () => (nlStem && isMan(nlStem) && !echteStemAan() ? "Erik" : "Eva");
 function kiesStem() {
   const stemmen = speechSynthesis.getVoices();
   const nl = nlStemmen();
@@ -567,8 +567,9 @@ function stemScherm() {
       </div>
       <h3>Welke stem?</h3>
       <div class="keuzes" id="stemmen">
-        ${stemmen.map((v, i) => `<button class="grote-knop${nlStem && v.voiceURI === nlStem.voiceURI ? " gekozen" : ""}" data-i="${i}">
-          ${isVrouw(v) ? "👧" : isMan(v) ? "👦" : "🙂"} ${v.name} <small>(${v.lang})</small></button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
+        ${stemmen.map((v, i) => `<button class="grote-knop${!echteStemAan() && nlStem && v.voiceURI === nlStem.voiceURI ? " gekozen" : ""}" data-i="${i}">
+          ${isVrouw(v) ? "👧 Meisje" : isMan(v) ? "👦 Jongen" : "🙂"}: ${v.name}</button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
+        <button class="grote-knop${echteStemAan() ? " gekozen" : ""}" id="echt">🧑 Echte mensen (steeds iemand anders)</button>
       </div>
       ${heeftVrouw ? "" : `<p class="tip">Er is nog geen meisjesstem op dit apparaat. Vraag een grote mens om te helpen:
         iPhone of iPad → Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands →
@@ -579,13 +580,8 @@ function stemScherm() {
         Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands
         de <b>verbeterde</b> versie van de stem downloaden. Die klinkt veel mooier.</p>
       <button class="grote-knop" id="probeer">▶️ Probeer</button>
-      <h3>Echte stemmen</h3>
-      <div class="keuzes" id="echt">
-        <button class="grote-knop${echteStemAan() ? " gekozen" : ""}" data-v="aan">🧑 Echte mensen</button>
-        <button class="grote-knop${echteStemAan() ? "" : " gekozen"}" data-v="uit">🤖 Computerstem</button>
-      </div>
-      <p class="tip">Met <b>echte mensen</b> hoor je bij losse woorden de stem van een echt persoon,
-        steeds iemand anders. Daarvoor is internet nodig. Is er van een woord geen opname, dan praat de computerstem.
+      <p class="tip"><b>Echte mensen</b>: bij losse woorden hoor je een opname van een echt persoon, jongen of meisje,
+        steeds iemand anders. Daarvoor is internet nodig.
         <small>Opnames: Lingua Libre en WikiWoordenboek via Wikimedia Commons (CC BY-SA).</small></p>
       <p class="versie">Versie ${VERSIE}</p>
     </div>`;
@@ -594,12 +590,14 @@ function stemScherm() {
   // Bij het loslaten van het schuifje: onthouden en even laten horen hoe snel het is.
   schuif.onchange = () => { localStorage.setItem("snelheid", schuif.value); probeer(); };
   scherm.querySelectorAll("#stemmen button").forEach((b) => (b.onclick = () => {
-    localStorage.setItem("stem", stemmen[b.dataset.i].voiceURI); kiesStem(); stemScherm(); probeer();
+    // Een gekozen stem gebruiken we overal, ook bij losse woorden (dus geen echte mensen).
+    localStorage.setItem("stem", stemmen[b.dataset.i].voiceURI); localStorage.setItem("echteStem", "uit");
+    kiesStem(); stemScherm(); probeer();
   }));
   scherm.querySelector("#probeer").onclick = probeer;
-  scherm.querySelectorAll("#echt button").forEach((b) => (b.onclick = () => {
-    localStorage.setItem("echteStem", b.dataset.v); stemScherm(); zeg("kat. vis. hulp.");
-  }));
+  scherm.querySelector("#echt").onclick = () => {
+    localStorage.setItem("echteStem", "aan"); stemScherm(); zeg("kat. vis. hulp.");
+  };
 }
 
 // ---------- router ----------
