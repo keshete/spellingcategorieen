@@ -57,7 +57,7 @@ a { color: inherit; text-decoration: none; }
   background: #fff; border: 5px solid #ffca28; border-radius: 1.5rem;
   padding: 1.2rem; max-width: 760px; margin: 0 auto; text-align: center;
 }
-.kop { display: flex; align-items: center; gap: 1rem; color: #fff; border-radius: 1rem; padding: .8rem 1.2rem; text-align: left; }
+.kop { display: flex; align-items: center; gap: 1rem; color: #fff; border-radius: 1rem; padding: .8rem 1.2rem; text-align: start; }
 .kop h2 { margin: 0; font-size: 2rem; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
 .kop .nr { font-size: 1.6rem; }
 .figuur.groot { font-size: 4rem; }
@@ -68,7 +68,7 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- uitleg ---------- */
 .podium { display: flex; align-items: center; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-.ballon { flex: 1; min-width: 240px; background: #fff8e7; border: 3px solid #333; border-radius: 1.2rem; padding: 1rem; font-size: 1.3rem; text-align: left; }
+.ballon { flex: 1; min-width: 240px; background: #fff8e7; border: 3px solid #333; border-radius: 1.2rem; padding: 1rem; font-size: 1.3rem; text-align: start; }
 .dans { animation: dans 1.6s ease-in-out infinite; }
 @keyframes dans { 0%,100% { transform: rotate(-6deg) translateY(0); } 50% { transform: rotate(6deg) translateY(-12px); } }
 .voorbeelden { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
@@ -115,7 +115,7 @@ mark { background: #ffe082; border-radius: .3rem; padding: 0 .1rem; }
 .stemkaart h3 { margin: 1.2rem 0 .4rem; }
 .keuzes { display: flex; flex-wrap: wrap; justify-content: center; }
 .grote-knop.gekozen { background: #81c784; box-shadow: 0 5px 0 #388e3c; }
-.tip { background: #fff3cd; border-radius: 1rem; padding: .8rem 1rem; font-size: 1.05rem; text-align: left; }
+.tip { background: #fff3cd; border-radius: 1rem; padding: .8rem 1rem; font-size: 1.05rem; text-align: start; }
 .versie { color: #999; font-size: .9rem; margin-top: 1rem; }
 .schuif { max-width: 520px; margin: .5rem auto 0; }
 .schuif input[type=range] { width: 100%; height: 3rem; accent-color: #ff9800; }
@@ -478,7 +478,7 @@ header { position: relative; }
   flex: 1 1 200px; padding: .8rem 1rem; border-radius: 1rem; font-size: 1.2rem; font-weight: bold;
   background: #eee; box-shadow: 0 4px 0 rgba(0,0,0,.15);
 }
-.buur.volgende { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); text-align: right; }
+.buur.volgende { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); text-align: end; }
 .buur.klaar { background: #fff3cd; text-align: center; }
 
 /* ---------- slotjes en sleutels ---------- */
@@ -571,6 +571,7 @@ header { position: relative; }
   background: #fff; border: 4px solid #a5d6a7; border-radius: 1.2rem; box-shadow: 0 4px 0 #81c784;
 }
 .feest-vak b { font-size: 1.2rem; }
+.feest-he { display: block; color: #1565c0; }
 .feest-vak small { color: #777; font-size: .85rem; }
 .feest-vak.niet { border-color: #e0e0e0; box-shadow: 0 4px 0 #bdbdbd; opacity: .65; }
 .feest-vak.nu { border-color: #ffb300; background: #fff8e1; }
@@ -584,3 +585,22 @@ header { position: relative; }
 .gereedschap .gum { border-color: #f48fb1; }
 .dikte-knop.gum.gekozen { border-color: #e91e63; background: #fce4ec; }
 .teken-vel.gummen { border-color: #e91e63; }
+
+/* ---------- 🌐 taal kiezen ---------- */
+.taal-keuzes { display: flex; flex-direction: column; gap: .8rem; align-items: center; margin: 1rem 0; }
+.taal-knop { min-width: 16rem; font-size: 1.6rem; display: flex; align-items: center; justify-content: center; gap: .6rem; }
+.taal-knop .vlag { font-size: 2.2rem; }
+.taal-link { display: inline-block; margin: .3rem 0 .6rem; }
+.regel-nl { font-size: 1rem; color: #666; margin-top: -.4rem; }
+
+/* ---------- Hebreeuws: van rechts naar links ---------- */
+/* De kop: de eikel-teller gaat naar links. */
+[dir="rtl"] .beloning-balk { right: auto; left: 1.2rem; }
+[dir="rtl"] .eva-hier { left: auto; right: -2.6rem; }
+/* Nederlandse woorden en het doolhof blijven van links naar rechts
+   (anders staat 's morgens verkeerd, en kloppen de pijltjes in het doolhof niet). */
+[dir="rtl"] .woord-groot, [dir="rtl"] .keuze, [dir="rtl"] .woordkaart, [dir="rtl"] .bal-tekst,
+[dir="rtl"] .eikel-tekst, [dir="rtl"] .ballon-spel, [dir="rtl"] .gang-woord, [dir="rtl"] .voorbeelden,
+[dir="rtl"] .doolhof, [dir="rtl"] .splits-knoppen, [dir="rtl"] .tegel .naam, [dir="rtl"] .nl,
+[dir="rtl"] .buren, [dir="rtl"] .dictee input { direction: ltr; unicode-bidi: isolate; }
+[dir="rtl"] .keuze.cat { direction: rtl; }

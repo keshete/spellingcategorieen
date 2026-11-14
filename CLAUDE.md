@@ -6,3 +6,4 @@
 - Design for touch: big buttons, large text, no hover-only interactions.
 - Mascot: Eva Eekhoorn (🐿️), a girl squirrel with a female voice; if the chosen voice is male she is called Erik Eekhoorn (see `naam()` in js/app.js). She talks to the child in short, encouraging sentences.
 - When changing CSS/JS, bump the `?v=` number on the links in index.html so browsers don't mix old and new files.
+- The app interface can be Dutch, Hebrew (right-to-left) or English (🌐 button, `js/taal.js`). The practice words always stay Dutch. Put every new piece of text the child sees or hears through `t("Nederlandse zin")` and add the Hebrew and English to `js/vertalingen.js` (category texts: `js/vertalingen-categorieen.js`). Use `praat()` for what Eva says in the app language, `zeg()` for Dutch practice words. Hebrew addresses the child in the plural (לחצו, בחרו) so it fits boys and girls.
