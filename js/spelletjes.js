@@ -39,14 +39,16 @@ const BETEKENIS = {
   zegt: { plaatje: "🧒💬👋", zin: "Hij zegt hallo." },
   raad: { plaatje: "🤔❓", zin: "Raad eens wat ik heb!" },
 };
+// Ook feest-woorden hebben een plaatje en zinnetje (zie feesten.js).
+const betekenis = (w) => BETEKENIS[w] || (typeof feestZin === "function" ? feestZin(w) : null);
 const betekenisHtml = (w) => {
-  const b = BETEKENIS[w];
+  const b = betekenis(w);
   if (!b) return "";
   // alleen een plaatje, het zinnetje zegt Eva (tik erop om het nog eens te horen)
   return `<button class="betekenis" onclick="zeg('${b.zin}')" aria-label="Plaatje, tik om het zinnetje te horen">${b.plaatje}</button>`;
 };
 // Wat Eva zegt: het woord, en bij een klinkt-hetzelfde-woord ook het zinnetje.
-const metZin = (w) => (BETEKENIS[w] ? `${w}. ${BETEKENIS[w].zin}` : w);
+const metZin = (w) => (betekenis(w) ? `${w}. ${betekenis(w).zin}` : w);
 const tipHtml = (cat) => `<div class="tip-dictee">💡 ${tip(cat)}</div>`;
 
 const BALLON_KLEUREN = ["#ef5350", "#42a5f5", "#66bb6a", "#ffa726", "#ab47bc", "#ec407a", "#26c6da"];
@@ -1065,7 +1067,7 @@ function bordVraag(stapel) {
   const cat = schud(cats)[0];
   const x = schud(cat.woorden.filter((x) => foutWoord(cat, x)))[0];
   const w = woord(x);
-  return { goed: w, fout: foutWoord(cat, x), plaatje: BETEKENIS[w] ? BETEKENIS[w].plaatje : "", hoor: metZin(w), cat };
+  return { goed: w, fout: foutWoord(cat, x), plaatje: betekenis(w) ? betekenis(w).plaatje : "", hoor: metZin(w), cat };
 }
 
 // ---------- 🧭 Doolhof ----------
@@ -1129,7 +1131,7 @@ function doolhofWoorden(cat) {
   return () => {
     if (!rij.length) rij = schud(lijst);
     const x = rij.pop(), w = woord(x);
-    return { goed: w, fout: foutWoord(cat, x), plaatje: BETEKENIS[w] ? BETEKENIS[w].plaatje : "", hoor: metZin(w), cat };
+    return { goed: w, fout: foutWoord(cat, x), plaatje: betekenis(w) ? betekenis(w).plaatje : "", hoor: metZin(w), cat };
   };
 }
 

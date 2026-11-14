@@ -229,3 +229,100 @@ function feestenScherm() {
     feestenScherm();
   }));
 }
+
+// ---------- 🎁 feest-woorden ----------
+// Tijdens een feest oefen je in elke categorie met woorden die bij het feest horen,
+// met een plaatje en een zinnetje dat Eva zegt. [woord, plaatje, zinnetje, (gaatje)]
+// Elk woord moet bij de regel van de categorie passen (zie gat in categorieen.js).
+const FEEST_WOORDEN = {
+  sinterklaas: {
+    1: [["zak", "🎒", "De zak van Sinterklaas zit vol."], ["dak", "🏠", "Het paard loopt over het dak."],
+        ["staf", "🦯", "Sinterklaas heeft een gouden staf."], ["boot", "⛵", "Sinterklaas komt met de boot."],
+        ["schoen", "👞", "Ik zet mijn schoen bij de kachel."], ["muts", "🧢", "Piet heeft een muts met een veer."],
+        ["snoep", "🍬", "Er zit snoep in mijn schoen."], ["rijm", "📜", "Bij elk pakje hoort een rijm."]],
+    2: [["zing", "🎶", "Zing mee met het Sinterklaasliedje!"], ["lang", "🧔", "De baard van Sinterklaas is lang."],
+        ["ring", "💍", "Sinterklaas heeft een gouden ring."], ["ding", "🎁", "Wat een mooi ding in mijn schoen!"]],
+    3: [["nacht", "🌙", "Sinterklaas komt in de nacht."], ["gedicht", "📜", "Bij een cadeau hoort een gedicht."],
+        ["wacht", "⏳", "Ik wacht op Sinterklaas."], ["zacht", "🤫", "Piet loopt heel zacht over het dak."],
+        ["acht", "8️⃣", "Om acht uur gaan we naar bed."]],
+    4: [["dank", "🙏", "Dank je wel, Sinterklaas!"], ["geschenk", "🎁", "Wat een mooi geschenk!"],
+        ["drinkt", "🐴💧", "Het paard drinkt water."], ["denk", "🤔", "Denk je dat Sinterklaas vannacht komt?"]],
+    5: [["deur", "🚪", "Er wordt op de deur geklopt!"], ["hoor", "👂", "Hoor, wie klopt daar, kinderen?"],
+        ["kleur", "🖍️", "Ik kleur een tekening voor Sinterklaas."], ["schoorsteen", "🏠", "Piet klimt door de schoorsteen."],
+        ["veel", "🍬", "Ik krijg veel pepernoten!"], ["geur", "👃", "Wat een lekkere geur van speculaas."],
+        ["voor", "🎁", "Dit pakje is voor jou!"]],
+    6: [["mooi", "🎁", "Wat een mooi cadeau!"], ["zwaai", "👋", "Zwaai naar de boot van Sinterklaas!"],
+        ["gooi", "🍪", "Piet gooit pepernoten!"], ["draai", "💃", "Piet maakt een draai op het plein."]],
+    7: [["nieuw", "🆕", "Sinterklaas heeft een nieuwe mantel."], ["sneeuw", "❄️", "Er ligt sneeuw op het dak."],
+        ["eeuw", "👴", "Sinterklaas is wel een eeuw oud!"], ["schreeuw", "📣", "Alle kinderen schreeuwen hoera!"]],
+    8: [["paard", "🐴", "Het paard van Sinterklaas loopt over het dak."], ["baard", "🧔", "Sinterklaas heeft een lange witte baard."],
+        ["goud", "🪙", "Chocolademunten van goud!"], ["hand", "✋", "Geef Sinterklaas maar een hand."],
+        ["rood", "🔴", "De mantel van Sinterklaas is rood."], ["lied", "🎶", "We zingen een lied voor Sinterklaas."],
+        ["kind", "🧒", "Elk kind krijgt een cadeautje."]],
+    9: [["verrassing", "🎁", "Wat een verrassing!"], ["gedicht", "📜", "Lees het gedicht maar voor."],
+        ["verlanglijst", "📝", "Ik schrijf een verlanglijst voor Sinterklaas."], ["bezoek", "🚪", "Sinterklaas komt op bezoek!"],
+        ["gezellig", "🥰", "Pakjesavond is gezellig."], ["gebak", "🍪", "Speculaas is lekker gebak."]],
+    10: [["pepernoten", "🍪", "Piet strooit pepernoten.", { deel: "o", fout: ["oo"] }],
+         ["letter", "🍫", "Ik krijg een chocoladeletter.", { deel: "tt", fout: ["t"] }],
+         ["daken", "🏠", "Piet klimt over de daken.", { deel: "a", fout: ["aa"] }],
+         ["slapen", "😴", "Ga maar slapen, Sinterklaas komt vannacht.", { deel: "a", fout: ["aa"] }]],
+    11: [["pakje", "🎁", "Ik krijg een pakje!"], ["cadeautje", "🎁", "Een cadeautje van Sinterklaas."],
+         ["schoentje", "👞", "Zet je schoentje maar klaar."], ["liedje", "🎶", "Zing een liedje bij de schoorsteen."],
+         ["zakje", "🍬", "Een zakje met snoep."]],
+    12: [["gezellig", "🥰", "Wat is pakjesavond gezellig!"], ["vrolijk", "😄", "Wat een vrolijk feest!"],
+         ["heerlijk", "🍫", "Chocolade is heerlijk!"], ["prachtig", "✨", "Wat een prachtig paard!"]],
+    14: [["'s nachts", "🌙", "Sinterklaas komt 's nachts."], ["'s avonds", "🎁", "Pakjesavond is 's avonds."]],
+    16: [["foto's", "📸", "We maken foto's met Sinterklaas."], ["opa's", "👴", "Opa's en oma's vieren ook mee."], ["oma's", "👵", "De oma's bakken speculaas."]],
+    17: [["traditie", "🎁", "Sinterklaas is een oude traditie."]],
+    19: [["fantastisch", "🤩", "Pakjesavond is fantastisch!"]],
+    21: [["chocola", "🍫", "Een letter van chocola."], ["chocolademelk", "☕", "Warme chocolademelk bij de intocht."]],
+    24: [["cadeau", "🎁", "Een cadeau van Sinterklaas!"]],
+    27: [["lolly", "🍭", "Een lolly in mijn schoen!"]],
+  },
+  kerst: {
+    1: [["boom", "🎄", "We zetten een grote boom in de kamer."], ["ster", "⭐", "Er staat een ster in de top."],
+        ["kaars", "🕯️", "De kaars brandt."], ["slee", "🛷", "De kerstman rijdt in een slee."],
+        ["bal", "🔴", "Een rode bal in de boom."], ["piek", "🎄", "De piek staat bovenop de boom."]],
+    2: [["slinger", "🎊", "Een slinger aan de muur."], ["zing", "🎶", "We zingen kerstliedjes."], ["lang", "🌙", "De nacht is lang."]],
+    3: [["nacht", "🌙", "Stille nacht, heilige nacht."], ["licht", "💡", "Lichtjes in de kerstboom."], ["kerstnacht", "⭐", "Het sneeuwt in de kerstnacht."]],
+    4: [["drink", "☕", "Ik drink warme chocolademelk."], ["dank", "🙏", "Dank je wel voor het cadeau!"]],
+    5: [["deur", "🚪", "Er hangt een krans op de deur."], ["kleur", "🎨", "Rood en groen zijn kerstkleuren."], ["veel", "🎁", "Veel cadeaus onder de boom."]],
+    6: [["mooi", "🎄", "Wat een mooie boom!"]],
+    7: [["sneeuw", "❄️", "Kijk, het sneeuwt!"], ["sneeuwpop", "⛄", "We maken een sneeuwpop."], ["nieuw", "🎆", "Bijna een nieuw jaar!"]],
+    8: [["hert", "🦌", "Het hert trekt de slee."], ["goud", "⭐", "Een ster van goud."], ["rood", "🔴", "De neus van het rendier is rood."], ["brood", "🍞", "We eten kerstbrood."]],
+    9: [["versiering", "🎄", "De boom heeft mooie versiering."], ["gezellig", "🥰", "Kerst is gezellig."],
+        ["geschenk", "🎁", "Een geschenk onder de boom."], ["bezoek", "👵", "Opa en oma komen op bezoek."]],
+    10: [["ballen", "🔴", "Ballen in de kerstboom.", { deel: "ll", fout: ["l"] }],
+         ["sterren", "⭐", "Sterren aan de hemel.", { deel: "rr", fout: ["r"] }],
+         ["bomen", "🎄", "Overal staan kerstbomen.", { deel: "o", fout: ["oo"] }]],
+    11: [["lampje", "💡", "Een lampje in de boom."], ["kaarsje", "🕯️", "Steek een kaarsje aan."],
+         ["boompje", "🎄", "Een klein kerstboompje."], ["belletje", "🔔", "Ting ting, een belletje!"]],
+    12: [["gezellig", "🥰", "Wat is kerst gezellig!"], ["heerlijk", "🍗", "Het kerstdiner is heerlijk."], ["vrolijk", "🎄", "Vrolijk kerstfeest!"]],
+    14: [["'s winters", "❄️", "'s Winters is het koud."], ["'s nachts", "⭐", "'s Nachts schijnen de sterren."]],
+    21: [["chocolademelk", "☕", "Warme chocolademelk bij de boom."]],
+    24: [["cadeau", "🎁", "Een cadeau onder de kerstboom."]],
+  },
+};
+
+// Plaatje en zinnetje van een feest-woord (alleen als dat feest nu bezig is).
+function feestZin(w) {
+  const f = actiefFeest();
+  const lijsten = f && FEEST_WOORDEN[f.id];
+  if (!lijsten) return null;
+  for (const lijst of Object.values(lijsten)) {
+    const r = lijst.find((x) => x[0] === w);
+    if (r) return { plaatje: r[1], zin: r[2] };
+  }
+  return null;
+}
+// Een categorie met feest-woorden (als er een feest is en er woorden voor zijn).
+function feestCat(cat) {
+  const f = actiefFeest();
+  const lijst = cat && f && FEEST_WOORDEN[f.id] && FEEST_WOORDEN[f.id][String(catSleutel(cat))];
+  if (!lijst) return cat;
+  const woorden = lijst.map(([w, , , g]) => (g ? { w, ...g } : w)).filter((x) => maakGat(cat, x));
+  if (!woorden.length) return cat;
+  // te weinig feest-woorden? Vul aan met gewone woorden van de categorie.
+  const extra = woorden.length < 5 ? schud(cat.woorden).slice(0, 5 - woorden.length) : [];
+  return { ...cat, woorden: [...woorden, ...extra], feest: f };
+}
