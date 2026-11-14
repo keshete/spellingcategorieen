@@ -696,6 +696,7 @@ function tekenMeerSpellen(cat) {
     <h3 class="spel-kop">🎮 Nog meer spelletjes</h3>
     <div class="spel-lijst">
       <a class="spel-tegel bordspel-tegel" href="#doolhof/${k}"><span>🧭</span>Doolhof</a>
+      <a class="spel-tegel" href="#verhaal"><span>📖</span>Verhaaltjes</a>
       ${KANT_EN_KLAAR.map((s, i) => tegel(metFeest(s, i))).join("")}</div>
     <h3 class="spel-kop">⭐ Mijn eigen spelletjes</h3>
     <div class="spel-lijst">
