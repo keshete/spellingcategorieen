@@ -13,7 +13,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 40; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 41; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -39,10 +39,7 @@ function kiesStem() {
 }
 function toonStemWaarschuwing() {
   if (document.getElementById("geen-stem")) return;
-  const w = el(`<div id="geen-stem" class="waarschuwing">
-    Dit apparaat heeft geen Nederlandse voorleesstem, dus het voorlezen klinkt niet goed.
-    Op een iPad: Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands.
-    Of gebruik Google Chrome.</div>`);
+  const w = el(`<div id="geen-stem" class="waarschuwing">${t("Dit apparaat heeft geen Nederlandse voorleesstem, dus het voorlezen klinkt niet goed. Op een iPad: Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands. Of gebruik Google Chrome.")}</div>`);
   document.body.prepend(w);
 }
 if ("speechSynthesis" in window) { kiesStem(); speechSynthesis.onvoiceschanged = () => { kiesStem(); if (!location.hash || location.hash === "#") route(); }; }
@@ -67,15 +64,31 @@ function snelheid(t) {
   return losWoord ? tempo() * 0.9 : tempo();
 }
 
+// Een stem voor de taal van de app (Hebreeuws of Engels), liefst een vrouwenstem.
+// Undefined = nog niet gezocht, null = dit apparaat heeft er geen.
+const taalStemmen = {};
+function taalStem(code) {
+  if (taalStemmen[code] !== undefined) return taalStemmen[code];
+  const alle = "speechSynthesis" in window ? speechSynthesis.getVoices() : [];
+  if (!alle.length) return null; // stemmen zijn nog niet geladen: probeer het later weer
+  const kort = code.slice(0, 2);
+  const passend = alle.filter((v) => taal(v).startsWith(kort) || (kort === "he" && taal(v).startsWith("iw")));
+  const vrouw = /carmit|samantha|karen|serena|kate|moira|tessa|fiona|martha|libby|sonia|female|google uk english female/i;
+  taalStemmen[code] = passend.find((v) => taal(v) === code.toLowerCase() && vrouw.test(v.name))
+    || passend.find((v) => vrouw.test(v.name)) || passend.find((v) => taal(v) === code.toLowerCase()) || passend[0] || null;
+  return taalStemmen[code];
+}
+
 let huidigeZin = null; // Safari: bewaar de zin, anders wordt hij soms opgeruimd en blijft het stil
-function spreekStukje(t, metStem = true) {
+function spreekStukje(t, metStem = true, code = "nl") {
   return new Promise((klaar) => {
     const u = new SpeechSynthesisUtterance(t);
     huidigeZin = u;
-    u.lang = nlStem ? nlStem.lang : "nl-NL";
+    const stem = code === "nl" ? nlStem : taalStem(code);
+    u.lang = stem ? stem.lang : code === "nl" ? "nl-NL" : code;
     u.rate = snelheid(t);
     u.pitch = 1; // gewone toonhoogte: hoger of lager klinkt raar en onduidelijk
-    if (metStem && nlStem) u.voice = nlStem;
+    if (metStem && stem) u.voice = stem;
     let gedaan = false, begonnen = false;
     const af = () => { if (!gedaan) { gedaan = true; klaar(); } };
     u.onstart = () => { begonnen = true; };
@@ -83,7 +96,7 @@ function spreekStukje(t, metStem = true) {
     u.onerror = (e) => {
       // Werkt de gekozen stem niet? Probeer het dan nog een keer met de gewone stem.
       if (!gedaan && metStem && !begonnen && !/interrupted|canceled/.test(e.error || "")) {
-        gedaan = true; spreekStukje(t, false).then(klaar);
+        gedaan = true; spreekStukje(t, false, code).then(klaar);
       } else af();
     };
     // vangnet: sommige browsers vergeten onend
@@ -94,7 +107,8 @@ function spreekStukje(t, metStem = true) {
 
 // Volgorde: een echte stem van Wikimedia (losse woorden),
 // en anders de computerstem van het apparaat.
-async function zeg(tekst) {
+// code: in welke taal (zeg = altijd Nederlands, voor de woorden; praat = de taal van de app).
+async function zeg(tekst, code = "nl") {
   const beurt = ++spreekBeurt;
   stopGeluid();
   const tts = "speechSynthesis" in window;
@@ -111,15 +125,20 @@ async function zeg(tekst) {
   for (const t of stukjes(tekst)) {
     if (beurt !== spreekBeurt) return;
     let gedaan = false;
-    if (echteStemAan() && !/\s/.test(t)) gedaan = await speelEchteStem(t);
+    if (code === "nl" && echteStemAan() && !/\s/.test(t)) gedaan = await speelEchteStem(t);
     if (beurt !== spreekBeurt) return;
     if (!gedaan) {
-      if (tts) await spreekStukje(t); else await wacht(600);
+      // Geen stem voor deze taal op dit apparaat? Dan alleen de tekst laten zien.
+      const kan = code === "nl" || taalStem(code) || !speechSynthesis.getVoices().length;
+      if (tts && kan) await spreekStukje(t, true, code); else await wacht(600);
     }
     if (beurt !== spreekBeurt) return;
     await wacht(gedaan ? 400 : 250);
   }
 }
+
+// Eva praat in de taal van de app (uitleg, complimentjes). De oefenwoorden zegt ze met zeg(), in het Nederlands.
+const praat = (tekst) => zeg(tekst, taalInfo().code === "nl" ? "nl" : taalInfo().stem);
 
 // ---------- sterren ----------
 const sterren = () => JSON.parse(localStorage.getItem("sterren") || "{}");
@@ -211,22 +230,22 @@ function feest() {
 // ---------- schermen ----------
 function thuis() {
   const f = actiefFeest();
-  zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. ${f ? f.groet + " " : ""}Tik op een categorie en kies een spelletje!`);
+  zegEekhoorn(t("Hoi! Ik ben {eekhoorn}.") + " " + (f ? feestGroet(f) + " " : "") + t("Tik op een categorie en kies een spelletje!"));
   const s = sterren();
   scherm.innerHTML = `
     <div class="thuis-spellen">
-      <a class="thuis-knop" href="#doolhof" style="background:#f06292"><span>🧭</span>Doolhof</a>
-      <a class="thuis-knop" href="#sorteer" style="background:#4fc3f7"><span>🎮</span>Sorteerspel</a>
-      <a class="thuis-knop" href="#stickers" style="background:#9575cd"><span>📒</span>Stickerboek</a>
-      <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🛒</span>Winkel</a>
-      <a class="thuis-knop" href="#feesten" style="background:#ffb300"><span>${f ? f.emoji : "🎉"}</span>Feesten</a>
+      <a class="thuis-knop" href="#doolhof" style="background:#f06292"><span>🧭</span>${t("Doolhof")}</a>
+      <a class="thuis-knop" href="#sorteer" style="background:#4fc3f7"><span>🎮</span>${t("Sorteerspel")}</a>
+      <a class="thuis-knop" href="#stickers" style="background:#9575cd"><span>📒</span>${t("Stickerboek")}</a>
+      <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🛒</span>${t("Winkel")}</a>
+      <a class="thuis-knop" href="#feesten" style="background:#ffb300"><span>${f ? f.emoji : "🎉"}</span>${t("Feesten")}</a>
     </div>
     ${verderKnop(s)}
     <div class="groep-sprong">${GROEPEN.map((g) => {
       const cats = CATEGORIEEN.filter((c) => c.groep === g.nr);
-      return `<button class="groep-knop" data-groep="${g.nr}">${g.naam}<small>${cats[0].nr} t/m ${cats[cats.length - 1].nr}</small></button>`;
+      return `<button class="groep-knop" data-groep="${g.nr}">${t(g.naam)}<small>${t("{a} t/m {b}", { a: cats[0].nr, b: cats[cats.length - 1].nr })}</small></button>`;
     }).join("")}</div>
-    <p class="thuis-uitleg">👇 Tik op een categorie. Je leert ze op volgorde: 2 sterren geeft een 🔑 voor de volgende.</p>
+    <p class="thuis-uitleg">👇 ${t("Tik op een categorie. Je leert ze op volgorde: 2 sterren geeft een 🔑 voor de volgende.")}</p>
     <ul class="grid"></ul>
     <div class="ouder"></div>`;
   scherm.querySelectorAll(".groep-knop").forEach((b) => (b.onclick = () => {
@@ -238,7 +257,7 @@ function thuis() {
     // Een kopje boven de eerste categorie van elke groep.
     const groep = GROEPEN.find((g) => g.nr === c.groep);
     if (groep && c === CATEGORIEEN.find((d) => d.groep === c.groep)) {
-      lijst.appendChild(el(`<li class="groep-kop" data-groep="${groep.nr}">${groep.naam}</li>`));
+      lijst.appendChild(el(`<li class="groep-kop" data-groep="${groep.nr}">${t(groep.naam)}</li>`));
     }
     lijst.appendChild(tegel(c, s));
   }
@@ -259,20 +278,20 @@ function tegel(c, s) {
         <span class="figuur">🔑</span>
         <span class="nr">${c.nr}</span>
         <span class="naam">${c.naam}</span>
-        <span class="sterren">Tik en maak open!</span>
+        <span class="sterren">${t("Tik en maak open!")}</span>
       </a></li>`);
   const li = el(`
-      <li><button class="tegel dicht" aria-label="${c.naam} (op slot)">
+      <li><button class="tegel dicht" aria-label="${t("{cat} (op slot)", { cat: c.naam })}">
         <span class="figuur">🔒</span>
         <span class="nr">${c.nr}</span>
         <span class="naam">${c.naam}</span>
       </button></li>`);
   li.querySelector("button").onclick = () => {
     const i = CATEGORIEEN.indexOf(c), n = aantalOpen();
-    const t = i === n
-      ? `Haal 2 sterren bij ${CATEGORIEEN[n - 1].naam}. Dan krijg je de sleutel voor ${c.naam}!`
-      : `${c.naam} zit nog op slot. Leer eerst ${CATEGORIEEN[n - 1].naam}!`;
-    zegEekhoorn(t); zeg(t);
+    const zin = i === n
+      ? t("Haal 2 sterren bij {vorige}. Dan krijg je de sleutel voor {cat}!", { vorige: CATEGORIEEN[n - 1].naam, cat: c.naam })
+      : t("{cat} zit nog op slot. Leer eerst {vorige}!", { vorige: CATEGORIEEN[n - 1].naam, cat: c.naam });
+    zegEekhoorn(zin); praat(zin);
   };
   return li;
 }
@@ -282,16 +301,16 @@ function tegel(c, s) {
 function ouderKnop(doos) {
   if (!doos) return;
   if (allesOpen()) {
-    doos.innerHTML = `<button class="klein-knop">🔒 Weer op volgorde leren</button>`;
+    doos.innerHTML = `<button class="klein-knop">🔒 ${t("Weer op volgorde leren")}</button>`;
     doos.querySelector("button").onclick = () => { localStorage.removeItem("allesOpen"); thuis(); };
     return;
   }
-  doos.innerHTML = `<button class="klein-knop">🔑 Voor juf of ouder</button>`;
+  doos.innerHTML = `<button class="klein-knop">🔑 ${t("Voor juf of ouder")}</button>`;
   doos.querySelector("button").onclick = () => {
     const a = 6 + Math.floor(Math.random() * 4), b = 6 + Math.floor(Math.random() * 4);
     doos.innerHTML = `
       <form class="ouder-vraag">
-        <label>Alles openzetten? Hoeveel is ${a} × ${b}?
+        <label>${t("Alles openzetten? Hoeveel is {a} × {b}?", { a, b })}
           <input inputmode="numeric" autocomplete="off" size="4"></label>
         <button class="klein-knop">OK</button>
       </form>`;
@@ -308,19 +327,19 @@ function ouderKnop(doos) {
 // 🔑 Met je sleutel maak je de volgende categorie open.
 function openMaken(cat) {
   if (sleutelVoor() !== cat) { location.hash = isOpen(cat) ? `#cat/${cat.nr}` : "#"; return; }
-  const t = `Je hebt een sleutel! Tik op de sleutel en maak ${cat.naam} open.`;
-  zegEekhoorn(t); zeg(t);
+  const zin = t("Je hebt een sleutel! Tik op de sleutel en maak {cat} open.", { cat: cat.naam });
+  zegEekhoorn(zin); praat(zin);
   scherm.innerHTML = `
     <div class="kaart open-kaart" style="border-color:${cat.kleur}">
-      <h2>🔑 Je hebt een sleutel!</h2>
+      <h2>🔑 ${t("Je hebt een sleutel!")}</h2>
       <div class="slot-deur" style="background:${cat.kleur}">
         <span class="figuur reus">${cat.figuur}</span>
         <div class="nr">${cat.nr}</div><h2>${cat.naam}</h2>
         <span class="groot-slot">🔒</span>
       </div>
-      <button class="sleutel-knop" aria-label="Maak open met de sleutel">🔑</button>
-      <p class="thuis-uitleg">Tik op de sleutel!</p>
-      <a class="terug" href="#">← Terug</a>
+      <button class="sleutel-knop" aria-label="${t("Maak open met de sleutel")}">🔑</button>
+      <p class="thuis-uitleg">${t("Tik op de sleutel!")}</p>
+      <a class="terug" href="#">${t("← Terug")}</a>
     </div>`;
   const knop = scherm.querySelector(".sleutel-knop");
   knop.onclick = async () => {
@@ -331,12 +350,12 @@ function openMaken(cat) {
     await wacht(900);
     scherm.querySelector(".groot-slot").textContent = "🔓";
     scherm.querySelector(".slot-deur").classList.add("open");
-    scherm.querySelector(".open-kaart > h2").textContent = "🔓 Open!";
+    scherm.querySelector(".open-kaart > h2").textContent = "🔓 " + t("Open!");
     feest(); geluid("feest");
-    const hoera = `Hoera! ${cat.naam} is open!`;
-    zegEekhoorn(hoera + " 🔓"); zeg(hoera);
+    const hoera = t("Hoera! {cat} is open!", { cat: cat.naam });
+    zegEekhoorn(hoera + " 🔓"); praat(hoera);
     scherm.querySelector(".thuis-uitleg").outerHTML =
-      `<a class="verder-knop" href="#cat/${cat.nr}" style="background:${cat.kleur}"><span>▶️</span><span>Ga naar <b>${cat.nr} ${cat.naam}</b></span></a>`;
+      `<a class="verder-knop" href="#cat/${cat.nr}" style="background:${cat.kleur}"><span>▶️</span><span>${t("Ga naar <b>{nr} {cat}</b>", { nr: cat.nr, cat: cat.naam })}</span></a>`;
     knop.remove();
   };
 }
@@ -350,10 +369,10 @@ function volgendeTeLeren(s) {
 function verderKnop(s) {
   const k = sleutelVoor();
   if (k) return `<a class="verder-knop sleutel" href="#open/${k.nr}" style="background:${k.kleur}">
-    <span>🔑</span><span>Je hebt een sleutel! Maak <b>${k.nr} ${k.naam}</b> open</span></a>`;
+    <span>🔑</span><span>${t("Je hebt een sleutel! Maak <b>{nr} {cat}</b> open", { nr: k.nr, cat: k.naam })}</span></a>`;
   const c = volgendeTeLeren(s);
   return `<a class="verder-knop" href="#cat/${c.nr}" style="background:${c.kleur}">
-    <span>▶️</span><span>Verder leren: <b>${c.nr} ${c.naam}</b> ${c.figuur}</span></a>`;
+    <span>▶️</span><span>${t("Verder leren: <b>{nr} {cat}</b>", { nr: c.nr, cat: c.naam })} ${c.figuur}</span></a>`;
 }
 // Knoppen onderaan een categorie: naar de vorige en de volgende, zo loop je alle 34 af.
 function buurKnoppen(cat) {
@@ -361,15 +380,15 @@ function buurKnoppen(cat) {
   const vorige = CATEGORIEEN[i - 1], volgende = CATEGORIEEN[i + 1];
   return `<div class="buren">
     ${vorige ? `<a class="buur" href="#cat/${vorige.nr}">⬅️ ${vorige.nr} ${vorige.naam}</a>` : "<span></span>"}
-    ${!volgende ? `<span class="buur klaar">🏆 Dit is de laatste!</span>`
+    ${!volgende ? `<span class="buur klaar">🏆 ${t("Dit is de laatste!")}</span>`
       : isOpen(volgende) ? `<a class="buur volgende" href="#cat/${volgende.nr}" style="background:${volgende.kleur}">${volgende.nr} ${volgende.naam} ➡️</a>`
-      : sleutelVoor() === volgende ? `<a class="buur volgende" href="#open/${volgende.nr}" style="background:${volgende.kleur}">🔑 Maak ${volgende.nr} ${volgende.naam} open</a>`
-      : `<span class="buur dicht">🔒 ${volgende.nr} ${volgende.naam}: haal eerst 2 sterren</span>`}
+      : sleutelVoor() === volgende ? `<a class="buur volgende" href="#open/${volgende.nr}" style="background:${volgende.kleur}">🔑 ${t("Maak {nr} {cat} open", { nr: volgende.nr, cat: volgende.naam })}</a>`
+      : `<span class="buur dicht">🔒 ${t("{nr} {cat}: haal eerst 2 sterren", { nr: volgende.nr, cat: volgende.naam })}</span>`}
   </div>`;
 }
 
 function categorie(cat) {
-  zegEekhoorn(`Dit is ${cat.figuurNaam}. Loop met mij over de weg naar de beker!`);
+  zegEekhoorn(t("Dit is {figuur}. Loop met mij over de weg naar de beker!", { figuur: cat.figuurNaam }));
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="kop" style="background:${cat.kleur}">
@@ -377,15 +396,16 @@ function categorie(cat) {
         <div><div class="nr">${cat.nr}</div><h2>${cat.naam}</h2></div>
       </div>
       <p class="regel">${cat.regel}</p>
+      ${cat.regel !== cat.regelNl ? `<p class="regel-nl" lang="nl" dir="ltr">🇳🇱 ${cat.regelNl}</p>` : ""}
       ${tekenWeg(cat)}
       ${tekenMeerSpellen(cat)}
       ${buurKnoppen(cat)}
-      <a class="terug" href="#">← Terug</a>
+      <a class="terug" href="#">${t("← Terug")}</a>
     </div>`;
 }
 
 async function uitleg(cat) {
-  zegEekhoorn("Kijk en luister goed!");
+  zegEekhoorn(t("Kijk en luister goed!"));
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="podium">
@@ -394,8 +414,8 @@ async function uitleg(cat) {
       </div>
       <ul class="voorbeelden" id="vb"></ul>
       <div class="knoppen">
-        <button class="grote-knop" id="start">▶ Speel de uitleg</button>
-        <a class="grote-knop" href="#cat/${cat.nr}">Klaar</a>
+        <button class="grote-knop" id="start">▶ ${t("Speel de uitleg")}</button>
+        <a class="grote-knop" href="#cat/${cat.nr}">${t("Klaar")}</a>
       </div>
     </div>`;
   const ballon = scherm.querySelector("#ballon");
@@ -406,7 +426,7 @@ async function uitleg(cat) {
     bewaarSpelSterren(catSleutel(cat), "uitleg", 1);
     vb.innerHTML = "";
     ballon.textContent = cat.uitleg;
-    await zeg(cat.uitleg);
+    await praat(cat.uitleg);
     for (const x of cat.woorden.slice(0, 5)) {
       if (location.hash !== huidig) return;
       const li = el(`<li class="pop">${gekleurd(cat, x)}</li>`);
@@ -414,7 +434,7 @@ async function uitleg(cat) {
       await zeg(woord(x));
       await wacht(300);
     }
-    if (location.hash === huidig) { ballon.textContent = cat.regel; await zeg(cat.regel); }
+    if (location.hash === huidig) { ballon.textContent = cat.regel; await praat(cat.regel); }
   };
 }
 
@@ -430,16 +450,16 @@ function speelRonde({ titel, cat, maakVraag, terug }) {
     if (i === RONDE) return einde();
     scherm.innerHTML = `
       <div class="kaart" ${cat ? `style="border-color:${cat.kleur}"` : ""}>
-        <div class="voortgang">${titel} · vraag ${i + 1} van ${RONDE}</div>
+        <div class="voortgang">${titel} · ${t("vraag {i} van {n}", { i: i + 1, n: RONDE })}</div>
         <div class="levens-balk"><span class="levens">${hartjes(levens)}</span><span class="pot">🌰 ${goed}</span></div>
         <div id="vraag"></div>
-        <a class="terug" href="${terug}">← Stoppen</a>
+        <a class="terug" href="${terug}">${t("← Stoppen")}</a>
       </div>`;
     maakVraag(scherm.querySelector("#vraag"), async (isGoed, uitlegFout) => {
       if (isGoed) {
         goed++; geluid("goed"); eikelVlieg();
         scherm.querySelector(".pot").textContent = `🌰 ${goed}`;
-        zegEekhoorn(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0]); zeg("Goed zo!");
+        zegEekhoorn(t(schud(["Goed zo!", "Super!", "Top!", "Knap gedaan!"])[0])); praat(t("Goed zo!"));
       } else {
         levens--; geluid("fout"); zegEekhoorn(uitlegFout);
         const l = scherm.querySelector(".levens");
@@ -454,7 +474,7 @@ function speelRonde({ titel, cat, maakVraag, terug }) {
   };
   const einde = () => {
     const n = goed === RONDE ? 3 : goed >= 3 ? 2 : goed >= 1 ? 1 : 0;
-    eindScherm({ cat, n, tekst: `Je had er ${goed} van de ${RONDE} goed.`, verdiend: goed, opnieuw, terug });
+    eindScherm({ cat, n, tekst: t("Je had er {goed} van de {n} goed.", { goed, n: RONDE }), verdiend: goed, opnieuw, terug });
   };
   volgende();
 }
@@ -463,13 +483,13 @@ function gaatjes(cat) {
   const lijst = schud(cat.woorden.filter((x) => maakGat(cat, x)));
   if (!lijst.length) return categorie(cat);
   speelRonde({
-    titel: "🧩 Gaatjes", cat, terug: `#cat/${cat.nr}`,
+    titel: "🧩 " + t("Gaatjes"), cat, terug: `#cat/${cat.nr}`,
     maakVraag: (doos, antwoord) => {
       const x = lijst[Math.floor(Math.random() * lijst.length)];
       const g = maakGat(cat, x);
-      zegEekhoorn("Welk stukje past in het gaatje?");
+      zegEekhoorn(t("Welk stukje past in het gaatje?"));
       doos.innerHTML = `
-        <button class="luister" title="Luister">🔊</button>
+        <button class="luister" title="${t("Luister")}">🔊</button>
         ${tipHtml(cat)}
         ${betekenisHtml(woord(x))}
         <div class="woord-groot">${g.voor}<span class="gat">?</span>${g.na}</div>
@@ -482,7 +502,7 @@ function gaatjes(cat) {
         k.classList.add(isGoed ? "goed" : "fout");
         doos.querySelector(".gat").textContent = g.deel;
         doos.querySelector(".gat").classList.add("ingevuld");
-        antwoord(isGoed, `Bijna! Het is ${woord(x)}. ${cat.regel}`);
+        antwoord(isGoed, t("Bijna! Het is {woord}.", { woord: woord(x) }) + " " + cat.regel);
       }));
     },
   });
@@ -490,18 +510,18 @@ function gaatjes(cat) {
 
 function dictee(cat) {
   speelRonde({
-    titel: "🎧 Dictee", cat, terug: `#cat/${cat.nr}`,
+    titel: "🎧 " + t("Dictee"), cat, terug: `#cat/${cat.nr}`,
     maakVraag: (doos, antwoord) => {
       const x = schud(cat.woorden)[0];
       const w = woord(x);
-      zegEekhoorn("Luister goed en schrijf het woord op.");
+      zegEekhoorn(t("Luister goed en schrijf het woord op."));
       doos.innerHTML = `
-        <button class="luister groot" title="Luister nog een keer">🔊</button>
+        <button class="luister groot" title="${t("Luister nog een keer")}">🔊</button>
         ${betekenisHtml(w)}
         ${tipHtml(cat)}
         <form class="dictee">
-          <input autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Schrijf het woord">
-          <button class="grote-knop">Klaar ✔</button>
+          <input autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" lang="nl" dir="ltr" aria-label="${t("Schrijf het woord")}">
+          <button class="grote-knop">${t("Klaar")} ✔</button>
         </form>
         <div class="uitkomst"></div>`;
       const veld = doos.querySelector("input");
@@ -515,8 +535,8 @@ function dictee(cat) {
         veld.disabled = true;
         const isGoed = netjes(veld.value) === netjes(w);
         veld.classList.add(isGoed ? "goed" : "fout");
-        if (!isGoed) doos.querySelector(".uitkomst").innerHTML = `Het is: <b>${gekleurd(cat, x)}</b>`;
-        antwoord(isGoed, `Kijk goed: ${w}. ${cat.regel}`);
+        if (!isGoed) doos.querySelector(".uitkomst").innerHTML = `${t("Het is:")} <b class="nl">${gekleurd(cat, x)}</b>`;
+        antwoord(isGoed, t("Kijk goed: {woord}.", { woord: w }) + " " + cat.regel);
       };
     },
   });
@@ -524,15 +544,15 @@ function dictee(cat) {
 
 function sorteer() {
   speelRonde({
-    titel: "🎮 Sorteerspel", cat: null, terug: "#",
+    titel: "🎮 " + t("Sorteerspel"), cat: null, terug: "#",
     maakVraag: (doos, antwoord) => {
       const open = openCats();
       const cat = schud(open)[0];
       const x = schud(cat.woorden)[0];
       const keuzes = schud([cat, ...schud(open.filter((c) => c !== cat)).slice(0, 2)]);
-      zegEekhoorn("Bij welke categorie hoort dit woord?");
+      zegEekhoorn(t("Bij welke categorie hoort dit woord?"));
       doos.innerHTML = `
-        <button class="luister" title="Luister">🔊</button>
+        <button class="luister" title="${t("Luister")}">🔊</button>
         <div class="woord-groot">${woord(x)}</div>
         <div class="keuzes cats">${keuzes.map((c) => `
           <button class="keuze cat" data-nr="${c.nr}" style="background:${c.kleur}">
@@ -545,7 +565,7 @@ function sorteer() {
         k.classList.add(isGoed ? "goed" : "fout");
         doos.querySelector(`[data-nr="${cat.nr}"]`).classList.add("goed");
         doos.querySelector(".woord-groot").innerHTML = gekleurd(cat, x);
-        antwoord(isGoed, `${woord(x)} is een ${cat.naam.toLowerCase()}. ${cat.regel}`);
+        antwoord(isGoed, t("{woord} is een {cat}.", { woord: woord(x), cat: cat.naam.toLowerCase() }) + " " + cat.regel);
       }));
     },
   });
@@ -553,39 +573,40 @@ function sorteer() {
 
 // ---------- stem kiezen ----------
 function stemScherm() {
-  zegEekhoorn("Hoe wil je dat ik praat? Kies een stem en hoe snel ik praat.");
+  zegEekhoorn(t("Hoe wil je dat ik praat? Kies een stem en hoe snel ik praat."));
   if (!nlStem && "speechSynthesis" in window) kiesStem();
   const stemmen = "speechSynthesis" in window ? nlStemmen() : [];
   const heeftVrouw = stemmen.some(isVrouw);
   scherm.innerHTML = `
     <div class="kaart stemkaart">
-      <h2>🔊 Hoe praat ${naam()}?</h2>
-      <h3>Hoe snel?</h3>
+      <h2>🔊 ${t("Hoe praat {naam}?")}</h2>
+      <a class="grote-knop taal-link" href="#taal">🌐 ${t("Taal")}: ${taalInfo().vlag} ${taalInfo().naam}</a>
+      <h3>${t("Hoe snel?")}</h3>
       <div class="schuif">
-        <input type="range" id="tempo" min="0.5" max="1.5" step="0.05" value="${tempo()}" aria-label="Hoe snel">
-        <div class="schuif-labels"><span>🐌 Langzaam</span><span>🚶 Gewoon</span><span>🚀 Supersnel</span></div>
+        <input type="range" id="tempo" min="0.5" max="1.5" step="0.05" value="${tempo()}" aria-label="${t("Hoe snel?")}">
+        <div class="schuif-labels"><span>🐌 ${t("Langzaam")}</span><span>🚶 ${t("Gewoon")}</span><span>🚀 ${t("Supersnel")}</span></div>
       </div>
-      <h3>Welke stem?</h3>
+      <h3>${t("Welke Nederlandse stem?")}</h3>
       <div class="keuzes" id="stemmen">
         ${stemmen.map((v, i) => `<button class="grote-knop${!echteStemAan() && nlStem && v.voiceURI === nlStem.voiceURI ? " gekozen" : ""}" data-i="${i}">
-          ${isVrouw(v) ? "👧 Meisje" : isMan(v) ? "👦 Jongen" : "🙂"}: ${v.name}</button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
-        <button class="grote-knop${echteStemAan() ? " gekozen" : ""}" id="echt">🧑 Echte mensen (steeds iemand anders)</button>
+          ${isVrouw(v) ? "👧 " + t("Meisje") : isMan(v) ? "👦 " + t("Jongen") : "🙂"}: ${v.name}</button>`).join("") || `<p>${t("Geen Nederlandse stem gevonden.")}</p>`}
+        <button class="grote-knop${echteStemAan() ? " gekozen" : ""}" id="echt">🧑 ${t("Echte mensen (steeds iemand anders)")}</button>
       </div>
-      ${heeftVrouw ? "" : `<p class="tip">Er is nog geen meisjesstem op dit apparaat. Vraag een grote mens om te helpen:
-        iPhone of iPad → Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands →
-        tik op <b>Claire</b> om haar te downloaden. Kom daarna hier terug.</p>`}
-      <p class="tip">Hoor je niks? Zet het geluid harder en zet de iPhone of iPad niet op stil
-        (het knopje aan de zijkant).</p>
-      <p class="tip">Klinkt een stem raar of krakerig? Op een iPhone of iPad kun je bij
-        Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands
-        de <b>verbeterde</b> versie van de stem downloaden. Die klinkt veel mooier.</p>
-      <button class="grote-knop" id="probeer">▶️ Probeer</button>
-      <p class="tip"><b>Echte mensen</b>: bij losse woorden hoor je een opname van een echt persoon, jongen of meisje,
-        steeds iemand anders. Daarvoor is internet nodig.
-        <small>Opnames: Lingua Libre en WikiWoordenboek via Wikimedia Commons (CC BY-SA).</small></p>
-      <p class="versie">Versie ${VERSIE}</p>
+      ${heeftVrouw ? "" : `<p class="tip">${t("Er is nog geen meisjesstem op dit apparaat. Vraag een grote mens om te helpen: iPhone of iPad → Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands → tik op <b>Claire</b> om haar te downloaden. Kom daarna hier terug.")}</p>`}
+      <p class="tip">${t("Hoor je niks? Zet het geluid harder en zet de iPhone of iPad niet op stil (het knopje aan de zijkant).")}</p>
+      <p class="tip">${t("Klinkt een stem raar of krakerig? Op een iPhone of iPad kun je bij Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands de <b>verbeterde</b> versie van de stem downloaden. Die klinkt veel mooier.")}</p>
+      ${TAAL !== "nl" && "speechSynthesis" in window && speechSynthesis.getVoices().length && !taalStem(taalInfo().stem)
+        ? `<p class="tip">${t("Dit apparaat heeft geen stem voor deze taal. Je kunt de uitleg wel lezen. Op een iPhone of iPad kun je een stem downloaden bij Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen.")}</p>` : ""}
+      <button class="grote-knop" id="probeer">▶️ ${t("Probeer")}</button>
+      <p class="tip">${t("<b>Echte mensen</b>: bij losse woorden hoor je een opname van een echt persoon, jongen of meisje, steeds iemand anders. Daarvoor is internet nodig.")}
+        <small>${t("Opnames: Lingua Libre en WikiWoordenboek via Wikimedia Commons (CC BY-SA).")}</small></p>
+      <p class="versie">${t("Versie")} ${VERSIE}</p>
     </div>`;
-  const probeer = () => zeg(`Hoi! Ik ben ${naam()} Eekhoorn. Luister goed: kat, Stijn, hulp.`);
+  // De Nederlandse stem (voor de woorden), en daarna de stem van de app-taal.
+  const probeer = async () => {
+    await zeg(`Hoi! Ik ben ${naam()} Eekhoorn. Luister goed: kat, Stijn, hulp.`);
+    if (TAAL !== "nl") praat(t("Hoi! Ik ben {eekhoorn}."));
+  };
   const schuif = scherm.querySelector("#tempo");
   // Bij het loslaten van het schuifje: onthouden en even laten horen hoe snel het is.
   schuif.onchange = () => { localStorage.setItem("snelheid", schuif.value); probeer(); };
@@ -611,6 +632,7 @@ function route() {
   if (naam === "open" && gevonden) return openMaken(gevonden);
   if (naam === "sorteer" && aantalOpen() >= 2) return sorteer();
   if (naam === "stem") return stemScherm();
+  if (naam === "taal") return taalScherm();
   if (cat && naam === "cat") return categorie(cat);
   if (cat && naam === "uitleg") return uitleg(cat);
   if (cat && naam === "gaatjes") return gaatjes(cat);

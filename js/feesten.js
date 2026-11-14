@@ -13,14 +13,79 @@ function paasdag(jaar) {
 }
 const dagen = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 const datum = (jaar, maand, dag) => new Date(jaar, maand - 1, dag);
-// Chanoeka (eerste en laatste dag), want die datum schuift elk jaar.
-const CHANOEKA = { 2025: [12, 15, 12, 22], 2026: [12, 5, 12, 12], 2027: [12, 25, 1, 1], 2028: [12, 13, 12, 20],
-  2029: [12, 2, 12, 9], 2030: [12, 21, 12, 28], 2031: [12, 10, 12, 17], 2032: [11, 28, 12, 5] };
+// Joodse feesten volgen de Joodse kalender, dus hun datum schuift elk jaar.
+// De browser kent die kalender (Intl, "hebrew"). We zoeken de dag in het gewone jaar j.
+const JOODSE_KALENDER = (() => {
+  try {
+    const f = new Intl.DateTimeFormat("en-u-ca-hebrew", { day: "numeric", month: "long" });
+    return f.resolvedOptions().calendar === "hebrew" ? f : null;
+  } catch (e) { return null; }
+})();
+const joodseDagen = {};
+// maanden: bv. ["Nisan"], of ["Adar", "Adar II"] (in een schrikkeljaar is Poerim in Adar II).
+// vooraf: zoveel dagen ervoor begint het feest in de app al, duur: zoveel dagen duurt het.
+function joods(maanden, dag, duur, vooraf = 0) {
+  return (j) => {
+    const k = `${maanden}|${dag}|${j}`;
+    if (!(k in joodseDagen)) {
+      joodseDagen[k] = null;
+      for (let d = datum(j, 1, 1); JOODSE_KALENDER && d.getFullYear() === j; d = dagen(d, 1)) {
+        const p = JOODSE_KALENDER.formatToParts(d);
+        const m = p.find((x) => x.type === "month").value, n = Number(p.find((x) => x.type === "day").value);
+        if (n === dag && maanden.includes(m)) { joodseDagen[k] = d; break; }
+      }
+    }
+    const begin = joodseDagen[k];
+    if (!begin) return null;
+    const p = [dagen(begin, -vooraf), dagen(begin, duur - 1)];
+    p.echt = [begin, p[1]]; // zonder de dagen ervoor: zo laten we de datum zien
+    return p;
+  };
+}
 
 // Elk feest: wanneer, welke mutsen, welke versiering en twee feest-werelden voor de spelletjes.
+// Joodse feesten (joods: true) hebben ook een Hebreeuwse naam (he) en een Hebreeuwse groet (chag),
+// die Eva in het Hebreeuws zegt, ook als de app Nederlands praat.
+// Op volgorde van het schooljaar.
 const FEESTEN = [
   {
-    id: "sinterklaas", naam: "Sinterklaas", emoji: "🎁", wanneer: "half november tot 5 december",
+    id: "rosjhasjana", naam: "Rosj Hasjana", he: "ראש השנה", joods: true, emoji: "🍎",
+    periode: joods(["Tishri"], 1, 2, 2),
+    hoeden: ["appel"], versiering: ["🍎", "🍯", "📯", "🐝", "✨"],
+    groet: "Het is Rosj Hasjana, het Joodse nieuwjaar! Eet jij ook appel met honing?", chag: "שנה טובה ומתוקה!",
+    werelden: [
+      { id: "f-honing", ding: "appels", emoji: "🍎", doel: "🍯", naam: "Appel in de honing", lucht: "#fff8e1", vloer: "#ffb300",
+        zin: "Doop de goede appel in de honing!", hoera: ["Zoet!", "Sjana tova!", "Mmm, honing!"] },
+      { id: "f-kaartje", ding: "kaartjes", emoji: "💌", doel: "📮", naam: "Nieuwjaarskaartjes", lucht: "#fce4ec", vloer: "#c62828",
+        zin: "Post het goede nieuwjaarskaartje!", hoera: ["Verstuurd!", "Sjana tova!", "Hoera!"] },
+    ],
+  },
+  {
+    id: "soekot", naam: "Soekot", he: "סוכות", joods: true, emoji: "🛖",
+    periode: joods(["Tishri"], 15, 9, 1),
+    hoeden: ["bladerkroon"], versiering: ["🛖", "🌿", "🍋", "⭐", "🍇"],
+    groet: "Het is Soekot! Zitten we lekker in de soeka?", chag: "חג סוכות שמח!",
+    werelden: [
+      { id: "f-soeka", ding: "versieringen", emoji: "⭐", doel: "🛖", naam: "Soeka versieren", lucht: "#f1f8e9", vloer: "#8d6e63",
+        zin: "Hang de goede versiering in de soeka!", hoera: ["Wat mooi!", "Chag sameach!", "Hoera!"] },
+      { id: "f-etrog", ding: "etrogs", emoji: "🍋", doel: "🧺", naam: "Etrog en loelav", lucht: "#fffde7", vloer: "#7cb342",
+        zin: "Leg de goede etrog in het mandje!", hoera: ["Lekker ruiken!", "Chag sameach!", "Mooi zo!"] },
+    ],
+  },
+  {
+    id: "halloween", naam: "Halloween", emoji: "🎃",
+    periode: (j) => [datum(j, 10, 24), datum(j, 10, 31)],
+    hoeden: ["heksenhoed"], versiering: ["🎃", "👻", "🦇", "🍬", "🕸️"],
+    groet: "Boe! Het is Halloween! Ben je bang?",
+    werelden: [
+      { id: "f-snoep", ding: "snoepjes", emoji: "🍬", doel: "🎃", naam: "Snoep ophalen", lucht: "#fff3e0", vloer: "#5d4037",
+        zin: "Doe het goede snoepje in de pompoen!", hoera: ["Boe!", "Lekker eng!", "Hihihi!"] },
+      { id: "f-spook", ding: "vleermuizen", emoji: "🦇", doel: "🏚️", naam: "Spookhuis", lucht: "#311b92", vloer: "#4a148c",
+        zin: "Stuur de goede vleermuis naar het spookhuis!", hoera: ["Boe!", "Oehoe!", "Spannend!"] },
+    ],
+  },
+  {
+    id: "sinterklaas", naam: "Sinterklaas", emoji: "🎁",
     periode: (j) => [datum(j, 11, 10), datum(j, 12, 5)],
     hoeden: ["mijter", "pietmuts"], versiering: ["🎁", "🍬", "🐴", "🍪", "📜"],
     groet: "Sinterklaas is in het land! Zet jij je schoen?",
@@ -32,10 +97,10 @@ const FEESTEN = [
     ],
   },
   {
-    id: "chanoeka", naam: "Chanoeka", emoji: "🕎", wanneer: "8 dagen in december",
-    periode: (j) => { const c = CHANOEKA[j]; return c ? [datum(j, c[0], c[1]), datum(c[2] < c[0] ? j + 1 : j, c[2], c[3])] : null; },
+    id: "chanoeka", naam: "Chanoeka", he: "חנוכה", joods: true, emoji: "🕎",
+    periode: joods(["Kislev"], 25, 8, 1),
     hoeden: ["chanoekamuts"], versiering: ["🕎", "🕯️", "✨", "🍩", "💙"],
-    groet: "Chag sameach! Het is Chanoeka. Steken we een kaarsje aan?",
+    groet: "Het is Chanoeka! Steken we een kaarsje aan?", chag: "חג חנוכה שמח!",
     werelden: [
       { id: "f-kaars", ding: "kaarsjes", emoji: "🕯️", doel: "🕎", naam: "Kaarsjes aansteken", lucht: "#e3f2fd", vloer: "#1565c0",
         zin: "Zet het goede kaarsje in de chanoekia!", hoera: ["Licht!", "Wat mooi!", "Chag sameach!"] },
@@ -44,7 +109,7 @@ const FEESTEN = [
     ],
   },
   {
-    id: "kerst", naam: "Kerst", emoji: "🎄", wanneer: "december, na Sinterklaas",
+    id: "kerst", naam: "Kerst", emoji: "🎄",
     periode: (j) => [datum(j, 12, 6), datum(j, 12, 30)],
     hoeden: ["kerstmuts"], versiering: ["🎄", "⭐", "❄️", "🔔", "🎁"],
     groet: "Het is bijna kerst! Zie je de sneeuw?",
@@ -56,7 +121,7 @@ const FEESTEN = [
     ],
   },
   {
-    id: "nieuwjaar", naam: "Oud en nieuw", emoji: "🎆", wanneer: "31 december tot 6 januari",
+    id: "nieuwjaar", naam: "Oud en nieuw", emoji: "🎆",
     periode: (j) => [datum(j, 12, 31), datum(j + 1, 1, 6)],
     hoeden: ["feestmuts"], versiering: ["🎆", "🎇", "🥂", "🍩", "✨"],
     groet: "Gelukkig nieuwjaar! Wat een mooi vuurwerk!",
@@ -68,7 +133,19 @@ const FEESTEN = [
     ],
   },
   {
-    id: "valentijn", naam: "Valentijn", emoji: "💌", wanneer: "10 tot 14 februari",
+    id: "toebisjvat", naam: "Toe Bisjvat", he: "ט״ו בשבט", joods: true, emoji: "🌳",
+    periode: joods(["Shevat"], 15, 1, 3),
+    hoeden: ["boompje"], versiering: ["🌳", "🌱", "🍇", "🌸", "🌰"],
+    groet: "Het is Toe Bisjvat, het feest van de bomen! Plant jij een boompje?", chag: "ט״ו בשבט שמח!",
+    werelden: [
+      { id: "f-boom", ding: "boompjes", emoji: "🌱", doel: "🌳", naam: "Bomen planten", lucht: "#e8f5e9", vloer: "#8d6e63",
+        zin: "Plant het goede boompje in het bos!", hoera: ["Groei maar!", "Wat groen!", "Hoera!"] },
+      { id: "f-fruit", ding: "vruchten", emoji: "🍇", doel: "🧺", naam: "Vruchten plukken", lucht: "#f3e5f5", vloer: "#7cb342",
+        zin: "Leg de goede vrucht in het mandje!", hoera: ["Lekker!", "Mmm!", "Smakelijk!"] },
+    ],
+  },
+  {
+    id: "valentijn", naam: "Valentijn", emoji: "💌",
     periode: (j) => [datum(j, 2, 10), datum(j, 2, 14)],
     hoeden: ["hartjes"], versiering: ["💌", "❤️", "🌹", "💕", "💝"],
     groet: "Het is Valentijn! Voor wie maak jij een kaartje?",
@@ -80,7 +157,7 @@ const FEESTEN = [
     ],
   },
   {
-    id: "carnaval", naam: "Carnaval", emoji: "🎭", wanneer: "in februari of maart",
+    id: "carnaval", naam: "Carnaval", emoji: "🎭",
     periode: (j) => { const p = paasdag(j); return [dagen(p, -52), dagen(p, -47)]; },
     hoeden: ["narrenkap"], versiering: ["🎭", "🎉", "🎊", "🎺", "🤡"],
     groet: "Alaaf! Het is carnaval! Als wat ben jij verkleed?",
@@ -92,7 +169,31 @@ const FEESTEN = [
     ],
   },
   {
-    id: "pasen", naam: "Pasen", emoji: "🐣", wanneer: "de week voor Pasen",
+    id: "poerim", naam: "Poerim", he: "פורים", joods: true, emoji: "🎭",
+    periode: joods(["Adar", "Adar II"], 14, 2, 6),
+    hoeden: ["kroon", "narrenkap"], versiering: ["🎭", "👑", "🍪", "🎉", "🥁"],
+    groet: "Het is Poerim! Als wat ben jij verkleed?", chag: "פורים שמח!",
+    werelden: [
+      { id: "f-masker", ding: "maskers", emoji: "🎭", doel: "👸", naam: "Verkleedfeest", lucht: "#f3e5f5", vloer: "#7b1fa2",
+        zin: "Breng het goede masker naar koningin Esther!", hoera: ["Poerim sameach!", "Wat een feest!", "Joepie!"] },
+      { id: "f-hamansoor", ding: "hamansoren", emoji: "🍪", doel: "🍽️", naam: "Hamansoren", lucht: "#fff8e1", vloer: "#ffb74d",
+        zin: "Leg de goede hamansoor op het bord!", hoera: ["Mmm!", "Lekker!", "Smakelijk!"] },
+    ],
+  },
+  {
+    id: "pesach", naam: "Pesach", he: "פסח", joods: true, emoji: "🫓",
+    periode: joods(["Nisan"], 15, 8, 3),
+    hoeden: ["kikker"], versiering: ["🫓", "🍷", "🐸", "🌸", "🍽️"],
+    groet: "Het is Pesach! Zoek jij de afikoman?", chag: "חג פסח שמח!",
+    werelden: [
+      { id: "f-kikker", ding: "kikkers", emoji: "🐸", doel: "🌊", naam: "Springende kikkers", lucht: "#e0f7fa", vloer: "#26a69a",
+        zin: "Laat de goede kikker in het water springen!", hoera: ["Kwaak!", "Plons!", "Hoera!"] },
+      { id: "f-matze", ding: "matzes", emoji: "🫓", doel: "🍽️", naam: "Sederavond", lucht: "#fff8e1", vloer: "#bcaaa4",
+        zin: "Leg de goede matze op de sederschotel!", hoera: ["Chag sameach!", "Knapperig!", "Smakelijk!"] },
+    ],
+  },
+  {
+    id: "pasen", naam: "Pasen", emoji: "🐣",
     periode: (j) => { const p = paasdag(j); return [dagen(p, -7), dagen(p, 1)]; },
     hoeden: ["konijnenoren"], versiering: ["🐣", "🥚", "🐰", "🌷", "🧺"],
     groet: "Vrolijk Pasen! Zoek jij ook paaseieren?",
@@ -104,7 +205,7 @@ const FEESTEN = [
     ],
   },
   {
-    id: "koningsdag", naam: "Koningsdag", emoji: "👑", wanneer: "de week voor 27 april",
+    id: "koningsdag", naam: "Koningsdag", emoji: "👑",
     periode: (j) => [datum(j, 4, 21), datum(j, 4, 27)],
     hoeden: ["kroon"], versiering: ["👑", "🧡", "🎈", "🍰", "🎉"],
     groet: "Hoera, het is Koningsdag! Alles is oranje!",
@@ -116,15 +217,27 @@ const FEESTEN = [
     ],
   },
   {
-    id: "halloween", naam: "Halloween", emoji: "🎃", wanneer: "de week voor 31 oktober",
-    periode: (j) => [datum(j, 10, 24), datum(j, 10, 31)],
-    hoeden: ["heksenhoed"], versiering: ["🎃", "👻", "🦇", "🍬", "🕸️"],
-    groet: "Boe! Het is Halloween! Ben je bang?",
+    id: "lagbaomer", naam: "Lag Baomer", he: "ל״ג בעומר", joods: true, emoji: "🔥",
+    periode: joods(["Iyar"], 18, 1, 1),
+    hoeden: ["feestmuts"], versiering: ["🔥", "🏹", "🌙", "🥔", "✨"],
+    groet: "Het is Lag Baomer! Maken we een kampvuur?", chag: "ל״ג בעומר שמח!",
     werelden: [
-      { id: "f-snoep", ding: "snoepjes", emoji: "🍬", doel: "🎃", naam: "Snoep ophalen", lucht: "#fff3e0", vloer: "#5d4037",
-        zin: "Doe het goede snoepje in de pompoen!", hoera: ["Boe!", "Lekker eng!", "Hihihi!"] },
-      { id: "f-spook", ding: "vleermuizen", emoji: "🦇", doel: "🏚️", naam: "Spookhuis", lucht: "#311b92", vloer: "#4a148c",
-        zin: "Stuur de goede vleermuis naar het spookhuis!", hoera: ["Boe!", "Oehoe!", "Spannend!"] },
+      { id: "f-kampvuur", ding: "houtjes", emoji: "🪵", doel: "🔥", naam: "Kampvuur", lucht: "#1a237e", vloer: "#4e342e",
+        zin: "Gooi het goede houtje op het kampvuur!", hoera: ["Warm!", "Knisper!", "Hoera!"] },
+      { id: "f-pijl", ding: "pijlen", emoji: "🏹", doel: "🎯", naam: "Pijl en boog", lucht: "#e8f5e9", vloer: "#558b2f",
+        zin: "Schiet de goede pijl in de roos!", hoera: ["Raak!", "In de roos!", "Goed gemikt!"] },
+    ],
+  },
+  {
+    id: "sjavoeot", naam: "Sjavoeot", he: "שבועות", joods: true, emoji: "🧀",
+    periode: joods(["Sivan"], 6, 2, 3),
+    hoeden: ["bloemenkrans"], versiering: ["🌸", "🧀", "🌾", "🍓", "🥛"],
+    groet: "Het is Sjavoeot! Eet jij ook kaastaart?", chag: "חג שבועות שמח!",
+    werelden: [
+      { id: "f-kaas", ding: "stukjes kaas", emoji: "🧀", doel: "🍽️", naam: "Kaastaart", lucht: "#fffde7", vloer: "#fdd835",
+        zin: "Leg het goede stukje kaas op het bord!", hoera: ["Mmm!", "Lekker!", "Chag sameach!"] },
+      { id: "f-vrucht", ding: "aardbeien", emoji: "🍓", doel: "🧺", naam: "Eerste vruchten", lucht: "#fce4ec", vloer: "#8bc34a",
+        zin: "Leg de goede aardbei in de mand!", hoera: ["Lekker!", "Wat rood!", "Hoera!"] },
     ],
   },
 ];
@@ -146,7 +259,39 @@ function actiefFeest() {
   if (keuze === "geen") return null;
   if (keuze) return FEESTEN.find((f) => f.id === keuze) || null;
   const uit = feestenUit();
-  return FEESTEN.find((f) => !uit.includes(f.id) && feestBezig(f)) || null;
+  const nu = FEESTEN.filter((f) => !uit.includes(f.id) && feestBezig(f));
+  // Zijn er twee feesten tegelijk (Pesach en Pasen)? Dan gaat het Joodse feest voor.
+  return nu.find((f) => f.joods) || nu[0] || null;
+}
+
+// De naam van een feest in de gekozen taal. Joodse feesten krijgen ook hun Hebreeuwse naam erbij.
+function feestNaam(f) {
+  if (TAAL === "he") return f.he || t(f.naam);
+  return f.he ? `${t(f.naam)} <span class="feest-he" lang="he" dir="rtl">${f.he}</span>` : t(f.naam);
+}
+// Wat Eva zegt als het feest is. Bij een Joods feest staat de Hebreeuwse groet erbij.
+function feestGroet(f) {
+  if (!f.chag) return t(f.groet);
+  // \u2068 en \u2069 houden de Hebreeuwse zin bij elkaar tussen de Nederlandse woorden (anders staat het ! verkeerd).
+  return TAAL === "he" ? `${f.chag} ${t(f.groet)}` : `${t(f.groet)} \u2068${f.chag}\u2069`;
+}
+// Eva zegt de groet hardop: eerst in de taal van de app, dan de Hebreeuwse groet met een Hebreeuwse stem.
+async function zegFeestGroet(f) {
+  if (TAAL === "he" || !f.chag) return praat(feestGroet(f));
+  await praat(t(f.groet));
+  const beurt = spreekBeurt;
+  await wacht(200);
+  if (beurt === spreekBeurt) zeg(f.chag, "he-IL");
+}
+// Wanneer is het feest (nu of de volgende keer)? Bv. "2 – 9 april".
+function feestDatum(f, nu = new Date()) {
+  const vandaag = datum(nu.getFullYear(), nu.getMonth() + 1, nu.getDate());
+  const p = [nu.getFullYear() - 1, nu.getFullYear(), nu.getFullYear() + 1].map((j) => f.periode(j)).find((x) => x && x[1] >= vandaag);
+  if (!p) return "";
+  const taal = { nl: "nl-NL", he: "he-IL", en: "en-GB" }[TAAL] || "nl-NL";
+  const d = (x) => x.toLocaleDateString(taal, { day: "numeric", month: "long" });
+  const [a, b] = p.echt || p;
+  return a.getTime() === b.getTime() ? d(a) : `${d(a)} – ${d(b)}`;
 }
 
 // Een spelletje van Eva in feest-kleren: de wereld wordt een feest-wereld.
@@ -167,7 +312,7 @@ function feestThema(spel) {
 }
 function feestDoolhof() {
   const f = actiefFeest();
-  return f ? { naam: `${f.naam}-doolhof`, wereld: f.werelden[0].id } : undefined;
+  return f ? { naam: t("{feest}-doolhof", { feest: TAAL === "he" && f.he ? f.he : t(f.naam) }), wereld: f.werelden[0].id } : undefined;
 }
 
 // Feestmutsen en een slinger: via een class op <body>, de rest doet de CSS.
@@ -185,7 +330,7 @@ function toonFeest() {
   const hoed = (h) => `url("${new URL(`img/feest/${h}.svg`, location.href).href}")`;
   document.body.style.setProperty("--hoed", hoed(h1));
   document.body.style.setProperty("--hoed2", hoed(h2));
-  const slinger = el(`<a class="slinger" href="#feesten" aria-label="Feesten kiezen">${Array.from({ length: 14 }, (_, i) => f.versiering[i % f.versiering.length]).join(" ")}</a>`);
+  const slinger = el(`<a class="slinger" href="#feesten" aria-label="${t("Feesten kiezen")}">${Array.from({ length: 14 }, (_, i) => f.versiering[i % f.versiering.length]).join(" ")}</a>`);
   document.body.prepend(slinger);
 }
 document.addEventListener("DOMContentLoaded", toonFeest);
@@ -194,28 +339,28 @@ window.addEventListener("hashchange", toonFeest); // ook als je een ander feest 
 // Het feesten-scherm: welke feesten doen mee?
 function feestenScherm() {
   const uit = feestenUit(), keuze = localStorage.getItem("feestKeuze") || "", nu = actiefFeest();
-  zegEekhoorn(nu ? `${nu.groet} Kies hier welke feesten meedoen.` : "Kies welke feesten meedoen! Dan verandert de app als het feest is.");
-  zeg(nu ? nu.groet : "Kies welke feesten meedoen!");
+  zegEekhoorn(nu ? `${feestGroet(nu)} ${t("Kies hier welke feesten meedoen.")}` : t("Kies welke feesten meedoen! Dan verandert de app als het feest is."));
+  if (nu) zegFeestGroet(nu); else praat(t("Kies welke feesten meedoen!"));
   scherm.innerHTML = `
     <div class="kaart">
-      <h2>🎉 Feesten</h2>
-      <p class="regel">Als het feest is, krijgen alle dieren een feestmuts en worden de spelletjes feest-spelletjes. Jij kiest welke feesten meedoen.</p>
+      <h2>🎉 ${t("Feesten")}</h2>
+      <p class="regel">${t("Als het feest is, krijgen alle dieren een feestmuts en worden de spelletjes feest-spelletjes. Jij kiest welke feesten meedoen.")}</p>
       <div class="feest-lijst">${FEESTEN.map((f) => {
         const mee = !uit.includes(f.id);
         return `<button class="feest-vak ${mee ? "mee" : "niet"} ${nu === f ? "nu" : ""}" data-id="${f.id}">
           <span class="feest-emoji">${f.emoji}<img class="feest-hoed" src="img/feest/${f.hoeden[0]}.svg" alt=""></span>
-          <b>${f.naam}</b><small>${f.wanneer}</small>
-          <span class="feest-mee">${mee ? "✅ Doe ik mee" : "❌ Doe ik niet mee"}</span>
-          ${nu === f ? `<span class="feest-nu">🎉 Nu!</span>` : ""}</button>`;
+          <b>${feestNaam(f)}</b><small>${feestDatum(f)}</small>
+          <span class="feest-mee">${mee ? "✅ " + t("Doe ik mee") : "❌ " + t("Doe ik niet mee")}</span>
+          ${nu === f ? `<span class="feest-nu">🎉 ${t("Nu!")}</span>` : ""}</button>`;
       }).join("")}</div>
-      <h3 class="spel-kop">👀 Wil je nu al een feest?</h3>
-      <p class="winkel-uitleg">Kies een feest om nu te vieren, of laat de kalender kiezen.</p>
+      <h3 class="spel-kop">👀 ${t("Wil je nu al een feest?")}</h3>
+      <p class="winkel-uitleg">${t("Kies een feest om nu te vieren, of laat de kalender kiezen.")}</p>
       <div class="kies-rij feest-nu-rij">
-        <button class="kies-knop ${keuze === "" ? "gekozen" : ""}" data-k=""><span>📅</span>Kalender</button>
-        ${FEESTEN.map((f) => `<button class="kies-knop ${keuze === f.id ? "gekozen" : ""}" data-k="${f.id}"><span>${f.emoji}</span>${f.naam}</button>`).join("")}
-        <button class="kies-knop ${keuze === "geen" ? "gekozen" : ""}" data-k="geen"><span>🚫</span>Geen feest</button>
+        <button class="kies-knop ${keuze === "" ? "gekozen" : ""}" data-k=""><span>📅</span>${t("Kalender")}</button>
+        ${FEESTEN.map((f) => `<button class="kies-knop ${keuze === f.id ? "gekozen" : ""}" data-k="${f.id}"><span>${f.emoji}</span>${TAAL === "he" && f.he ? f.he : t(f.naam)}</button>`).join("")}
+        <button class="kies-knop ${keuze === "geen" ? "gekozen" : ""}" data-k="geen"><span>🚫</span>${t("Geen feest")}</button>
       </div>
-      <a class="grote-knop" href="#">Verder spelen</a>
+      <a class="grote-knop" href="#">${t("Verder spelen")}</a>
     </div>`;
   scherm.querySelectorAll(".feest-vak").forEach((b) => (b.onclick = () => {
     const id = b.dataset.id, lijst = feestenUit();
