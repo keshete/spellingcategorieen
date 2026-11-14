@@ -12,7 +12,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 39; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 41; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -22,7 +22,7 @@ const nlStemmen = () => speechSynthesis.getVoices().filter((v) => taal(v).starts
 const isVrouw = (v) => VROUW.test(v.name) && !/\bmale\b/i.test(v.name);
 const isMan = (v) => MAN.test(v.name);
 // Met een jongensstem heet de eekhoorn Erik, met een meisjesstem Eva.
-const naam = () => (nlStem && isMan(nlStem) ? "Erik" : "Eva");
+const naam = () => (nlStem && isMan(nlStem) && !echteStemAan() ? "Erik" : "Eva");
 function kiesStem() {
   const stemmen = speechSynthesis.getVoices();
   const nl = nlStemmen();
@@ -198,7 +198,8 @@ function gekleurd(cat, x) {
 function feest() {
   geluid("feest");
   for (let i = 0; i < 18; i++) {
-    const s = el(`<span class="confetti">${schud(["⭐", "🎉", "✨", "🌟"])[0]}</span>`);
+    const f = actiefFeest();
+    const s = el(`<span class="confetti">${schud(f ? [...f.versiering, "✨"] : ["⭐", "🎉", "✨", "🌟"])[0]}</span>`);
     s.style.left = Math.random() * 100 + "vw";
     s.style.animationDelay = Math.random() * 0.5 + "s";
     document.body.appendChild(s);
@@ -208,9 +209,10 @@ function feest() {
 
 // ---------- schermen ----------
 function thuis() {
-  // De eerste keer kiest het kind eerst hoe oud het is en hoe moeilijk het wil.
+  // De eerste keer kiest het kind eerst hoe oud het is, hoe moeilijk en wat het al heeft gehad.
   if (!heeftGekozen()) return kies();
-  zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. Tik op een categorie en kies een spelletje!`);
+  const f = actiefFeest();
+  zegEekhoorn(`Hoi! Ik ben ${naam()} Eekhoorn. ${f ? f.groet + " " : ""}Tik op een categorie en kies een spelletje!`);
   const s = sterren();
   scherm.innerHTML = `
     ${niveauKnop()}
@@ -219,6 +221,7 @@ function thuis() {
       <a class="thuis-knop" href="#sorteer" style="background:#4fc3f7"><span>🎮</span>Sorteerspel</a>
       <a class="thuis-knop" href="#stickers" style="background:#9575cd"><span>📒</span>Stickerboek</a>
       <a class="thuis-knop" href="#prijzen" style="background:#a1887f"><span>🛒</span>Winkel</a>
+      <a class="thuis-knop" href="#feesten" style="background:#ffb300"><span>${f ? f.emoji : "🎉"}</span>Feesten</a>
     </div>
     ${verderKnop(s)}
     <div class="groep-sprong">${GROEPEN.map((g) => {
@@ -231,6 +234,12 @@ function thuis() {
   scherm.querySelectorAll(".groep-knop").forEach((b) => (b.onclick = () => {
     const kop = scherm.querySelector(`.groep-kop[data-groep="${b.dataset.groep}"]`);
     if (kop) kop.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Nog op slot? Dan zegt Eva hoe je zegt dat je ze al hebt gehad.
+    const eerste = CATEGORIEEN.find((c) => c.groep === Number(b.dataset.groep));
+    if (eerste && !isOpen(eerste)) {
+      const t = "Heb je deze categorieën al gehad op school? Tik dan bovenaan op het vinkje ✅.";
+      zegEekhoorn(t); zeg(t);
+    }
   }));
   const lijst = scherm.querySelector(".grid");
   for (const c of CATEGORIEEN) {
@@ -270,7 +279,7 @@ function tegel(c, s) {
     const i = CATEGORIEEN.indexOf(c), n = aantalOpen();
     const t = i === n
       ? `Haal 2 sterren bij ${CATEGORIEEN[n - 1].naam}. Dan krijg je de sleutel voor ${c.naam}!`
-      : `${c.naam} zit nog op slot. Leer eerst ${CATEGORIEEN[n - 1].naam}!`;
+      : `${c.naam} zit nog op slot. Leer eerst ${CATEGORIEEN[n - 1].naam}! Heb je hem al gehad? Tik dan op ✅ bovenaan.`;
     zegEekhoorn(t); zeg(t);
   };
   return li;
@@ -571,8 +580,9 @@ function stemScherm() {
       </div>
       <h3>Welke stem?</h3>
       <div class="keuzes" id="stemmen">
-        ${stemmen.map((v, i) => `<button class="grote-knop${nlStem && v.voiceURI === nlStem.voiceURI ? " gekozen" : ""}" data-i="${i}">
-          ${isVrouw(v) ? "👧" : isMan(v) ? "👦" : "🙂"} ${v.name} <small>(${v.lang})</small></button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
+        ${stemmen.map((v, i) => `<button class="grote-knop${!echteStemAan() && nlStem && v.voiceURI === nlStem.voiceURI ? " gekozen" : ""}" data-i="${i}">
+          ${isVrouw(v) ? "👧 Meisje" : isMan(v) ? "👦 Jongen" : "🙂"}: ${v.name}</button>`).join("") || "<p>Geen Nederlandse stem gevonden.</p>"}
+        <button class="grote-knop${echteStemAan() ? " gekozen" : ""}" id="echt">🧑 Echte mensen (steeds iemand anders)</button>
       </div>
       ${heeftVrouw ? "" : `<p class="tip">Er is nog geen meisjesstem op dit apparaat. Vraag een grote mens om te helpen:
         iPhone of iPad → Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands →
@@ -583,13 +593,8 @@ function stemScherm() {
         Instellingen → Toegankelijkheid → Gesproken materiaal → Stemmen → Nederlands
         de <b>verbeterde</b> versie van de stem downloaden. Die klinkt veel mooier.</p>
       <button class="grote-knop" id="probeer">▶️ Probeer</button>
-      <h3>Echte stemmen</h3>
-      <div class="keuzes" id="echt">
-        <button class="grote-knop${echteStemAan() ? " gekozen" : ""}" data-v="aan">🧑 Echte mensen</button>
-        <button class="grote-knop${echteStemAan() ? "" : " gekozen"}" data-v="uit">🤖 Computerstem</button>
-      </div>
-      <p class="tip">Met <b>echte mensen</b> hoor je bij losse woorden de stem van een echt persoon,
-        steeds iemand anders. Daarvoor is internet nodig. Is er van een woord geen opname, dan praat de computerstem.
+      <p class="tip"><b>Echte mensen</b>: bij losse woorden hoor je een opname van een echt persoon, jongen of meisje,
+        steeds iemand anders. Daarvoor is internet nodig.
         <small>Opnames: Lingua Libre en WikiWoordenboek via Wikimedia Commons (CC BY-SA).</small></p>
       <p class="versie">Versie ${VERSIE}</p>
     </div>`;
@@ -598,12 +603,14 @@ function stemScherm() {
   // Bij het loslaten van het schuifje: onthouden en even laten horen hoe snel het is.
   schuif.onchange = () => { localStorage.setItem("snelheid", schuif.value); probeer(); };
   scherm.querySelectorAll("#stemmen button").forEach((b) => (b.onclick = () => {
-    localStorage.setItem("stem", stemmen[b.dataset.i].voiceURI); kiesStem(); stemScherm(); probeer();
+    // Een gekozen stem gebruiken we overal, ook bij losse woorden (dus geen echte mensen).
+    localStorage.setItem("stem", stemmen[b.dataset.i].voiceURI); localStorage.setItem("echteStem", "uit");
+    kiesStem(); stemScherm(); probeer();
   }));
   scherm.querySelector("#probeer").onclick = probeer;
-  scherm.querySelectorAll("#echt button").forEach((b) => (b.onclick = () => {
-    localStorage.setItem("echteStem", b.dataset.v); stemScherm(); zeg("kat. vis. hulp.");
-  }));
+  scherm.querySelector("#echt").onclick = () => {
+    localStorage.setItem("echteStem", "aan"); stemScherm(); zeg("kat. vis. hulp.");
+  };
 }
 
 // ---------- leeftijd en moeilijkheid ----------
@@ -630,11 +637,12 @@ function route() {
   if (cat && naam === "gaatjes") return gaatjes(cat);
   if (cat && naam === "dictee") return dictee(cat);
   if (naam === "prijzen") return prijzen();
-  if (naam === "bordspel" || naam === "doolhof") return doolhof(cat || null);
+  if (naam === "bordspel" || naam === "doolhof") return doolhof(cat || null, feestDoolhof());
+  if (naam === "feesten") return feestenScherm();
   if (naam === "stickers") return stickerboek();
   if (naam === "stickermaker") return stickermaker();
-  if (cat && naam === "ballonnen") return ballonnen(cat);
-  if (cat && naam === "eikels") return eikels(cat);
+  if (cat && naam === "ballonnen") return ballonnen(cat, ...feestThema("ballonnen"));
+  if (cat && naam === "eikels") return eikels(cat, ...feestThema("eikels"));
   if (cat && naam === "kiezen") return kiezen(cat);
   if (cat && naam === "wereld") return wereldSpel(cat, location.hash.split("/")[2]);
   if (cat && naam === "maak") return maakSpel(cat);

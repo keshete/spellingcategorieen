@@ -671,7 +671,7 @@ function spelPlan(s) {
 function leesVerhaal(tekst) {
   const woorden = tekst.toLowerCase().replace(/[^a-zà-ÿ'\s-]/g, " ").split(/[\s-]+/).filter(Boolean);
   const past = (lijst) => lijst.some((t) => woorden.some((w) => w === t || (t.length >= 4 && w.startsWith(t))));
-  const wereld = Object.keys(WERELDEN).find((id) => past(WERELDEN[id].woorden));
+  const wereld = Object.keys(WERELDEN).find((id) => WERELDEN[id].woorden && past(WERELDEN[id].woorden));
   const soort = ["doolhof", "vangen", "knallen", "doel"].find((id) => past(SOORTEN[id].woorden));
   return { wereld, soort };
 }
@@ -697,7 +697,7 @@ function tekenMeerSpellen(cat) {
     <h3 class="spel-kop">🎮 Nog meer spelletjes</h3>
     <div class="spel-lijst">
       <a class="spel-tegel bordspel-tegel" href="#doolhof/${k}"><span>🧭</span>Doolhof</a>
-      ${KANT_EN_KLAAR.map((s) => tegel(s)).join("")}</div>
+      ${KANT_EN_KLAAR.map((s, i) => tegel(metFeest(s, i))).join("")}</div>
     <h3 class="spel-kop">⭐ Mijn eigen spelletjes</h3>
     <div class="spel-lijst">
       ${mijnSpellen().map((s) => tegel(s, true)).join("")}
@@ -706,7 +706,8 @@ function tekenMeerSpellen(cat) {
 }
 
 function wereldSpel(cat, spelId) {
-  const spel = alleWereldSpellen().find((s) => s.id === spelId);
+  const i = KANT_EN_KLAAR.findIndex((s) => s.id === spelId);
+  const spel = i >= 0 ? metFeest(KANT_EN_KLAAR[i], i) : mijnSpellen().find((s) => s.id === spelId);
   if (!spel) return categorie(cat);
   const W = WERELDEN[spel.wereld];
   const titel = `${spelEmoji(spel)} ${spel.naam}`;
@@ -810,7 +811,7 @@ function maakSpel(cat) {
       <h3>1. Wat doe je in het spel?</h3>
       <div class="kies-rij" data-veld="soort">${Object.entries(SOORTEN).map(([id, S]) => knop(id, S.emoji, S.naam)).join("")}</div>
       <h3>2. Kies een thema</h3>
-      <div class="kies-rij" data-veld="wereld">${Object.entries(WERELDEN).map(([id, W]) => knop(id, W.emoji + W.doel, W.naam)).join("")}</div>
+      <div class="kies-rij" data-veld="wereld">${Object.entries(WERELDEN).filter(([, W]) => !W.feest).map(([id, W]) => knop(id, W.emoji + W.doel, W.naam)).join("")}</div>
       <div class="alleen-doel">
         <h3>3. Wat staat erop?</h3>
         <div class="kies-rij" data-veld="op">${knop("stukje", "b · p", "Een stukje")}${knop("woord", "krab · krap", "Een heel woord")}</div>
@@ -880,40 +881,55 @@ function stickerInhoud(e) {
 }
 
 function stickermaker() {
-  zegEekhoorn("Teken je eigen sticker! Kies een kleur of een stempel.");
+  zegEekhoorn("Teken je eigen sticker! Niet goed gelukt? Tik op 🧽 Gum of op ↩️ Oeps, terug.");
   zeg("Teken je eigen sticker!");
   scherm.innerHTML = `
     <div class="kaart sticker-maker">
       <h2>🎨 Maak je eigen sticker</h2>
+      <div class="teken-rij gereedschap">
+        <button class="dikte-knop pen">✏️ Tekenen</button>
+        <button class="dikte-knop gum" data-gum="1">🧽 Gum</button>
+        <button class="dikte-knop" id="terug">↩️ Oeps, terug</button>
+        <button class="dikte-knop" id="leeg">🗑️ Alles weg</button>
+      </div>
       <canvas class="teken-vel" width="480" height="480"></canvas>
       <div class="teken-rij kleuren">${KLEUREN.map((k) => `<button class="kleur-knop" data-k="${k}" style="background:${k}" aria-label="Kleur"></button>`).join("")}</div>
       <div class="teken-rij">
         <button class="dikte-knop" data-d="10" aria-label="Dun"><span style="width:.5rem;height:.5rem"></span></button>
         <button class="dikte-knop" data-d="22" aria-label="Middel"><span style="width:1rem;height:1rem"></span></button>
         <button class="dikte-knop" data-d="44" aria-label="Dik"><span style="width:1.7rem;height:1.7rem"></span></button>
-        <button class="dikte-knop gum" data-gum="1">🧽 Gum</button>
-        <button class="dikte-knop" id="leeg">🗑️ Opnieuw</button>
       </div>
       <div class="teken-rij stempels">${STEMPELS.map((s) => `<button class="stempel-knop" data-s="${s}">${s}</button>`).join("")}</div>
       <div class="knoppen">
         <button class="grote-knop" id="klaar">✅ Klaar!</button>
-        <a class="grote-knop grijs" href="#prijzen">Terug</a>
+        <a class="grote-knop grijs" href="#prijzen">🛒 Naar de winkel</a>
       </div>
     </div>`;
   const vel = scherm.querySelector(".teken-vel");
-  const ctx = vel.getContext("2d");
+  const ctx = vel.getContext("2d", { willReadFrequently: true });
+  // Terug-knop: we bewaren hoe het vel eruitzag vóór elke streep of stempel.
+  const vorigeVellen = [];
+  const bewaarVel = () => { vorigeVellen.push(ctx.getImageData(0, 0, vel.width, vel.height)); if (vorigeVellen.length > 25) vorigeVellen.shift(); };
   const pen = { kleur: KLEUREN[4], dikte: 22, gum: false, stempel: null };
   const toon = () => {
     scherm.querySelectorAll(".kleur-knop").forEach((b) => b.classList.toggle("gekozen", !pen.gum && !pen.stempel && b.dataset.k === pen.kleur));
     scherm.querySelectorAll(".dikte-knop[data-d]").forEach((b) => b.classList.toggle("gekozen", !pen.stempel && Number(b.dataset.d) === pen.dikte));
     scherm.querySelector(".gum").classList.toggle("gekozen", pen.gum);
+    scherm.querySelector(".pen").classList.toggle("gekozen", !pen.gum && !pen.stempel);
+    vel.classList.toggle("gummen", pen.gum);
     scherm.querySelectorAll(".stempel-knop").forEach((b) => b.classList.toggle("gekozen", b.dataset.s === pen.stempel));
   };
   scherm.querySelectorAll(".kleur-knop").forEach((b) => (b.onclick = () => { pen.kleur = b.dataset.k; pen.gum = false; pen.stempel = null; toon(); }));
   scherm.querySelectorAll(".dikte-knop[data-d]").forEach((b) => (b.onclick = () => { pen.dikte = Number(b.dataset.d); pen.stempel = null; toon(); }));
-  scherm.querySelector(".gum").onclick = () => { pen.gum = !pen.gum; pen.stempel = null; toon(); };
+  scherm.querySelector(".gum").onclick = () => { pen.gum = true; pen.stempel = null; toon(); zegEekhoorn("Gum! Veeg over wat je weg wilt halen."); };
+  scherm.querySelector(".pen").onclick = () => { pen.gum = false; pen.stempel = null; toon(); };
   scherm.querySelectorAll(".stempel-knop").forEach((b) => (b.onclick = () => { pen.stempel = b.dataset.s; pen.gum = false; toon(); zegEekhoorn("Tik op je tekening om te stempelen!"); }));
-  scherm.querySelector("#leeg").onclick = () => { ctx.clearRect(0, 0, vel.width, vel.height); geluid("knal"); };
+  scherm.querySelector("#leeg").onclick = () => { bewaarVel(); ctx.clearRect(0, 0, vel.width, vel.height); geluid("knal"); };
+  scherm.querySelector("#terug").onclick = () => {
+    if (!vorigeVellen.length) return zegEekhoorn("Er is niets meer om terug te doen.");
+    ctx.putImageData(vorigeVellen.pop(), 0, 0);
+    geluid("eikel");
+  };
   toon();
 
   const punt = (e) => {
@@ -923,6 +939,7 @@ function stickermaker() {
   let vorige = null;
   vel.onpointerdown = (e) => {
     e.preventDefault();
+    bewaarVel();
     const [x, y] = punt(e);
     if (pen.stempel) {
       ctx.globalCompositeOperation = "source-over";

@@ -81,4 +81,5 @@ async function speelEchteStem(w) {
     setTimeout(() => af(true), 8000);
   });
 }
-const echteStemAan = () => localStorage.getItem("echteStem") !== "uit";
+// Standaard uit: dan hoor je de stem die je gekozen hebt (meisje of jongen).
+const echteStemAan = () => localStorage.getItem("echteStem") === "aan";
