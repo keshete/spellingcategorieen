@@ -585,3 +585,33 @@ header { position: relative; }
 .dikte-knop.gum.gekozen { border-color: #e91e63; background: #fce4ec; }
 .teken-vel.gummen { border-color: #e91e63; }
 .feest-woorden { background: #fff3e0; border: 3px dashed #ff9800; border-radius: 1rem; padding: .5rem .8rem; font-size: 1.15rem; font-weight: bold; }
+
+/* ---------- leeftijd en moeilijkheid ---------- */
+.niveau-knop {
+  display: inline-block; margin: 0 0 1rem; padding: .6rem 1.1rem;
+  background: #fff; border: 3px solid #333; border-radius: 2rem;
+  font-size: 1.2rem; font-weight: bold;
+}
+.niveau-knop .pen { font-size: 1rem; }
+.kieskaart h2 { margin: .8rem 0 .4rem; }
+.kieskaart .keuzes .grote-knop { display: inline-flex; flex-direction: column; align-items: center; min-width: 9rem; }
+.kieskaart small { font-size: .95rem; font-weight: normal; margin-top: .2rem; }
+.kieskaart .niveaus { display: grid; grid-template-columns: repeat(2, minmax(0, 15rem)); justify-content: center; }
+.kieskaart .niveaus .grote-knop { min-width: 0; }
+.kieskaart .icoon { font-size: 2.2rem; }
+.kieskaart .start { display: block; margin: 1.4rem auto .4rem; font-size: 1.5rem; background: #4fc3f7; box-shadow: 0 5px 0 #0288d1; }
+.kieskaart .start:disabled { opacity: .45; cursor: default; }
+.letterhulp { font-size: 2.2rem; letter-spacing: .25rem; font-family: monospace; margin: .4rem 0; color: #999; }
+
+/* ---------- ✅ al gehad ---------- */
+.gehad-uitleg { font-size: 1.15rem; margin: 0 0 .6rem; }
+.gehad-lijst { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); margin-bottom: .8rem; }
+.gehad-lijst h3 { grid-column: 1 / -1; margin: .6rem 0 0; text-align: left; }
+.gehad-tegel {
+  font: inherit; cursor: pointer; padding: .5rem .3rem; min-height: 72px; touch-action: manipulation;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .15rem;
+  background: #fff; border: 4px solid var(--kleur); border-radius: 1rem; color: #333;
+}
+.gehad-tegel .gehad-nr { font-size: 1.3rem; font-weight: bold; }
+.gehad-tegel small { font-size: .85rem; line-height: 1.1; }
+.gehad-tegel.aan { background: var(--kleur); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
