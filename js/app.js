@@ -12,7 +12,7 @@ const el = (html) => { const d = document.createElement("div"); d.innerHTML = ht
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- voorlezen ----------
-const VERSIE = 41; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
+const VERSIE = 42; // staat op het stem-scherm, zodat je ziet of je de nieuwe app hebt
 let nlStem = null;
 // Liefst een vrouwenstem (iPhone/iPad/Mac: Claire, Chrome: Google Nederlands, Windows: Colette/Fenna).
 const VROUW = /claire|ellen|fenna|colette|google|lotte|laura|anna|femke|sara|vrouw|female/i;
@@ -377,7 +377,9 @@ function buurKnoppen(cat) {
 }
 
 function categorie(cat) {
-  zegEekhoorn(`Dit is ${cat.figuurNaam}. Loop met mij over de weg naar de beker!`);
+  zegEekhoorn(cat.feest
+    ? `Dit is ${cat.figuurNaam}. Het is ${cat.feest.naam}! Je oefent nu met ${cat.feest.naam}-woorden.`
+    : `Dit is ${cat.figuurNaam}. Loop met mij over de weg naar de beker!`);
   scherm.innerHTML = `
     <div class="kaart" style="border-color:${cat.kleur}">
       <div class="kop" style="background:${cat.kleur}">
@@ -385,6 +387,7 @@ function categorie(cat) {
         <div><div class="nr">${cat.nr}</div><h2>${cat.naam}</h2></div>
       </div>
       <p class="regel">${cat.regel}</p>
+      ${cat.feest ? `<p class="feest-woorden">${cat.feest.emoji} ${cat.feest.naam}-woorden: ${cat.woorden.slice(0, 6).map(woord).join(", ")}</p>` : ""}
       ${tekenWeg(cat)}
       ${tekenMeerSpellen(cat)}
       ${buurKnoppen(cat)}
@@ -519,7 +522,7 @@ function dictee(cat) {
         <div class="uitkomst"></div>`;
       const veld = doos.querySelector("input");
       // Zeg het woord twee keer, met een pauze ertussen, zodat je het goed hoort.
-      const zegWoord = () => zeg(BETEKENIS[w] ? metZin(w) : `${w}. ${w}.`);
+      const zegWoord = () => zeg(betekenis(w) ? metZin(w) : `${w}. ${w}.`);
       doos.querySelector(".luister").onclick = zegWoord;
       zegWoord(); veld.focus();
       doos.querySelector("form").onsubmit = (e) => {
@@ -626,7 +629,8 @@ function route() {
   if ("speechSynthesis" in window) speechSynthesis.cancel();
   const [naam, nr] = location.hash.slice(1).split("/");
   const gevonden = vindCat(nr);
-  const cat = gevonden && isOpen(gevonden) ? gevonden : null; // op slot: terug naar het begin
+  // op slot: terug naar het begin. Tijdens een feest: met feest-woorden (zie feesten.js).
+  const cat = gevonden && isOpen(gevonden) ? feestCat(gevonden) : null;
   window.scrollTo(0, 0);
   if (naam === "open" && gevonden) return openMaken(gevonden);
   if (naam === "sorteer" && aantalOpen() >= 2) return sorteer();
