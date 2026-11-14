@@ -584,3 +584,4 @@ header { position: relative; }
 .gereedschap .gum { border-color: #f48fb1; }
 .dikte-knop.gum.gekozen { border-color: #e91e63; background: #fce4ec; }
 .teken-vel.gummen { border-color: #e91e63; }
+.feest-woorden { background: #fff3e0; border: 3px dashed #ff9800; border-radius: 1rem; padding: .5rem .8rem; font-size: 1.15rem; font-weight: bold; }
